@@ -1,0 +1,64 @@
+.switcherContainer {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(122, 31, 61, 0.06);
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--color-border);
+}
+
+.globeIcon {
+  color: var(--color-primary);
+}
+
+.langBtn {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: all var(--transition-fast);
+}
+
+.langBtn:hover {
+  color: var(--color-primary);
+}
+
+.langBtn.active {
+  color: var(--color-primary);
+  background: var(--color-white);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+.divider {
+  color: var(--color-border);
+  font-size: 0.8rem;
+}
+
+/* Footer variant */
+.footer {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.footer .globeIcon {
+  color: var(--color-secondary);
+}
+
+.footer .langBtn {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.footer .langBtn:hover {
+  color: var(--color-white);
+}
+
+.footer .langBtn.active {
+  color: var(--color-dark);
+  background: var(--color-secondary);
+}
+
+.footer .divider {
+  color: rgba(255, 255, 255, 0.3);
+}

@@ -1,0 +1,71 @@
+.safetySection {
+  background: var(--color-white);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.safetyGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+.safetyCard {
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 24px 20px;
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  transition: all var(--transition-normal);
+}
+
+.safetyCard:hover {
+  transform: translateY(-4px);
+  background: var(--color-white);
+  box-shadow: var(--shadow-sm);
+  border-color: rgba(122, 31, 61, 0.3);
+}
+
+.iconCircle {
+  width: 50px;
+  height: 50px;
+  border-radius: 12px;
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.textWrap {
+  display: flex;
+  flex-direction: column;
+}
+
+.pointTitle {
+  font-size: 1.08rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  margin-bottom: 6px;
+  line-height: 1.3;
+}
+
+.pointDesc {
+  font-size: 0.88rem;
+  color: var(--color-text-muted);
+  line-height: 1.55;
+}
+
+@media (max-width: 992px) {
+  .safetyGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .safetyGrid {
+    grid-template-columns: 1fr;
+  }
+}

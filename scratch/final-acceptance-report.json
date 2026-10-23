@@ -1,0 +1,105 @@
+{
+  "build": {
+    "status": "PASS",
+    "errors": 0
+  },
+  "step8": {
+    "marathi": {
+      "rawKeysCount": 0,
+      "rawKeys": [],
+      "hasUndefined": false,
+      "hasBasicInfoSection": true,
+      "hasEducationSection": true,
+      "hasFamilySection": true,
+      "hasLifestyleSection": true,
+      "hasLocationSection": true,
+      "hasAboutMeSection": true,
+      "hasPartnerPrefsSection": true,
+      "hasVerificationStatusSection": true,
+      "editBtnCount": 7
+    },
+    "english": {
+      "rawKeysCount": 0,
+      "rawKeys": [],
+      "hasUndefined": false,
+      "hasBasicInfo": true,
+      "hasEducation": true,
+      "hasFamily": true,
+      "hasLifestyle": true,
+      "hasLocation": true,
+      "hasAboutMe": true,
+      "hasPartnerPrefs": true
+    }
+  },
+  "step9": {
+    "rawKeysCount": 0,
+    "hasConsentCheckbox": true,
+    "isConsentCheckedBefore": false,
+    "isVerifyDisabledBefore": false,
+    "hasNotVerifiedBadge": true,
+    "hasHeader": true,
+    "noExaggeratedClaims": true,
+    "hasPrivacyLinks": true
+  },
+  "step10": {
+    "rawKeysCount": 0,
+    "hasSuccessTitle": true,
+    "hasReviewSubtitle": true,
+    "hasPendingReviewBadge": true,
+    "hasDashboardBtn": true
+  },
+  "autosave": {
+    "testedValue": "स्वप्नील",
+    "persistedValue": "स्वप्नील",
+    "success": true
+  },
+  "languageRegression": {
+    "langChecks": [
+      {
+        "stepNum": 8,
+        "mrRaw": 0,
+        "enRaw": 0,
+        "mrAfterRaw": 0
+      },
+      {
+        "stepNum": 9,
+        "mrRaw": 0,
+        "enRaw": 0,
+        "mrAfterRaw": 0
+      },
+      {
+        "stepNum": 10,
+        "mrRaw": 0,
+        "enRaw": 0,
+        "mrAfterRaw": 0
+      }
+    ],
+    "allZeroRawKeys": true
+  },
+  "mobile": [
+    {
+      "step": 8,
+      "hasHorizontalOverflow": false,
+      "scrollWidth": 390,
+      "clientWidth": 390
+    },
+    {
+      "step": 9,
+      "hasHorizontalOverflow": false,
+      "scrollWidth": 390,
+      "clientWidth": 390
+    },
+    {
+      "step": 10,
+      "hasHorizontalOverflow": false,
+      "scrollWidth": 390,
+      "clientWidth": 390
+    }
+  ],
+  "security": {
+    "distScanned": true,
+    "secretsLeakDetected": false,
+    "findings": []
+  },
+  "productionProviderStatus": "Production Aadhaar verification provider configuration is pending."
+}

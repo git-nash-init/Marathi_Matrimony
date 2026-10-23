@@ -1,0 +1,168 @@
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { Phone, Mail, MapPin } from 'lucide-react';
+import { useLanguage } from '../../i18n/LanguageContext';
+import { LanguageSwitcher } from './LanguageSwitcher';
+import { brandConfig } from '../../config/brand.config';
+import styles from './Footer.module.css';
+
+export const Footer: React.FC = () => {
+  const { t, brandName, brandTagline, localize } = useLanguage();
+
+  return (
+    <footer className={styles.footer}>
+      {/* Top Banner Ornament */}
+      <div className={styles.footerOrnament}></div>
+
+      <div className="container">
+        <div className={styles.footerGrid}>
+            {/* Column 1: Brand Info */}
+          <div className={styles.brandCol}>
+            <div className={styles.footerLogo}>
+              <div className={styles.logoBadge}>
+                <img src="/images/brand/logo.png" alt={brandName} className={styles.footerLogoImg} />
+              </div>
+              <span className={styles.footerBrandName}>{brandName}</span>
+            </div>
+            <p className={styles.brandTagline}>{brandTagline}</p>
+            <p className={styles.brandAbout}>{t.footer.aboutBrand}</p>
+
+            {/* Direct Contact mini info */}
+            <div className={styles.contactList}>
+              <div className={styles.contactItem}>
+                <Phone size={15} className={styles.contactIcon} />
+                <span>{brandConfig.phone}</span>
+              </div>
+              <div className={styles.contactItem}>
+                <Mail size={15} className={styles.contactIcon} />
+                <span>{brandConfig.email}</span>
+              </div>
+              <div className={styles.contactItem}>
+                <MapPin size={15} className={styles.contactIcon} />
+                <span>{localize(brandConfig.address)}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Column 2: Company */}
+          <div className={styles.linksCol}>
+            <h4 className={styles.colTitle}>{t.footer.companyCol}</h4>
+            <ul className={styles.linksList}>
+              <li>
+                <Link to="/about">{t.footer.aboutUs}</Link>
+              </li>
+              <li>
+                <Link to="/contact">{t.footer.contact}</Link>
+              </li>
+              <li>
+                <Link to="/success-stories">{t.footer.successStories}</Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Column 3: Discover */}
+          <div className={styles.linksCol}>
+            <h4 className={styles.colTitle}>{t.footer.discoverCol}</h4>
+            <ul className={styles.linksList}>
+              <li>
+                <Link to="/search">{t.footer.searchProfiles}</Link>
+              </li>
+              <li>
+                <Link to="/membership">{t.footer.membership}</Link>
+              </li>
+              <li>
+                <Link to="/how-it-works">{t.footer.howItWorks}</Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Column 4: Support & Legal */}
+          <div className={styles.linksCol}>
+            <h4 className={styles.colTitle}>{t.footer.supportCol}</h4>
+            <ul className={styles.linksList}>
+              <li>
+                <Link to="/faq">{t.footer.faq}</Link>
+              </li>
+              <li>
+                <Link to="/privacy">{t.footer.privacyPolicy}</Link>
+              </li>
+              <li>
+                <Link to="/terms">{t.footer.terms}</Link>
+              </li>
+            </ul>
+
+            {/* Language Switcher in Footer */}
+            <div className={styles.footerLangWrap}>
+              <span className={styles.langLabel}>{t.footer.languageSelect}</span>
+              <LanguageSwitcher variant="footer" />
+            </div>
+          </div>
+        </div>
+
+        {/* Bottom Bar with Copyright & Socials */}
+        <div className={styles.bottomBar}>
+          <p className={styles.copyright}>
+            &copy; {brandConfig.year} {brandName}. {t.footer.allRightsReserved}
+          </p>
+          <div className={styles.socialPlaceholders}>
+            {/* Facebook */}
+            <a
+              href={brandConfig.social.facebook}
+              target="_blank"
+              rel="noreferrer"
+              className={`${styles.socialLink} ${styles.socialFb}`}
+              aria-label="Facebook"
+              title="Facebook"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+              </svg>
+            </a>
+
+            {/* Instagram */}
+            <a
+              href={brandConfig.social.instagram}
+              target="_blank"
+              rel="noreferrer"
+              className={`${styles.socialLink} ${styles.socialIg}`}
+              aria-label="Instagram"
+              title="Instagram"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+              </svg>
+            </a>
+
+            {/* YouTube */}
+            <a
+              href={brandConfig.social.youtube}
+              target="_blank"
+              rel="noreferrer"
+              className={`${styles.socialLink} ${styles.socialYt}`}
+              aria-label="YouTube"
+              title="YouTube"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+              </svg>
+            </a>
+
+            {/* WhatsApp */}
+            <a
+              href={brandConfig.social.whatsapp}
+              target="_blank"
+              rel="noreferrer"
+              className={`${styles.socialLink} ${styles.socialWa}`}
+              aria-label="WhatsApp"
+              title="WhatsApp"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M17.472 14.382c-.301-.15-1.78-.878-2.056-.978-.276-.1-.477-.15-.678.15-.201.3-.778.978-.954 1.179-.176.2-.351.226-.652.075-.301-.15-1.272-.469-2.423-1.496-.896-.799-1.501-1.786-1.677-2.087-.176-.301-.019-.464.132-.614.136-.135.301-.351.452-.527.151-.176.201-.301.301-.502.101-.2.05-.376-.025-.526-.075-.15-.678-1.633-.929-2.235-.245-.587-.494-.507-.678-.517-.176-.01-.377-.01-.578-.01s-.527.075-.803.376c-.276.301-1.054 1.029-1.054 2.509 0 1.48 1.079 2.909 1.229 3.11.15.2 2.124 3.243 5.145 4.549.718.311 1.278.497 1.716.636.723.23 1.38.198 1.9-.12.58-.354 1.78-1.452 2.03-2.128.251-.676.251-1.254.176-1.379-.075-.125-.276-.201-.577-.351zm-5.467 7.424h-.008a9.866 9.866 0 01-5.031-1.378l-.361-.214-3.741.982.999-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c0-5.445 4.43-9.875 9.884-9.875 2.637 0 5.117 1.028 6.98 2.894 1.864 1.865 2.89 4.346 2.888 6.983 0 5.447-4.432 9.877-9.878 9.877zm8.332-18.21C18.153 1.398 15.342.33 12.355.33 5.617.33.13 5.817.127 12.556c0 2.152.562 4.254 1.63 6.108L0 24l5.502-1.705a12.185 12.185 0 005.85 1.493h.005c6.738 0 12.226-5.488 12.228-12.228 0-3.264-1.27-6.332-3.578-8.64z"/>
+              </svg>
+            </a>
+          </div>
+        </div>
+      </div>
+    </footer>
+  );
+};

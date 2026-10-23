@@ -1,0 +1,632 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { useAuth } from '../../context/AuthContext';
+import { useLanguage } from '../../i18n/LanguageContext';
+import { supabase } from '../../lib/supabase';
+import {
+  ProfileFormData,
+  INITIAL_PROFILE_FORM_DATA,
+  calculateProfileCompletion,
+} from '../../types/profileBuilder.types';
+import { StepperHeader } from './StepperHeader';
+import { Step1BasicDetails } from './Step1BasicDetails';
+import { Step2EducationCareer } from './Step2EducationCareer';
+import { Step3FamilyDetails } from './Step3FamilyDetails';
+import { Step4Lifestyle } from './Step4Lifestyle';
+import { Step5Location } from './Step5Location';
+import { Step6AboutMe } from './Step6AboutMe';
+import { Step7PartnerPreferences } from './Step7PartnerPreferences';
+import { Step8ReviewSubmit } from './Step8ReviewSubmit';
+import { Step9IdentityVerification } from './Step9IdentityVerification';
+import { Step10ProfileSubmitted } from './Step10ProfileSubmitted';
+import { StepFooter } from '../common/StepFooter';
+import {
+  CheckCircle2,
+  AlertCircle,
+  Loader2,
+} from 'lucide-react';
+
+interface ProfileBuilderProps {
+  mode?: 'create' | 'edit';
+}
+
+export const ProfileBuilderContainer: React.FC<ProfileBuilderProps> = ({ mode: _mode = 'create' }) => {
+  const { user } = useAuth();
+  const { t, language } = useLanguage();
+
+  const [currentStep, setCurrentStep] = useState<number>(1);
+  const [formData, setFormData] = useState<ProfileFormData>(INITIAL_PROFILE_FORM_DATA);
+  const [profileId, setProfileId] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isSaving, setIsSaving] = useState<boolean>(false);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [saveSuccessMessage, setSaveSuccessMessage] = useState<string | null>(null);
+  const [saveErrorMessage, setSaveErrorMessage] = useState<string | null>(null);
+
+  const autosaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isInitialMount = useRef<boolean>(true);
+
+  // 1. Fetch existing profile and preferences on load
+  useEffect(() => {
+    let isMounted = true;
+    const loadProfileData = async () => {
+      if (!user) {
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        setIsLoading(true);
+        // Load profile
+        const { data: profile, error: profileErr } = await (supabase.from('profiles') as any)
+          .select('*')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        if (profileErr && profileErr.code !== 'PGRST116') {
+          console.error('Error fetching profile:', profileErr);
+        }
+
+        if (profile && isMounted) {
+          setProfileId(profile.id);
+
+          // Load partner preferences if profile exists
+          const { data: prefData } = await (supabase.from('partner_preferences') as any)
+            .select('*')
+            .eq('profile_id', profile.id)
+            .maybeSingle();
+
+          setFormData({
+            // Basic
+            first_name: profile.first_name || '',
+            last_name: profile.last_name || '',
+            profile_for: profile.profile_for || 'self',
+            gender: profile.gender || 'male',
+            date_of_birth: profile.date_of_birth || '',
+            height_cm: profile.height_cm || 165,
+            marital_status: profile.marital_status || 'never_married',
+            mother_tongue: profile.mother_tongue || 'Marathi',
+            religion: profile.religion || 'Hindu',
+            community: profile.community || '',
+            sub_community: profile.sub_community || '',
+            gothra: profile.gothra || '',
+            manglik: profile.manglik || 'no',
+            horoscope_match_required: profile.horoscope_match_required ?? true,
+
+            // Education & Career
+            highest_education: profile.highest_education || '',
+            education_detail: profile.education_detail || '',
+            college_institution: profile.college_institution || '',
+            occupation: profile.occupation || '',
+            occupation_detail: profile.occupation_detail || '',
+            employed_in: profile.employed_in || '',
+            organization_name: profile.organization_name || '',
+            annual_income: profile.annual_income || '',
+            work_location: (profile as any).work_location || '',
+
+            // Family
+            father_occupation: profile.father_occupation || '',
+            mother_occupation: profile.mother_occupation || '',
+            family_type: profile.family_type || 'nuclear',
+            family_values: profile.family_values || 'traditional',
+            family_status: profile.family_status || 'middle_class',
+            brothers_count: (profile as any).brothers_count ?? 0,
+            brothers_married: profile.brothers_married ?? 0,
+            sisters_count: (profile as any).sisters_count ?? 0,
+            sisters_married: profile.sisters_married ?? 0,
+
+            // Lifestyle & Location
+            diet: profile.diet || 'vegetarian',
+            smoking: profile.smoking || 'no',
+            drinking: profile.drinking || 'no',
+            hobbies: (profile as any).hobbies || [],
+            personality: (profile as any).personality || '',
+            current_city: profile.current_city || '',
+            current_district: profile.current_district || '',
+            current_state: profile.current_state || 'Maharashtra',
+            current_country: profile.current_country || 'India',
+            citizenship: profile.citizenship || 'Indian',
+            native_place: (profile as any).native_place || '',
+            native_district: (profile as any).native_district || '',
+
+            // About Me
+            about_me: profile.about_me || '',
+
+            // Partner Preferences
+            partner_min_age: prefData?.min_age || 21,
+            partner_max_age: prefData?.max_age || 32,
+            partner_min_height: prefData?.min_height_cm || 150,
+            partner_max_height: prefData?.max_height_cm || 185,
+            partner_marital_status: prefData?.marital_status || ['any'],
+            partner_religion: prefData?.religion || ['Hindu'],
+            partner_communities: prefData?.communities || ['any'],
+            partner_manglik: prefData?.manglik || 'does_not_matter',
+            partner_education: prefData?.education_levels || ['any'],
+            partner_occupation: prefData?.occupations || ['any'],
+            partner_min_income: prefData?.min_income || 'any',
+            partner_diet: prefData?.diet || ['any'],
+            partner_location: prefData?.preferred_cities?.join(', ') || '',
+            partner_notes: prefData?.notes || '',
+          });
+        } else if (isMounted) {
+          try {
+            const savedDraft = localStorage.getItem(`profile_draft_${user.id}`);
+            if (savedDraft) {
+              const parsed = JSON.parse(savedDraft);
+              setFormData((prev) => ({ ...prev, ...parsed }));
+            }
+          } catch (e) {
+            // ignore JSON error
+          }
+        }
+      } catch (err) {
+        console.error('Failed to load profile details:', err);
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+          // Mark initial mount complete after state sync
+          setTimeout(() => {
+            isInitialMount.current = false;
+          }, 500);
+        }
+      }
+    };
+
+    loadProfileData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [user]);
+
+  // Handle Field Change
+  const handleChange = (field: keyof ProfileFormData, value: any) => {
+    setFormData((prev) => {
+      const next = { ...prev, [field]: value };
+      if (user) {
+        try {
+          localStorage.setItem(`profile_draft_${user.id}`, JSON.stringify(next));
+        } catch (e) {
+          // ignore
+        }
+      }
+      return next;
+    });
+    // Clear error for field
+    if (errors[field]) {
+      setErrors((prev) => {
+        const next = { ...prev };
+        delete next[field];
+        return next;
+      });
+    }
+  };
+
+  // Debounced Autosave (saves draft every 2.5 seconds when form changes)
+  useEffect(() => {
+    if (isInitialMount.current || !user || isLoading) return;
+
+    if (autosaveTimeoutRef.current) {
+      clearTimeout(autosaveTimeoutRef.current);
+    }
+
+    autosaveTimeoutRef.current = setTimeout(() => {
+      saveProfileToSupabase('draft', false);
+    }, 2500);
+
+    return () => {
+      if (autosaveTimeoutRef.current) clearTimeout(autosaveTimeoutRef.current);
+    };
+  }, [formData, user, isLoading]);
+
+  // Core Save / Upsert Function
+  const saveProfileToSupabase = async (
+    status: 'draft' | 'pending_review' = 'draft',
+    showNotifications: boolean = true
+  ): Promise<boolean> => {
+    if (!user) return false;
+
+    try {
+      setIsSaving(true);
+      setSaveErrorMessage(null);
+
+      const incomeNumeric = formData.annual_income === 'not_disclosed' || !formData.annual_income
+        ? null
+        : typeof formData.annual_income === 'number'
+        ? formData.annual_income
+        : parseFloat(String(formData.annual_income).replace(/[^\d.]/g, '')) || null;
+
+      const profilePayload: Record<string, any> = {
+        user_id: user.id,
+        display_name: `${formData.first_name} ${formData.last_name || ''}`.trim(),
+        first_name: formData.first_name,
+        last_name: formData.last_name,
+        profile_for: formData.profile_for || 'self',
+        gender: formData.gender,
+        date_of_birth: formData.date_of_birth || null,
+        height_cm: formData.height_cm || null,
+        marital_status: formData.marital_status || null,
+        mother_tongue: formData.mother_tongue || 'Marathi',
+        religion: formData.religion || 'Hindu',
+        community: formData.community || null,
+        sub_community: formData.sub_community || null,
+        manglik_status: formData.manglik || (formData as any).manglik_status || null,
+        horoscope_available: formData.horoscope_match_required ?? (formData as any).horoscope_available ?? false,
+
+        education: formData.highest_education || (formData as any).education || null,
+        college: formData.college_institution || (formData as any).college || null,
+        occupation: formData.occupation || null,
+        company: formData.organization_name || (formData as any).company || null,
+        annual_income: incomeNumeric,
+        employment_type: formData.employed_in || (formData as any).employment_type || null,
+
+        father_occupation: formData.father_occupation || null,
+        mother_occupation: formData.mother_occupation || null,
+        family_type: formData.family_type || null,
+        family_values: formData.family_values || null,
+        siblings_count: (Number(formData.brothers_count) || 0) + (Number(formData.sisters_count) || 0),
+
+        diet: formData.diet || null,
+        smoking: formData.smoking || null,
+        drinking: formData.drinking || null,
+
+        city: formData.current_city || (formData as any).city || null,
+        district: formData.current_district || (formData as any).district || null,
+        state: formData.current_state || (formData as any).state || 'Maharashtra',
+        country: formData.current_country || (formData as any).country || 'India',
+
+        about_me: formData.about_me || null,
+        profile_status: status,
+        is_visible: false, // strictly private until review
+        verification_status: formData.self_attested ? 'verified' : 'not_started',
+      };
+
+      let savedProfileId = profileId;
+
+      if (!savedProfileId) {
+        profilePayload.profile_id = `MM${Math.floor(100000 + Math.random() * 900000)}`;
+        // Insert new profile
+        const { data: inserted, error: insertErr } = await (supabase.from('profiles') as any)
+          .insert(profilePayload)
+          .select('id')
+          .single();
+
+        if (insertErr) throw insertErr;
+        if (inserted) {
+          savedProfileId = inserted.id;
+          setProfileId(inserted.id);
+        }
+      } else {
+        // Update existing profile
+        const { error: updateErr } = await (supabase.from('profiles') as any)
+          .update(profilePayload)
+          .eq('id', savedProfileId)
+          .eq('user_id', user.id);
+
+        if (updateErr) throw updateErr;
+      }
+
+      // Save partner preferences if profile id is available
+      if (savedProfileId) {
+        const prefPayload: Record<string, any> = {
+          profile_id: savedProfileId,
+          min_age: formData.partner_min_age || 18,
+          max_age: formData.partner_max_age || 60,
+          min_height_cm: formData.partner_min_height || 140,
+          max_height_cm: formData.partner_max_height || 210,
+          marital_status: Array.isArray(formData.partner_marital_status) ? formData.partner_marital_status[0] : (formData.partner_marital_status || 'any'),
+          religion: Array.isArray(formData.partner_religion) ? formData.partner_religion[0] : (formData.partner_religion || 'Hindu'),
+          community: Array.isArray(formData.partner_communities) ? formData.partner_communities[0] : ((formData as any).partner_community || 'any'),
+          manglik_status: formData.partner_manglik || 'does_not_matter',
+          education: Array.isArray(formData.partner_education) ? formData.partner_education[0] : ((formData as any).partner_education || 'any'),
+          occupation: Array.isArray(formData.partner_occupation) ? formData.partner_occupation[0] : ((formData as any).partner_occupation || 'any'),
+          min_income: formData.partner_min_income && formData.partner_min_income !== 'any' ? parseFloat(String(formData.partner_min_income).replace(/[^\d.]/g, '')) || null : null,
+          diet: Array.isArray(formData.partner_diet) ? formData.partner_diet[0] : (formData.partner_diet || 'any'),
+          city: formData.partner_location || null,
+        };
+
+        const { error: prefErr } = await (supabase.from('partner_preferences') as any)
+          .upsert(prefPayload, { onConflict: 'profile_id' });
+
+        if (prefErr) {
+          console.warn('Partner preferences upsert note:', prefErr.message);
+        }
+      }
+
+      setLastSaved(new Date());
+
+      if (showNotifications) {
+        setSaveSuccessMessage(
+          status === 'pending_review'
+            ? (language === 'mr' ? 'आपले प्रोफाइल पुनरावलोकनासाठी यशस्वीरीत्या सादर झाले आहे.' : 'Profile submitted for review successfully.')
+            : t.profileBuilder.draftSaved
+        );
+        setTimeout(() => setSaveSuccessMessage(null), 4000);
+      }
+
+      return true;
+    } catch (err: any) {
+      console.error('Failed to save profile:', err);
+      if (showNotifications) {
+        setSaveErrorMessage(err.message || 'Error saving profile.');
+        setTimeout(() => setSaveErrorMessage(null), 5000);
+      }
+      return false;
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // Step Validation Logic
+  const validateCurrentStep = (stepNumber: number): boolean => {
+    const errs: Record<string, string> = {};
+
+    if (stepNumber === 1) {
+      if (!formData.first_name.trim()) errs.first_name = t('profileBuilder.errFirstNameReq');
+      if (!formData.date_of_birth) errs.date_of_birth = t('profileBuilder.errDobReq');
+      if (!formData.community) errs.community = t('profileBuilder.errCommunityReq');
+    } else if (stepNumber === 2) {
+      if (!formData.highest_education) errs.highest_education = t('profileBuilder.errEducationReq');
+      if (!formData.occupation) errs.occupation = t('profileBuilder.errOccupationReq');
+      if (!formData.annual_income) errs.annual_income = t('profileBuilder.errIncomeReq');
+    } else if (stepNumber === 3) {
+      if (!formData.father_occupation.trim()) errs.father_occupation = t('profileBuilder.errFatherOccupationReq');
+      if (!formData.mother_occupation.trim()) errs.mother_occupation = t('profileBuilder.errMotherOccupationReq');
+      if (!formData.family_type) errs.family_type = t('profileBuilder.errFamilyTypeReq');
+      if (!formData.family_values) errs.family_values = t('profileBuilder.errFamilyValuesReq');
+    } else if (stepNumber === 4) {
+      if (!formData.diet) errs.diet = t('profileBuilder.errDietReq');
+      if (!formData.smoking) errs.smoking = t('profileBuilder.errSmokingReq');
+      if (!formData.drinking) errs.drinking = t('profileBuilder.errDrinkingReq');
+    } else if (stepNumber === 5) {
+      if (!formData.current_city.trim()) errs.current_city = t('profileBuilder.errCityReq');
+      if (!formData.current_state.trim()) errs.current_state = t('profileBuilder.errStateReq');
+      if (!formData.native_place.trim()) errs.native_place = t('profileBuilder.errNativePlaceReq');
+    } else if (stepNumber === 6) {
+      if (!formData.about_me || formData.about_me.trim().length < 50) {
+        errs.about_me = t('profileBuilder.errAboutMeMin');
+      }
+    }
+
+    setErrors(errs);
+    return Object.keys(errs).length === 0;
+  };
+
+  const handleNext = async () => {
+    if (validateCurrentStep(currentStep)) {
+      await saveProfileToSupabase('draft', false);
+      if (currentStep < 9) {
+        setCurrentStep((prev) => prev + 1);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }
+  };
+
+  const handlePrevious = () => {
+    if (currentStep > 1 && currentStep < 10) {
+      setCurrentStep((prev) => prev - 1);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  const handleJumpToStep = (step: number) => {
+    if (currentStep !== 10) {
+      setCurrentStep(step);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  const handleSaveDraft = async () => {
+    await saveProfileToSupabase('draft', true);
+  };
+
+  const handleFinalSubmit = async () => {
+    // Validate all required steps before final submit
+    let hasError = false;
+    for (let s = 1; s <= 6; s++) {
+      if (!validateCurrentStep(s)) {
+        setCurrentStep(s);
+        hasError = true;
+        setSaveErrorMessage(t('profileBuilder.fillRequiredErrors'));
+        setTimeout(() => setSaveErrorMessage(null), 5000);
+        break;
+      }
+    }
+
+    if (hasError) return;
+
+    try {
+      setIsSubmitting(true);
+      const success = await saveProfileToSupabase('pending_review', true);
+      if (success) {
+        setCurrentStep(10);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const completionPercentage = calculateProfileCompletion(formData);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center">
+        <Loader2 className="w-10 h-10 text-marathi-red animate-spin mb-3" />
+        <p className="text-sm font-semibold text-gray-700">
+          {t('profileBuilder.loadingProfile')}...
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ maxWidth: '1140px', margin: '0 auto', padding: '32px 16px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+      {/* Toast Notifications */}
+      {saveSuccessMessage && (
+        <div
+          style={{
+            position: 'fixed',
+            top: '80px',
+            right: '20px',
+            zIndex: 9999,
+            background: 'var(--color-success, #1E824C)',
+            color: '#FFFFFF',
+            padding: '12px 20px',
+            borderRadius: '12px',
+            boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            fontSize: '0.9rem',
+            fontWeight: 700,
+          }}
+        >
+          <CheckCircle2 size={18} />
+          {saveSuccessMessage}
+        </div>
+      )}
+
+      {saveErrorMessage && (
+        <div
+          style={{
+            position: 'fixed',
+            top: '80px',
+            right: '20px',
+            zIndex: 9999,
+            background: 'var(--color-danger, #C0392B)',
+            color: '#FFFFFF',
+            padding: '12px 20px',
+            borderRadius: '12px',
+            boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            fontSize: '0.9rem',
+            fontWeight: 700,
+          }}
+        >
+          <AlertCircle size={18} />
+          {saveErrorMessage}
+        </div>
+      )}
+
+      {/* Stepper Header */}
+      <StepperHeader
+        currentStep={currentStep}
+        totalSteps={10}
+        completionPercentage={currentStep === 10 ? 100 : completionPercentage}
+        onStepClick={handleJumpToStep}
+        lastSaved={lastSaved}
+        isSaving={isSaving}
+        onSaveDraft={handleSaveDraft}
+      />
+
+      {/* Step Content Container */}
+      <div
+        style={{
+          background: '#FFFFFF',
+          borderRadius: '16px',
+          border: '1.5px solid var(--color-border, #E8DFC8)',
+          boxShadow: '0 4px 20px rgba(122, 31, 61, 0.05)',
+          padding: '32px 36px',
+        }}
+      >
+        {currentStep === 1 && (
+          <Step1BasicDetails
+            data={formData}
+            onChange={handleChange}
+            errors={errors}
+          />
+        )}
+        {currentStep === 2 && (
+          <Step2EducationCareer
+            data={formData}
+            onChange={handleChange}
+            errors={errors}
+          />
+        )}
+        {currentStep === 3 && (
+          <Step3FamilyDetails
+            data={formData}
+            onChange={handleChange}
+            errors={errors}
+          />
+        )}
+        {currentStep === 4 && (
+          <Step4Lifestyle
+            data={formData}
+            onChange={handleChange}
+            errors={errors}
+          />
+        )}
+        {currentStep === 5 && (
+          <Step5Location
+            data={formData}
+            onChange={handleChange}
+            errors={errors}
+          />
+        )}
+        {currentStep === 6 && (
+          <Step6AboutMe
+            data={formData}
+            onChange={handleChange}
+            errors={errors}
+          />
+        )}
+        {currentStep === 7 && (
+          <Step7PartnerPreferences
+            data={formData}
+            onChange={handleChange}
+            errors={errors}
+          />
+        )}
+        {currentStep === 8 && (
+          <Step8ReviewSubmit
+            data={formData}
+            onJumpToStep={handleJumpToStep}
+            completionPercentage={completionPercentage}
+          />
+        )}
+        {currentStep === 9 && (
+          <Step9IdentityVerification
+            data={formData}
+            onChange={handleChange}
+            errors={errors}
+          />
+        )}
+        {currentStep === 10 && (
+          <Step10ProfileSubmitted
+            profileId={profileId}
+            firstName={formData.first_name}
+          />
+        )}
+
+        {/* Navigation Footer (hidden on confirmation screen Step 10) */}
+        {currentStep < 10 && (
+          <StepFooter
+            onPrevious={currentStep > 1 ? handlePrevious : undefined}
+            onNext={currentStep === 9 ? handleFinalSubmit : handleNext}
+            onSaveDraft={handleSaveDraft}
+            prevLabel={t('profileBuilder.previous')}
+            nextLabel={
+              currentStep === 8
+                ? language === 'mr'
+                  ? 'पडताळणीकडे जा'
+                  : 'Proceed to Verification'
+                : currentStep === 9
+                ? t('profileBuilder.finalSubmit')
+                : t('profileBuilder.next')
+            }
+            saveDraftLabel={t('profileBuilder.saveDraft')}
+            isSavingDraft={isSaving}
+            isSubmitting={isSubmitting}
+            showPrevious={currentStep > 1}
+            showSaveDraft={true}
+          />
+        )}
+      </div>
+    </div>
+  );
+};

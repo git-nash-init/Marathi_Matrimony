@@ -1,0 +1,93 @@
+{
+  "step8": {
+    "marathi": {
+      "rawKeysCount": 0,
+      "rawKeys": [],
+      "hasUndefined": false,
+      "cardCount": 11,
+      "editBtnCount": 0,
+      "pageTextSnippet": "सत्यापित प्रोफाइल • १००% सुरक्षित मराठी वैवाहिक सेवा\nहेल्पलाइन: +91 98220 12345\nमराठी जीवनसाथी\nविश्वसनीय मराठी वैवाहिक व्यासपीठ\nमुख्यपृष्ठ\nप्रोफाइल शोधा\nकसे कार्य करते\nयशोगाथा\nसदस्यत्व योजना\nआमच्याबद्दल\nसंपर्क\nमराठी\n|\nEnglish\nacceptance_user\nमराठी वैवाहिक प्रोफाइल बिल्डर\n\nआपली सविस्तर माहिती भरा आणि"
+    },
+    "english": {
+      "rawKeysCount": 0,
+      "rawKeys": [],
+      "hasUndefined": false,
+      "hasBasicInfo": true,
+      "hasEducation": false,
+      "hasFamily": false,
+      "hasPartnerPrefs": false
+    }
+  },
+  "step9": {
+    "rawKeysCount": 0,
+    "hasConsentCheckbox": true,
+    "isConsentCheckedBefore": false,
+    "isVerifyDisabledBefore": false,
+    "hasNotVerifiedBadge": true,
+    "hasHeader": true,
+    "noExaggeratedClaims": true
+  },
+  "step10": {
+    "rawKeysCount": 0,
+    "hasSuccessTitle": false,
+    "hasReviewSubtitle": false,
+    "hasPendingReviewBadge": true,
+    "hasDashboardBtn": false
+  },
+  "autosave": {
+    "entered": "स्वप्नील",
+    "persistedAfterReload": "",
+    "success": false
+  },
+  "languageRegression": {
+    "langChecks": [
+      {
+        "step": 8,
+        "mrRaw": 0,
+        "enRaw": 0,
+        "mrAfterRaw": 0
+      },
+      {
+        "step": 9,
+        "mrRaw": 0,
+        "enRaw": 0,
+        "mrAfterRaw": 0
+      },
+      {
+        "step": 10,
+        "mrRaw": 0,
+        "enRaw": 0,
+        "mrAfterRaw": 0
+      }
+    ],
+    "allZeroRawKeys": true
+  },
+  "mobile": [
+    {
+      "step": 8,
+      "hasHorizontalOverflow": true,
+      "scrollWidth": 641,
+      "clientWidth": 390,
+      "buttonCount": 27
+    },
+    {
+      "step": 9,
+      "hasHorizontalOverflow": true,
+      "scrollWidth": 641,
+      "clientWidth": 390,
+      "buttonCount": 27
+    },
+    {
+      "step": 10,
+      "hasHorizontalOverflow": true,
+      "scrollWidth": 641,
+      "clientWidth": 390,
+      "buttonCount": 27
+    }
+  ],
+  "security": {
+    "distScanned": true,
+    "secretsLeakDetected": false,
+    "findings": []
+  }
+}

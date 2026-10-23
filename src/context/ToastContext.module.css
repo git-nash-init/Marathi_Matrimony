@@ -1,0 +1,132 @@
+.toastContainer {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 99999;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 420px;
+  width: calc(100vw - 32px);
+  pointer-events: none;
+}
+
+.toast {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: #FFFFFF;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12), 0 2px 6px rgba(0, 0, 0, 0.06);
+  border: 1.5px solid transparent;
+  animation: slideIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  transition: all 0.2s ease;
+}
+
+.toastMessage {
+  flex: 1;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #1E293B;
+  line-height: 1.4;
+}
+
+.toastIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.closeBtn {
+  background: none;
+  border: none;
+  color: #94A3B8;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: all 0.15s ease;
+}
+
+.closeBtn:hover {
+  background: #F1F5F9;
+  color: #334155;
+}
+
+/* Toast Variants */
+.success {
+  border-color: #86EFAC;
+  background: #F0FDF4;
+}
+
+.success .toastIcon {
+  color: #16A34A;
+}
+
+.success .toastMessage {
+  color: #14532D;
+}
+
+.error {
+  border-color: #FECDD3;
+  background: #FFF1F2;
+}
+
+.error .toastIcon {
+  color: #E11D48;
+}
+
+.error .toastMessage {
+  color: #881337;
+}
+
+.warning {
+  border-color: #FDE68A;
+  background: #FFFBEB;
+}
+
+.warning .toastIcon {
+  color: #D97706;
+}
+
+.warning .toastMessage {
+  color: #78350F;
+}
+
+.info {
+  border-color: var(--color-border, #E8DFC8);
+  background: #FAF7F2;
+}
+
+.info .toastIcon {
+  color: var(--color-primary, #7A1F3D);
+}
+
+.info .toastMessage {
+  color: var(--color-primary, #7A1F3D);
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (max-width: 600px) {
+  .toastContainer {
+    bottom: 16px;
+    right: 16px;
+    left: 16px;
+    width: auto;
+  }
+}

@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+  <defs>
+    <radialGradient id="bgGlow" cx="50%" cy="30%" r="70%">
+      <stop offset="0%" stop-color="#9E2A4F"/>
+      <stop offset="100%" stop-color="#5C132A"/>
+    </radialGradient>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F5E0A9"/>
+      <stop offset="40%" stop-color="#D4AF37"/>
+      <stop offset="80%" stop-color="#AA8010"/>
+      <stop offset="100%" stop-color="#805F06"/>
+    </linearGradient>
+    <filter id="goldShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#000000" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+
+  <!-- Royal Background Squircle -->
+  <rect x="4" y="4" width="112" height="112" rx="28" fill="url(#bgGlow)" stroke="url(#goldGrad)" stroke-width="2.5"/>
+  <rect x="8" y="8" width="104" height="104" rx="24" fill="none" stroke="url(#goldGrad)" stroke-width="0.75" stroke-dasharray="3,2" opacity="0.6"/>
+
+  <!-- Kalash Base / Body -->
+  <g filter="url(#goldShadow)">
+    <!-- Kalash Leaves (Mango Leaves) -->
+    <path d="M60 26 C53 14, 45 16, 42 28 C48 30, 54 32, 60 36 Z" fill="url(#goldGrad)"/>
+    <path d="M60 26 C67 14, 75 16, 78 28 C72 30, 66 32, 60 36 Z" fill="url(#goldGrad)"/>
+    <path d="M60 18 C57 10, 63 10, 60 18 Z" fill="url(#goldGrad)"/>
+    
+    <!-- Coconut top -->
+    <ellipse cx="60" cy="30" rx="11" ry="13" fill="url(#goldGrad)"/>
+    
+    <!-- Kalash Pot Rim -->
+    <path d="M44 42 C44 38, 76 38, 76 42 C76 45, 44 45, 44 42 Z" fill="url(#goldGrad)"/>
+    
+    <!-- Kalash Pot Body -->
+    <path d="M47 43 C42 50, 38 64, 44 76 C48 83, 72 83, 76 76 C82 64, 78 50, 73 43 Z" fill="url(#goldGrad)"/>
+    
+    <!-- Auspicious Swastika Symbol inside Pot -->
+    <path d="M56 55 H64 V67 M52 59 H64 M56 63 H68 M60 55 V67 M52 55 V59 M68 63 V67" 
+          stroke="#5C132A" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    
+    <!-- Kalash Base Stand -->
+    <path d="M48 78 H72 L75 83 H45 Z" fill="url(#goldGrad)"/>
+
+    <!-- Sacred Mangalsutra Curve with dual vatis -->
+    <path d="M30 46 Q60 88 90 46" fill="none" stroke="#222" stroke-width="2.5" stroke-dasharray="2,2"/>
+    <path d="M30 46 Q60 88 90 46" fill="none" stroke="url(#goldGrad)" stroke-width="1.2"/>
+    
+    <!-- Dual Golden Vatis (traditional Maharashtrian auspicious cups) -->
+    <circle cx="55.5" cy="85" r="4.5" fill="url(#goldGrad)"/>
+    <circle cx="64.5" cy="85" r="4.5" fill="url(#goldGrad)"/>
+    <circle cx="55.5" cy="85" r="1.5" fill="#5C132A"/>
+    <circle cx="64.5" cy="85" r="1.5" fill="#5C132A"/>
+  </g>
+</svg>

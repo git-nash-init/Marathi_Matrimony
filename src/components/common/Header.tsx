@@ -3,10 +3,11 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { useAuth } from '../../context/AuthContext';
 import { LanguageSwitcher } from './LanguageSwitcher';
-import { Button } from './Button';
+import { shortlistService } from '../../services/shortlist.service';
 import {
   VerifiedShieldIcon,
-  WhatsAppCrestIcon
+  WhatsAppCrestIcon,
+  ShortlistBookmarkIcon
 } from './CulturalIcons';
 import styles from './Header.module.css';
 
@@ -17,13 +18,31 @@ export const Header: React.FC = () => {
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [shortlistCount, setShortlistCount] = useState(0);
 
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
+      setIsScrolled(window.scrollY > 15);
     };
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Sync shortlist counter
+  useEffect(() => {
+    let isMounted = true;
+    shortlistService.getShortlistedIds().then((ids) => {
+      if (isMounted) setShortlistCount(ids.length);
+    });
+    const unsubscribe = shortlistService.subscribe(() => {
+      shortlistService.getShortlistedIds().then((ids) => {
+        if (isMounted) setShortlistCount(ids.length);
+      });
+    });
+    return () => {
+      isMounted = false;
+      unsubscribe();
+    };
   }, []);
 
   // Close mobile menu on route change
@@ -36,13 +55,24 @@ export const Header: React.FC = () => {
     navigate('/', { replace: true });
   };
 
-  const navLinks = [
+  // Streamlined, uncluttered desktop navigation links
+  const desktopNavLinks = [
+    { to: '/search', label: language === 'mr' ? 'स्थळे शोधा' : 'Matches' },
+    { to: '/success-stories', label: language === 'mr' ? 'विवाहगाथा' : 'Stories' },
+    { to: '/membership', label: language === 'mr' ? 'योजना' : 'Plans' },
+    { to: '/wedding-services', label: language === 'mr' ? 'लग्न सेवा' : 'Services' },
+    { to: '/contact', label: language === 'mr' ? 'संपर्क' : 'Contact' },
+  ];
+
+  // Full navigation links for the mobile drawer
+  const mobileNavLinks = [
     { to: '/', label: t.nav.home },
     { to: '/search', label: t.nav.search },
-    { to: '/shortlist', label: t.shortlist?.title || (language === 'mr' ? 'शॉर्टलिस्ट' : 'Shortlist') },
-    { to: '/how-it-works', label: t.nav.howItWorks },
+    { to: '/shortlist', label: t.shortlist?.title || (language === 'mr' ? 'शॉर्टलिस्ट स्थळे' : 'Shortlisted') },
     { to: '/success-stories', label: t.nav.successStories },
     { to: '/membership', label: t.nav.membership },
+    { to: '/wedding-services', label: language === 'mr' ? 'लग्न सेवा' : 'Wedding Services' },
+    { to: '/how-it-works', label: t.nav.howItWorks },
     { to: '/about', label: t.nav.aboutUs },
     { to: '/contact', label: t.nav.contact }
   ];
@@ -58,8 +88,8 @@ export const Header: React.FC = () => {
         <div className="container">
           <div className={styles.topMicroContent}>
             <span className={styles.topBadge}>
-              <VerifiedShieldIcon size={15} className={styles.topIcon} color="#F4EBD9" />
-              <span>{language === 'mr' ? '१००% पडताळणी केलेले ९६ कुळी मराठा प्रोफाइल्स' : '100% Verified 96 Kuli Maratha Profiles'}</span>
+              <VerifiedShieldIcon size={14} className={styles.topIcon} color="#F5EBDD" />
+              <span>{language === 'mr' ? '१००% पडताळणी झालेले ९६ कुळी मराठा प्रोफाइल्स' : '100% Verified 96 Kuli Maratha Profiles'}</span>
             </span>
             <div className={styles.topRight}>
               <a
@@ -77,7 +107,7 @@ export const Header: React.FC = () => {
         </div>
       </div>
 
-      {/* Main Navigation Bar */}
+      {/* Main Navigation Bar with Glassmorphism */}
       <div className={styles.mainNav}>
         <div className="container">
           <div className={styles.navWrapper}>
@@ -96,9 +126,9 @@ export const Header: React.FC = () => {
               </div>
             </Link>
 
-            {/* Desktop Navigation Links */}
+            {/* Desktop Navigation Links - Centered, Uncluttered, Spaced */}
             <nav className={styles.desktopNav} aria-label="Main Navigation">
-              {navLinks.map(link => {
+              {desktopNavLinks.map(link => {
                 const isActive = location.pathname === link.to;
                 return (
                   <Link
@@ -112,27 +142,26 @@ export const Header: React.FC = () => {
               })}
             </nav>
 
-            {/* Right Action Buttons */}
+            {/* Right Action Cluster */}
             <div className={styles.rightActions}>
+              {/* Shortlist Icon with Counter */}
+              <Link
+                to="/shortlist"
+                className={styles.shortlistBtn}
+                title={language === 'mr' ? 'शॉर्टलिस्ट स्थळे' : 'Shortlisted Profiles'}
+                aria-label="Shortlist"
+              >
+                <ShortlistBookmarkIcon size={18} color="var(--color-oxblood)" />
+                {shortlistCount > 0 && (
+                  <span className={styles.shortlistBadge}>{shortlistCount}</span>
+                )}
+              </Link>
+
               <LanguageSwitcher variant="header" />
               
               {isAuthenticated ? (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <Link
-                    to="/dashboard"
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      padding: '6px 14px',
-                      borderRadius: 'var(--radius-full)',
-                      background: 'var(--color-primary-light)',
-                      color: 'var(--color-primary)',
-                      fontSize: '0.88rem',
-                      fontWeight: 700,
-                      textDecoration: 'none'
-                    }}
-                  >
+                  <Link to="/dashboard" className={styles.userProfilePill}>
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                       <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                       <circle cx="12" cy="7" r="4"></circle>
@@ -142,16 +171,7 @@ export const Header: React.FC = () => {
                   <button
                     type="button"
                     onClick={handleLogout}
-                    style={{
-                      background: 'transparent',
-                      border: 'none',
-                      color: 'var(--color-text-muted)',
-                      cursor: 'pointer',
-                      padding: '6px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center'
-                    }}
+                    className={styles.logoutBtn}
                     title={t.dashboard.logoutBtn}
                     aria-label={t.dashboard.logoutBtn}
                   >
@@ -163,45 +183,45 @@ export const Header: React.FC = () => {
                   </button>
                 </div>
               ) : (
-                <>
+                <div className={styles.authButtonsGroup}>
                   <Link to="/login" className={styles.loginLink}>
                     {t.nav.login}
                   </Link>
-                  <Button to="/register" variant="primary" size="sm">
+                  <Link to="/register" className={styles.registerBtn}>
                     {t.nav.registerFree}
-                  </Button>
-                </>
+                  </Link>
+                </div>
               )}
-            </div>
 
-            {/* Mobile Hamburger Button */}
-            <button
-              type="button"
-              className={styles.hamburgerBtn}
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              aria-label={mobileMenuOpen ? t.nav.close : t.nav.menu}
-            >
-              {mobileMenuOpen ? (
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <line x1="18" y1="6" x2="6" y2="18"></line>
-                  <line x1="6" y1="6" x2="18" y2="18"></line>
-                </svg>
-              ) : (
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              {/* Mobile Hamburger Button */}
+              <button
+                type="button"
+                className={styles.hamburgerBtn}
+                onClick={() => setMobileMenuOpen(true)}
+                aria-label="Open navigation menu"
+                aria-expanded={mobileMenuOpen}
+              >
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="3" y1="12" x2="21" y2="12"></line>
                   <line x1="3" y1="6" x2="21" y2="6"></line>
                   <line x1="3" y1="18" x2="21" y2="18"></line>
                 </svg>
-              )}
-            </button>
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
-        <div className={styles.mobileDrawerBackdrop} onClick={() => setMobileMenuOpen(false)}>
-          <div className={styles.mobileDrawer} onClick={(e) => e.stopPropagation()}>
+        <div
+          className={styles.mobileDrawerBackdrop}
+          onClick={() => setMobileMenuOpen(false)}
+        >
+          <div
+            className={styles.mobileDrawer}
+            onClick={e => e.stopPropagation()}
+          >
             <div className={styles.mobileDrawerHeader}>
               <div className={styles.logo}>
                 <div className={styles.logoIcon}>
@@ -211,9 +231,7 @@ export const Header: React.FC = () => {
                     className={styles.brandLogoImg}
                   />
                 </div>
-                <div className={styles.logoTextGroup}>
-                  <span className={styles.brandTitle}>{brandName}</span>
-                </div>
+                <span className={styles.brandTitle} style={{ fontSize: '1.15rem' }}>{brandName}</span>
               </div>
               <button
                 type="button"
@@ -221,61 +239,52 @@ export const Header: React.FC = () => {
                 onClick={() => setMobileMenuOpen(false)}
                 aria-label="Close menu"
               >
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <line x1="18" y1="6" x2="6" y2="18"></line>
-                  <line x1="6" y1="6" x2="18" y2="18"></line>
-                </svg>
+                ✕
               </button>
             </div>
 
             <div className={styles.mobileLangSection}>
-              <LanguageSwitcher variant="header" />
+              <LanguageSwitcher variant="inline" />
             </div>
 
-            <nav className={styles.mobileNavLinks}>
-              {navLinks.map(link => {
+            <nav className={styles.mobileNavLinks} aria-label="Mobile Navigation">
+              {mobileNavLinks.map(link => {
                 const isActive = location.pathname === link.to;
                 return (
                   <Link
                     key={link.to}
                     to={link.to}
-                    className={`${styles.mobileNavLink} ${isActive ? styles.mobileActive : ''}`}
-                    onClick={() => setMobileMenuOpen(false)}
+                    className={`${styles.mobileNavLink} ${isActive ? styles.active : ''}`}
                   >
                     {link.label}
                   </Link>
                 );
               })}
-              {isAuthenticated && (
-                <Link
-                  to="/dashboard"
-                  className={`${styles.mobileNavLink} ${location.pathname === '/dashboard' ? styles.mobileActive : ''}`}
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  {t.dashboard.title}
-                </Link>
-              )}
             </nav>
 
-            <div className={styles.mobileAuthButtons}>
+            <div className={styles.mobileAuthActions}>
               {isAuthenticated ? (
-                <>
-                  <Button to="/dashboard" variant="primary" fullWidth onClick={() => setMobileMenuOpen(false)}>
-                    {t.dashboard.title} ({displayName})
-                  </Button>
-                  <Button variant="outline" fullWidth onClick={() => { handleLogout(); setMobileMenuOpen(false); }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  <Link to="/dashboard" className={styles.mobileUserLink}>
+                    {t.nav.dashboard} ({displayName})
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className={styles.mobileLogoutBtn}
+                  >
                     {t.dashboard.logoutBtn}
-                  </Button>
-                </>
+                  </button>
+                </div>
               ) : (
-                <>
-                  <Button to="/login" variant="outline" fullWidth onClick={() => setMobileMenuOpen(false)}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  <Link to="/login" className={styles.mobileLoginBtn}>
                     {t.nav.login}
-                  </Button>
-                  <Button to="/register" variant="primary" fullWidth onClick={() => setMobileMenuOpen(false)}>
+                  </Link>
+                  <Link to="/register" className={styles.mobileRegisterBtn}>
                     {t.nav.registerFree}
-                  </Button>
-                </>
+                  </Link>
+                </div>
               )}
             </div>
           </div>

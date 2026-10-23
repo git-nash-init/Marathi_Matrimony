@@ -1,0 +1,226 @@
+.page {
+  background: var(--color-bg);
+  min-height: 100vh;
+}
+
+.breadcrumbWrap {
+  background: var(--color-ivory);
+  border-bottom: 1px solid var(--color-border);
+  padding: 12px 0;
+  font-size: 0.88rem;
+  color: var(--color-ink-muted);
+}
+
+.breadcrumbs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.breadcrumbLink {
+  color: var(--color-oxblood);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.breadcrumbLink:hover {
+  text-decoration: underline;
+}
+
+.breadcrumbSeparator {
+  color: var(--color-antique-gold);
+}
+
+.currentBreadcrumb {
+  color: var(--color-ink);
+  font-weight: 600;
+}
+
+/* Hub Hero Banner */
+.hubHero {
+  background: var(--color-parchment);
+  padding: 48px 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.heroContent {
+  max-width: 880px;
+}
+
+.culturalBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--color-gold-light);
+  border: 1px solid var(--color-antique-gold);
+  padding: 4px 14px;
+  border-radius: var(--radius-full);
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--color-oxblood-dark);
+  margin-bottom: 16px;
+}
+
+.hubTitle {
+  font-family: var(--font-serif);
+  font-size: 2.4rem;
+  font-weight: 700;
+  color: var(--color-oxblood);
+  line-height: 1.25;
+  margin-bottom: 16px;
+}
+
+.hubIntro {
+  font-size: 1.1rem;
+  color: var(--color-ink);
+  line-height: 1.65;
+  margin-bottom: 24px;
+}
+
+.actionRow {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+/* Sub-areas & Metadata Section */
+.metaSection {
+  background: var(--color-ivory);
+  padding: 32px 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.metaGrid {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 32px;
+}
+
+.metaBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.metaBlockTitle {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--color-ink);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.chipList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip {
+  background: var(--color-parchment);
+  border: 1px solid var(--color-border);
+  padding: 5px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-ink);
+}
+
+/* Profiles Section */
+.profilesSection {
+  padding: 56px 0;
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 32px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.sectionTitle {
+  font-family: var(--font-serif);
+  font-size: 1.9rem;
+  color: var(--color-oxblood);
+  margin-bottom: 6px;
+}
+
+.sectionSub {
+  font-size: 0.98rem;
+  color: var(--color-ink-muted);
+}
+
+.profilesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 24px;
+}
+
+/* Sibling Hubs Navigation */
+.siblingSection {
+  background: var(--color-ivory);
+  padding: 48px 0;
+  border-top: 1px solid var(--color-border);
+}
+
+.siblingTitle {
+  font-family: var(--font-serif);
+  font-size: 1.4rem;
+  color: var(--color-ink);
+  margin-bottom: 20px;
+}
+
+.siblingGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 14px;
+}
+
+.siblingCard {
+  background: var(--color-parchment);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  text-decoration: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  transition: border-color var(--transition-fast), transform var(--transition-fast);
+}
+
+.siblingCard:hover {
+  border-color: var(--color-antique-gold);
+  transform: translateY(-2px);
+}
+
+.siblingName {
+  font-weight: 700;
+  color: var(--color-oxblood);
+  font-size: 0.95rem;
+}
+
+.siblingDesc {
+  font-size: 0.8rem;
+  color: var(--color-ink-muted);
+}
+
+@media (max-width: 768px) {
+  .hubHero {
+    padding: 36px 0;
+  }
+  .hubTitle {
+    font-size: 1.8rem;
+  }
+  .hubIntro {
+    font-size: 1rem;
+  }
+  .metaGrid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+}

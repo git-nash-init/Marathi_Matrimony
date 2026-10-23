@@ -1,13 +1,12 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Phone, Mail, MapPin } from 'lucide-react';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { LanguageSwitcher } from './LanguageSwitcher';
 import { brandConfig } from '../../config/brand.config';
 import styles from './Footer.module.css';
 
 export const Footer: React.FC = () => {
-  const { t, brandName, brandTagline, localize } = useLanguage();
+  const { language, t, brandName, brandTagline, localize } = useLanguage();
 
   return (
     <footer className={styles.footer}>
@@ -30,29 +29,95 @@ export const Footer: React.FC = () => {
             {/* Direct Contact mini info */}
             <div className={styles.contactList}>
               <div className={styles.contactItem}>
-                <Phone size={15} className={styles.contactIcon} />
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={styles.contactIcon} aria-hidden="true">
+                  <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+                </svg>
                 <span>{brandConfig.phone}</span>
               </div>
               <div className={styles.contactItem}>
-                <Mail size={15} className={styles.contactIcon} />
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={styles.contactIcon} aria-hidden="true">
+                  <rect x="2" y="4" width="20" height="16" rx="2"></rect>
+                  <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>
+                </svg>
                 <span>{brandConfig.email}</span>
               </div>
               <div className={styles.contactItem}>
-                <MapPin size={15} className={styles.contactIcon} />
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={styles.contactIcon} aria-hidden="true">
+                  <path d="M12 2a8 8 0 0 0-8 8c0 5.25 8 12 8 12s8-6.75 8-12a8 8 0 0 0-8-8z"></path>
+                  <circle cx="12" cy="10" r="3"></circle>
+                </svg>
                 <span>{localize(brandConfig.address)}</span>
               </div>
             </div>
           </div>
 
-          {/* Column 2: Company */}
+          {/* Column 2: Regional Matrimonial Hubs (Mumbai & Pune) */}
           <div className={styles.linksCol}>
-            <h4 className={styles.colTitle}>{t.footer.companyCol}</h4>
+            <h4 className={styles.colTitle}>
+              {language === 'mr' ? 'प्रमुख शहर व उपनगरे' : 'Regional Matrimony Hubs'}
+            </h4>
             <ul className={styles.linksList}>
               <li>
-                <Link to="/about">{t.footer.aboutUs}</Link>
+                <Link to="/maratha-marriage-bureau-borivali">
+                  {language === 'mr' ? 'बोरिवली मराठा विवाह मंडळ' : 'Borivali Maratha Bureau'}
+                </Link>
               </li>
               <li>
-                <Link to="/contact">{t.footer.contact}</Link>
+                <Link to="/maratha-marriage-bureau-lower-parel">
+                  {language === 'mr' ? 'लोअर परळ मराठा विवाह संस्था' : 'Lower Parel Maratha Bureau'}
+                </Link>
+              </li>
+              <li>
+                <Link to="/maratha-vadhu-var-suchak-dadar">
+                  {language === 'mr' ? 'दादर वधु-वर सूचक केंद्र' : 'Dadar Vadhu Var Suchak'}
+                </Link>
+              </li>
+              <li>
+                <Link to="/maratha-vivah-mandal-mulund">
+                  {language === 'mr' ? 'मुलुंड मराठा विवाह मंडळ' : 'Mulund Maratha Mandal'}
+                </Link>
+              </li>
+              <li>
+                <Link to="/maratha-vadhu-var-suchak-dhankawadi-pune">
+                  {language === 'mr' ? 'पुणे धनकवडी वधु-वर केंद्र' : 'Pune Dhankawadi Centre'}
+                </Link>
+              </li>
+              <li>
+                <Link to="/maratha-vadhu-var-suchak-pimpri-chinchwad">
+                  {language === 'mr' ? 'पिंपरी-चिंचवड मराठा केंद्र' : 'Pimpri-Chinchwad Centre'}
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Column 3: Matrimonial Discovery & Services */}
+          <div className={styles.linksCol}>
+            <h4 className={styles.colTitle}>
+              {language === 'mr' ? 'शोध व विवाह सेवा' : 'Discovery & Services'}
+            </h4>
+            <ul className={styles.linksList}>
+              <li>
+                <Link to="/search?gender=female">
+                  {language === 'mr' ? 'मराठा वधू शोधा (Brides)' : 'Find Maratha Brides'}
+                </Link>
+              </li>
+              <li>
+                <Link to="/search?gender=male">
+                  {language === 'mr' ? 'मराठा वर शोधा (Grooms)' : 'Find Maratha Grooms'}
+                </Link>
+              </li>
+              <li>
+                <Link to="/search?community=96_kuli">
+                  {language === 'mr' ? '९६ कुळी मराठा स्थळे' : '96 Kuli Maratha Profiles'}
+                </Link>
+              </li>
+              <li>
+                <Link to="/membership">{t.footer.membership}</Link>
+              </li>
+              <li>
+                <Link to="/wedding-services">
+                  {language === 'mr' ? 'विवाह सेवा (हॉल, केटरिंग, फोटो)' : 'Maratha Wedding Services'}
+                </Link>
               </li>
               <li>
                 <Link to="/success-stories">{t.footer.successStories}</Link>
@@ -60,26 +125,19 @@ export const Footer: React.FC = () => {
             </ul>
           </div>
 
-          {/* Column 3: Discover */}
-          <div className={styles.linksCol}>
-            <h4 className={styles.colTitle}>{t.footer.discoverCol}</h4>
-            <ul className={styles.linksList}>
-              <li>
-                <Link to="/search">{t.footer.searchProfiles}</Link>
-              </li>
-              <li>
-                <Link to="/membership">{t.footer.membership}</Link>
-              </li>
-              <li>
-                <Link to="/how-it-works">{t.footer.howItWorks}</Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* Column 4: Support & Legal */}
+          {/* Column 4: Support, App & Legal */}
           <div className={styles.linksCol}>
             <h4 className={styles.colTitle}>{t.footer.supportCol}</h4>
             <ul className={styles.linksList}>
+              <li>
+                <Link to="/how-it-works">{t.footer.howItWorks}</Link>
+              </li>
+              <li>
+                <Link to="/about">{t.footer.aboutUs}</Link>
+              </li>
+              <li>
+                <Link to="/contact">{t.footer.contact}</Link>
+              </li>
               <li>
                 <Link to="/faq">{t.footer.faq}</Link>
               </li>
@@ -90,6 +148,36 @@ export const Footer: React.FC = () => {
                 <Link to="/terms">{t.footer.terms}</Link>
               </li>
             </ul>
+
+            {/* Official Mobile App Download */}
+            <div style={{ marginTop: '16px' }}>
+              <span style={{ display: 'block', fontSize: '0.8rem', color: 'var(--color-text-muted)', marginBottom: '8px', fontWeight: 600 }}>
+                {language === 'mr' ? 'अधिकृत अँड्रॉइड अ‍ॅप' : 'Official Android App'}
+              </span>
+              <a
+                href="https://play.google.com/store/apps/details?id=com.marathalaginsarai.app&hl=en"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '6px 12px',
+                  background: 'var(--color-card-bg)',
+                  border: '1px solid var(--color-border)',
+                  borderRadius: 'var(--radius-md)',
+                  color: 'var(--color-dark)',
+                  fontSize: '0.82rem',
+                  fontWeight: 600,
+                  textDecoration: 'none'
+                }}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="#3DDC84" aria-hidden="true">
+                  <path d="M17.523 15.3414c-.5511 0-.9993-.4486-.9993-1.0001s.4482-1.0001.9993-1.0001c.551 0 .9992.4486.9992 1.0001s-.4482 1.0001-.9992 1.0001m-11.046 0c-.5511 0-.9993-.4486-.9993-1.0001s.4482-1.0001.9993-1.0001c.5511 0 .9993.4486.9993 1.0001s-.4482 1.0001-.9993 1.0001m11.4045-6.02l1.9973-3.4592a.416.416 0 00-.1521-.5676.416.416 0 00-.5676.1521l-2.0223 3.503C15.5902 8.4116 13.8533 8.081 12 8.081s-3.5902.3306-5.1367.8687L4.841 5.4467a.4161.4161 0 00-.5677-.1521.4157.4157 0 00-.1521.5676l1.9973 3.4592C2.6889 11.1867.3432 14.6589 0 18.761h24c-.3432-4.1021-2.6889-7.5743-6.1185-9.4396"/>
+                </svg>
+                <span>Google Play</span>
+              </a>
+            </div>
 
             {/* Language Switcher in Footer */}
             <div className={styles.footerLangWrap}>

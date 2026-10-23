@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useTransition } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useParams } from 'react-router-dom';
 import { useLanguage } from '../i18n/LanguageContext';
 import { SearchFiltersState, Profile } from '../types';
 import { discoveryService } from '../services/discovery.service';
@@ -7,12 +7,13 @@ import { ProfileCard, ProfileCardSkeleton } from '../components/profile/ProfileC
 import { SearchFilters } from '../components/search/SearchFilters';
 import { Modal } from '../components/common/Modal';
 import {
-  Search,
+  MatrimonySearchIcon,
+  KalashIcon
+} from '../components/common/CulturalIcons';
+import {
   SlidersHorizontal,
   ArrowUpDown,
   RotateCcw,
-  Sparkles,
-  SearchX,
   AlertTriangle,
   ChevronDown,
 } from 'lucide-react';
@@ -39,7 +40,19 @@ const DEFAULT_FILTERS: SearchFiltersState = {
 export const SearchPage: React.FC = () => {
   const { language } = useLanguage();
   const [searchParams, setSearchParams] = useSearchParams();
+  const routeParams = useParams<{ category?: string; location?: string }>();
   const [, startTransition] = useTransition();
+
+  // Route-based default inference
+  const inferredGender = routeParams.category === 'groom' || routeParams.category === 'var'
+    ? 'male'
+    : routeParams.category === 'bride' || routeParams.category === 'vadhu'
+    ? 'female'
+    : DEFAULT_FILTERS.gender;
+
+  const inferredCity = routeParams.location
+    ? routeParams.location.charAt(0).toUpperCase() + routeParams.location.slice(1).toLowerCase()
+    : DEFAULT_FILTERS.city;
 
   // Search text & debounce state
   const [searchTerm, setSearchTerm] = useState(searchParams.get('q') || '');
@@ -47,7 +60,7 @@ export const SearchPage: React.FC = () => {
 
   // Filter state
   const [filters, setFilters] = useState<SearchFiltersState>(() => ({
-    gender: (searchParams.get('gender') as any) || DEFAULT_FILTERS.gender,
+    gender: (searchParams.get('gender') as any) || inferredGender,
     minAge: Number(searchParams.get('minAge')) || DEFAULT_FILTERS.minAge,
     maxAge: Number(searchParams.get('maxAge')) || DEFAULT_FILTERS.maxAge,
     minHeight: Number(searchParams.get('minHeight')) || DEFAULT_FILTERS.minHeight,
@@ -59,7 +72,7 @@ export const SearchPage: React.FC = () => {
     occupation: searchParams.get('occupation') || DEFAULT_FILTERS.occupation,
     minIncome: Number(searchParams.get('minIncome')) || DEFAULT_FILTERS.minIncome,
     state: searchParams.get('state') || DEFAULT_FILTERS.state,
-    city: searchParams.get('city') || DEFAULT_FILTERS.city,
+    city: searchParams.get('city') || inferredCity,
     verifiedOnly: searchParams.get('verified') === 'true',
     photoOnly: searchParams.get('photoOnly') === 'true',
   }));
@@ -178,37 +191,54 @@ export const SearchPage: React.FC = () => {
     return false;
   }).length;
 
+  const getBannerTitle = () => {
+    if (filters.gender === 'female') {
+      return filters.city !== 'all'
+        ? (language === 'mr' ? `${filters.city} मधील ९६ कुळी मराठा वधू` : `96 Kuli Maratha Brides in ${filters.city}`)
+        : (language === 'mr' ? '९६ कुळी मराठा वधू शोधा' : '96 Kuli Maratha Brides');
+    }
+    if (filters.gender === 'male') {
+      return filters.city !== 'all'
+        ? (language === 'mr' ? `${filters.city} मधील ९६ कुळी मराठा वर` : `96 Kuli Maratha Grooms in ${filters.city}`)
+        : (language === 'mr' ? '९६ कुळी मराठा वर शोधा' : '96 Kuli Maratha Grooms');
+    }
+    if (filters.city !== 'all') {
+      return language === 'mr' ? `${filters.city} मधील मराठा वैवाहिक प्रोफाइल` : `Maratha Matrimony Profiles in ${filters.city}`;
+    }
+    return language === 'mr' ? '९६ कुळी मराठा जोडीदार शोधा' : 'Find Your 96 Kuli Maratha Match';
+  };
+
   return (
     <div className={styles.container}>
       {/* Page Title & Subtitle Banner */}
       <div className={styles.pageBanner}>
         <div className={styles.bannerContent}>
           <div className={styles.bannerTag}>
-            <Sparkles size={16} color="var(--color-primary, #7A1F3D)" />
-            <span>{language === 'mr' ? 'मराठी जीवनसाथी शोध' : 'Marathi Jeevansathi Matchmaking'}</span>
+            <KalashIcon size={16} />
+            <span>{language === 'mr' ? '९६ कुळी मराठा जीवनसाथी शोध' : '96 Kuli Maratha Matchmaking'}</span>
           </div>
           <h1 className={styles.pageTitle}>
-            {language === 'mr' ? 'जोडीदार शोधा' : 'Find Your Match'}
+            {getBannerTitle()}
           </h1>
           <p className={styles.pageSubtitle}>
             {language === 'mr'
-              ? 'तुमच्या पसंतीनुसार व मूल्यांनुसार सुयोग्य मराठी वैवाहिक प्रोफाइल शोधा.'
-              : 'Discover profiles based on your preferences, education, and cultural values.'}
+              ? '१००% पडताळणी झालेले कोकणस्थ व देशस्थ ९६ कुळी मराठा स्थळे. खानदानी कुळे, शिक्षण व मूल्यांनुसार शोधा.'
+              : '100% verified Kokanastha & Deshastha 96 Kuli Maratha profiles filtered by education, gotra, and values.'}
           </p>
         </div>
 
         {/* Prominent Search Bar */}
         <div className={styles.searchBarWrapper}>
           <div className={styles.searchBar}>
-            <Search size={20} className={styles.searchIcon} />
+            <MatrimonySearchIcon size={20} className={styles.searchIcon} />
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder={
                 language === 'mr'
-                  ? 'प्रोफाइल शोधा... (उदा. नाव, शहर, शिक्षण, प्रोफाइल आयडी)'
-                  : 'Search profiles... (e.g. Name, City, Education, Profile ID)'
+                  ? 'नाव, शहर, शिक्षण, कुळ, उपजात किंवा प्रोफाइल आयडी ने शोधा...'
+                  : 'Search by Name, City, Education, Gotra, or Profile ID...'
               }
               className={styles.searchInput}
             />
@@ -313,7 +343,7 @@ export const SearchPage: React.FC = () => {
           ) : profiles.length === 0 ? (
             <div className={styles.emptyStateCard}>
               <div className={styles.emptyIconCircle}>
-                <SearchX size={44} color="var(--color-primary, #7A1F3D)" />
+                <MatrimonySearchIcon size={44} color="var(--color-primary, #7B191E)" />
               </div>
               <h3 className={styles.emptyTitle}>
                 {language === 'mr' ? 'तुमच्या शोधाशी जुळणारे प्रोफाइल सापडले नाही' : 'No matching profiles found'}

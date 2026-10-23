@@ -1,0 +1,58 @@
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--color-border-light) 25%,
+    var(--color-parchment) 37%,
+    var(--color-border-light) 63%
+  );
+  background-size: 400% 100%;
+  animation: shimmer 1.6s ease infinite;
+  border-radius: var(--radius-sm);
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0 50%;
+  }
+}
+
+.cardSkeleton {
+  background: var(--color-card-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.imageSkeleton {
+  width: 100%;
+  aspect-ratio: 4 / 4.5;
+  border-radius: var(--radius-md);
+}
+
+.textSkeletonLg {
+  height: 22px;
+  width: 70%;
+}
+
+.textSkeletonMd {
+  height: 16px;
+  width: 50%;
+}
+
+.textSkeletonSm {
+  height: 14px;
+  width: 90%;
+}
+
+.btnSkeleton {
+  height: 40px;
+  width: 100%;
+  border-radius: var(--radius-md);
+  margin-top: 8px;
+}

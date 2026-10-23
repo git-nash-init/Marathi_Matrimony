@@ -1,27 +1,8 @@
 .heroSection {
   position: relative;
-  background: linear-gradient(135deg, #FAF4EB 0%, #F5ECE0 50%, #ECE1D0 100%);
-  padding: 60px 0 80px 0;
-  overflow: hidden;
+  background: var(--color-parchment);
+  padding: 64px 0 84px 0;
   border-bottom: 1px solid var(--color-border);
-}
-
-.bgGlow {
-  position: absolute;
-  top: -100px;
-  right: -100px;
-  width: 500px;
-  height: 500px;
-  background: radial-gradient(circle, rgba(197, 154, 69, 0.15) 0%, rgba(122, 31, 61, 0.05) 50%, transparent 70%);
-  pointer-events: none;
-}
-
-.patternOverlay {
-  position: absolute;
-  inset: 0;
-  background-image: radial-gradient(rgba(122, 31, 61, 0.04) 1px, transparent 1px);
-  background-size: 24px 24px;
-  pointer-events: none;
 }
 
 .heroGrid {
@@ -219,7 +200,7 @@
 
 .searchSubmitBtn {
   margin-top: 6px;
-  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-hover));
+  background: var(--color-oxblood);
   color: var(--color-white);
   padding: 12px 20px;
   border-radius: var(--radius-md);
@@ -229,13 +210,14 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  box-shadow: 0 4px 16px rgba(122, 31, 61, 0.3);
-  transition: all var(--transition-normal);
+  border: 1px solid var(--color-oxblood-dark);
+  box-shadow: var(--shadow-sm);
+  transition: background-color var(--transition-fast), transform var(--transition-fast);
 }
 
 .searchSubmitBtn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(122, 31, 61, 0.4);
+  background: var(--color-oxblood-dark);
+  transform: translateY(-1px);
 }
 
 @media (max-width: 960px) {

@@ -19,6 +19,8 @@ import { ContactPage } from './pages/ContactPage';
 import { FAQPage } from './pages/FAQPage';
 import { PrivacyPolicyPage } from './pages/PrivacyPolicyPage';
 import { TermsPage } from './pages/TermsPage';
+import { LocationLandingPage } from './pages/LocationLandingPage';
+import { WeddingServicesPage } from './pages/WeddingServicesPage';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { VerifyEmailPage } from './pages/VerifyEmailPage';
@@ -44,15 +46,33 @@ export const App: React.FC = () => {
                   <Route path="search" element={<SearchPage />} />
                   <Route path="shortlist" element={<ShortlistPage />} />
                   <Route path="shortlists" element={<ShortlistPage />} />
-                <Route path="profile/:id" element={<ProfileDetailPage />} />
-                <Route path="how-it-works" element={<HowItWorksPage />} />
-                <Route path="success-stories" element={<SuccessStoriesPage />} />
-                <Route path="membership" element={<MembershipPage />} />
-                <Route path="about" element={<AboutUsPage />} />
-                <Route path="contact" element={<ContactPage />} />
-                <Route path="faq" element={<FAQPage />} />
-                <Route path="privacy" element={<PrivacyPolicyPage />} />
-                <Route path="terms" element={<TermsPage />} />
+                  <Route path="profile/:id" element={<ProfileDetailPage />} />
+                  <Route path="how-it-works" element={<HowItWorksPage />} />
+                  <Route path="success-stories" element={<SuccessStoriesPage />} />
+                  <Route path="membership" element={<MembershipPage />} />
+                  <Route path="wedding-services" element={<WeddingServicesPage />} />
+                  <Route path="about" element={<AboutUsPage />} />
+                  <Route path="contact" element={<ContactPage />} />
+                  <Route path="faq" element={<FAQPage />} />
+                  <Route path="privacy" element={<PrivacyPolicyPage />} />
+                  <Route path="terms" element={<TermsPage />} />
+
+                  {/* Regional Hubs & Canonical Crawled Sitemap Landing Pages */}
+                  <Route path="location/:slug" element={<LocationLandingPage />} />
+                  <Route path="maratha-marriage-bureau-borivali" element={<LocationLandingPage />} />
+                  <Route path="maratha-marriage-bureau-lower-parel" element={<LocationLandingPage />} />
+                  <Route path="maratha-vadhu-var-suchak-dadar" element={<LocationLandingPage />} />
+                  <Route path="maratha-vivah-mandal-mulund" element={<LocationLandingPage />} />
+                  <Route path="maratha-marriage-bureau-vashi" element={<LocationLandingPage />} />
+                  <Route path="maratha-matrimony-kharghar" element={<LocationLandingPage />} />
+                  <Route path="maratha-vadhu-var-suchak-jogeshwari" element={<LocationLandingPage />} />
+                  <Route path="maratha-vadhu-var-suchak-ghodbunder-thane" element={<LocationLandingPage />} />
+                  <Route path="maratha-vadhu-var-suchak-dhankawadi-pune" element={<LocationLandingPage />} />
+                  <Route path="maratha-vadhu-var-suchak-pimpri-chinchwad" element={<LocationLandingPage />} />
+
+                  {/* Category Search URL Aliases for Crawlers & Legacy Links */}
+                  <Route path="maratha-matrimony/:category/:location" element={<SearchPage />} />
+                  <Route path="maratha-matrimony/:category" element={<SearchPage />} />
 
                 {/* Auth Routes */}
                 <Route path="login" element={<LoginPage />} />

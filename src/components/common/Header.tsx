@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X, ShieldCheck, User, LogOut } from 'lucide-react';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { useAuth } from '../../context/AuthContext';
 import { LanguageSwitcher } from './LanguageSwitcher';
 import { Button } from './Button';
+import {
+  VerifiedShieldIcon,
+  WhatsAppCrestIcon
+} from './CulturalIcons';
 import styles from './Header.module.css';
 
 export const Header: React.FC = () => {
@@ -36,7 +39,7 @@ export const Header: React.FC = () => {
   const navLinks = [
     { to: '/', label: t.nav.home },
     { to: '/search', label: t.nav.search },
-    { to: '/shortlist', label: t.shortlist?.title || (language === 'mr' ? 'माझी शॉर्टलिस्ट' : 'My Shortlist') },
+    { to: '/shortlist', label: t.shortlist?.title || (language === 'mr' ? 'शॉर्टलिस्ट' : 'Shortlist') },
     { to: '/how-it-works', label: t.nav.howItWorks },
     { to: '/success-stories', label: t.nav.successStories },
     { to: '/membership', label: t.nav.membership },
@@ -44,20 +47,31 @@ export const Header: React.FC = () => {
     { to: '/contact', label: t.nav.contact }
   ];
 
-  const displayName = profile?.display_name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User';
+  const displayName = profile?.first_name 
+    ? `${profile.first_name} ${profile.last_name || ''}`.trim()
+    : profile?.display_name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Member';
 
   return (
     <header className={`${styles.header} ${isScrolled ? styles.scrolled : ''}`}>
-      {/* Top micro bar */}
+      {/* Top micro bar with cultural trust badge and verified helpline */}
       <div className={styles.topMicroBar}>
         <div className="container">
           <div className={styles.topMicroContent}>
             <span className={styles.topBadge}>
-              <ShieldCheck size={14} className={styles.topIcon} />
-              {t.topBar.verifiedBadge}
+              <VerifiedShieldIcon size={15} className={styles.topIcon} color="#F4EBD9" />
+              <span>{language === 'mr' ? '१००% पडताळणी केलेले ९६ कुळी मराठा प्रोफाइल्स' : '100% Verified 96 Kuli Maratha Profiles'}</span>
             </span>
             <div className={styles.topRight}>
-              <span className={styles.supportPhone}>{t.topBar.helpline}</span>
+              <a
+                href="https://wa.me/917208659356"
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles.supportLink}
+                aria-label="WhatsApp Helpline"
+              >
+                <WhatsAppCrestIcon size={14} color="#25D366" />
+                <span>+91 72086 59356</span>
+              </a>
             </div>
           </div>
         </div>
@@ -119,7 +133,10 @@ export const Header: React.FC = () => {
                       textDecoration: 'none'
                     }}
                   >
-                    <User size={16} />
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                      <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
                     <span>{displayName}</span>
                   </Link>
                   <button
@@ -138,7 +155,11 @@ export const Header: React.FC = () => {
                     title={t.dashboard.logoutBtn}
                     aria-label={t.dashboard.logoutBtn}
                   >
-                    <LogOut size={18} />
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                      <polyline points="16 17 21 12 16 7"></polyline>
+                      <line x1="21" y1="12" x2="9" y2="12"></line>
+                    </svg>
                   </button>
                 </div>
               ) : (
@@ -160,7 +181,18 @@ export const Header: React.FC = () => {
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               aria-label={mobileMenuOpen ? t.nav.close : t.nav.menu}
             >
-              {mobileMenuOpen ? <X size={26} /> : <Menu size={26} />}
+              {mobileMenuOpen ? (
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              ) : (
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <line x1="3" y1="12" x2="21" y2="12"></line>
+                  <line x1="3" y1="6" x2="21" y2="6"></line>
+                  <line x1="3" y1="18" x2="21" y2="18"></line>
+                </svg>
+              )}
             </button>
           </div>
         </div>
@@ -189,7 +221,10 @@ export const Header: React.FC = () => {
                 onClick={() => setMobileMenuOpen(false)}
                 aria-label="Close menu"
               >
-                <X size={24} />
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
               </button>
             </div>
 

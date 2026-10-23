@@ -2,6 +2,7 @@ import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { Profile, SearchFiltersState } from '../types';
 import { mockProfiles } from '../data/mockProfiles';
 import { interactionService } from './interaction.service';
+import { shortlistService } from './shortlist.service';
 
 export interface DiscoveryQueryParams extends Partial<SearchFiltersState> {
   q?: string;
@@ -23,12 +24,29 @@ export interface DiscoveryResponse {
 function mapDbProfileToProfile(row: any): Profile {
   const birthYear = row.date_of_birth ? new Date(row.date_of_birth).getFullYear() : null;
   const currentYear = new Date().getFullYear();
-  const calculatedAge = birthYear ? currentYear - birthYear : 26;
-  const heightInches = row.height_cm ? Math.round(row.height_cm / 2.54) : 65;
+  const calculatedAge = row.age || (birthYear ? currentYear - birthYear : 26);
+  const heightCm = row.height || row.height_cm || 165;
+  const heightInches = Math.round(heightCm / 2.54);
   const feet = Math.floor(heightInches / 12);
   const inches = heightInches % 12;
 
   const displayName = row.display_name || `${row.first_name || ''} ${row.last_name || ''}`.trim() || 'Marathi Member';
+
+  // Photo resolution: primary photo from joined photos or fallback
+  let photoUrl = row.profile_photo_url || '';
+  let gallery: string[] = [];
+  if (Array.isArray(row.profile_photos) && row.profile_photos.length > 0) {
+    const primary = row.profile_photos.find((p: any) => p.is_primary) || row.profile_photos[0];
+    if (primary && primary.storage_path) {
+      photoUrl = primary.storage_path;
+    }
+    gallery = row.profile_photos.map((p: any) => p.storage_path).filter(Boolean);
+  } else if (photoUrl) {
+    gallery = [photoUrl];
+  }
+
+  const rawIncome = row.income || row.annual_income;
+  const parsedIncomeNum = typeof rawIncome === 'number' ? rawIncome : parseFloat(String(rawIncome || '').replace(/[^0-9.]/g, '')) || 0;
 
   return {
     id: row.id || row.profile_id,
@@ -39,8 +57,8 @@ function mapDbProfileToProfile(row: any): Profile {
     },
     gender: row.gender === 'female' ? 'female' : 'male',
     age: calculatedAge,
-    height: `${feet} ft ${inches} in / ${row.height_cm || 165} cm`,
-    heightCm: row.height_cm || 165,
+    height: `${feet} ft ${inches} in / ${heightCm} cm`,
+    heightCm: heightCm,
     maritalStatus: {
       mr: row.marital_status === 'never_married' ? 'अविवाहित' : row.marital_status === 'divorced' ? 'घटस्फोटित' : 'विवाहित',
       en: row.marital_status === 'never_married' ? 'Never Married' : row.marital_status === 'divorced' ? 'Divorced' : 'Married',
@@ -78,8 +96,8 @@ function mapDbProfileToProfile(row: any): Profile {
       en: row.education || 'Graduate',
     },
     educationDetail: {
-      mr: row.college || row.education || '',
-      en: row.college || row.education || '',
+      mr: row.education_detail || row.college || row.education || '',
+      en: row.education_detail || row.college || row.education || '',
     },
     occupation: {
       mr: row.occupation || 'व्यावसायिक (Professional)',
@@ -87,16 +105,16 @@ function mapDbProfileToProfile(row: any): Profile {
     },
     occupationCategory: 'other',
     employedIn: {
-      mr: row.company || 'खाजगी क्षेत्र',
-      en: row.company || 'Private Sector',
+      mr: row.employed_in || row.company || 'खाजगी क्षेत्र',
+      en: row.employed_in || row.company || 'Private Sector',
     },
     annualIncome: {
-      mr: row.annual_income ? `₹ ${row.annual_income} लाख` : 'माहिती उपलब्ध नाही',
-      en: row.annual_income ? `₹ ${row.annual_income} LPA` : 'Not Disclosed',
+      mr: rawIncome ? (typeof rawIncome === 'number' ? `₹ ${rawIncome} लाख` : rawIncome) : 'माहिती उपलब्ध नाही',
+      en: rawIncome ? (typeof rawIncome === 'number' ? `₹ ${rawIncome} LPA` : rawIncome) : 'Not Disclosed',
     },
-    annualIncomeValue: row.annual_income || 0,
-    photoUrl: row.profile_photo_url || '',
-    gallery: row.profile_photo_url ? [row.profile_photo_url] : [],
+    annualIncomeValue: parsedIncomeNum,
+    photoUrl: photoUrl,
+    gallery: gallery,
     isVerified: row.verification_status === 'verified',
     isPremium: false,
     lastActive: {
@@ -170,12 +188,10 @@ export const discoveryService = {
 
     if (isSupabaseConfigured()) {
       try {
-        // Build Supabase SQL Query
+        // Build Supabase SQL Query for approved profiles
         let query = supabase
           .from('profiles')
-          .select('*')
-          .eq('is_active', true)
-          .eq('is_visible', true)
+          .select('*, profile_photos(storage_path, is_primary, approval_status)')
           .eq('profile_status', 'approved');
 
         // Gender filter
@@ -203,7 +219,7 @@ export const discoveryService = {
 
         const queryPromise = query;
         const timeoutPromise = new Promise<{ data: null; error: Error }>((_, reject) =>
-          setTimeout(() => reject(new Error('DB discovery query timeout')), 800)
+          setTimeout(() => reject(new Error('DB discovery query timeout')), 3500)
         );
         const { data, error } = (await Promise.race([queryPromise, timeoutPromise])) as any;
         if (!error && data && data.length > 0) {
@@ -362,7 +378,7 @@ export const discoveryService = {
 
   // Get shortlisted profiles array
   async fetchShortlistedProfiles(userProfileId?: string): Promise<Profile[]> {
-    const shortIds = await import('./shortlist.service').then((m) => m.shortlistService.getShortlistedIds(userProfileId));
+    const shortIds = await shortlistService.getShortlistedIds(userProfileId);
     const all = await this.fetchProfiles({ pageSize: 100, userProfileId });
     return all.profiles.filter((p) => shortIds.includes(p.id) || shortIds.includes(p.profileId));
   },

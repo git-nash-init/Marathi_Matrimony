@@ -56,7 +56,7 @@ export const shortlistService = {
       try {
         const { data, error } = await (supabase.from('shortlists') as any)
           .select('shortlisted_profile_id')
-          .eq('profile_id', profileId);
+          .eq('user_profile_id', profileId);
 
         if (!error && data) {
           const dbIds: string[] = data.map((item: { shortlisted_profile_id: string }) => item.shortlisted_profile_id);
@@ -117,10 +117,10 @@ export const shortlistService = {
           // Insert shortlist record (ON CONFLICT DO NOTHING handled by unique constraint)
           const { error } = await (supabase.from('shortlists') as any).upsert(
             {
-              profile_id: profileId,
+              user_profile_id: profileId,
               shortlisted_profile_id: targetProfileId,
             },
-            { onConflict: 'profile_id,shortlisted_profile_id', ignoreDuplicates: true }
+            { onConflict: 'user_profile_id,shortlisted_profile_id', ignoreDuplicates: true }
           );
 
           if (error) {
@@ -134,7 +134,7 @@ export const shortlistService = {
           // Delete shortlist record
           const { error } = await (supabase.from('shortlists') as any)
             .delete()
-            .match({ profile_id: profileId, shortlisted_profile_id: targetProfileId });
+            .match({ user_profile_id: profileId, shortlisted_profile_id: targetProfileId });
 
           if (error) {
             console.error('Failed to remove shortlist from database:', error);

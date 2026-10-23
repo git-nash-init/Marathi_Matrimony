@@ -73,7 +73,7 @@ export const DashboardPage: React.FC = () => {
         </div>
 
         {/* Profile Pending Review Banner */}
-        {profile && profile.profile_status === 'pending_review' && (
+        {profile && (profile.profile_status === 'pending_approval' || profile.profile_status === 'pending_review') && (
           <div className="card" style={{ padding: '24px 28px', marginBottom: '24px', background: '#EFF6FF', borderColor: '#BFDBFE', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: '14px', maxWidth: '650px' }}>
               <div style={{ color: '#2563EB', marginTop: '2px' }}>
@@ -133,7 +133,7 @@ export const DashboardPage: React.FC = () => {
               <User size={18} color="var(--color-primary)" />
             </div>
             <div style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--color-dark)' }}>
-              {profile?.profile_status === 'active' ? t.dashboard.statusActive : t.dashboard.statusDraft}
+              {profile?.profile_status === 'approved' || profile?.profile_status === 'active' ? t.dashboard.statusActive : t.dashboard.statusDraft}
             </div>
           </div>
 
@@ -249,7 +249,7 @@ export const DashboardPage: React.FC = () => {
                 {t.dashboard.shortlistsDesc}
               </p>
             </div>
-            <Button to="/search" variant="outline" size="md" fullWidth>
+            <Button to="/shortlists" variant="outline" size="md" fullWidth>
               {t.dashboard.viewSavedBtn}
             </Button>
           </div>

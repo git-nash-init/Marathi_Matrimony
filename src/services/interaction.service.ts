@@ -14,9 +14,9 @@ export const interactionService = {
   async getBlockedIds(userProfileId?: string): Promise<string[]> {
     if (userProfileId && isSupabaseConfigured()) {
       try {
-        const { data, error } = await (supabase.from('blocked_profiles') as any)
+        const { data, error } = await (supabase.from('user_blocks') as any)
           .select('blocked_profile_id')
-          .eq('profile_id', userProfileId);
+          .eq('blocker_profile_id', userProfileId);
 
         if (!error && data) {
           const dbIds = data.map((item: { blocked_profile_id: string }) => item.blocked_profile_id);
@@ -51,8 +51,8 @@ export const interactionService = {
 
     if (userProfileId) {
       try {
-        await (supabase.from('blocked_profiles') as any).insert({
-          profile_id: userProfileId,
+        await (supabase.from('user_blocks') as any).insert({
+          blocker_profile_id: userProfileId,
           blocked_profile_id: targetProfileId,
         });
       } catch (e) {
@@ -73,9 +73,9 @@ export const interactionService = {
 
     if (userProfileId) {
       try {
-        await (supabase.from('blocked_profiles') as any)
+        await (supabase.from('user_blocks') as any)
           .delete()
-          .match({ profile_id: userProfileId, blocked_profile_id: targetProfileId });
+          .match({ blocker_profile_id: userProfileId, blocked_profile_id: targetProfileId });
       } catch (e) {
         console.warn('DB unblock warning:', e);
       }
@@ -86,11 +86,11 @@ export const interactionService = {
 
   // Report a profile
   async reportProfile(payload: ReportPayload): Promise<{ success: boolean; message?: string }> {
-    if (payload.reporterProfileId) {
+    if (payload.reporterProfileId && isSupabaseConfigured()) {
       try {
-        const { error } = await (supabase.from('profile_reports') as any).insert({
-          reporter_profile_id: payload.reporterProfileId,
-          reported_profile_id: payload.reportedProfileId,
+        const { error } = await (supabase.from('reports') as any).insert({
+          reporter_user_id: payload.reporterProfileId,
+          reported_user_id: payload.reportedProfileId,
           reason: payload.reason,
           description: payload.description || '',
           status: 'pending',

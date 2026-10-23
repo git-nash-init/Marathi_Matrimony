@@ -21,7 +21,7 @@ const timedFetch: typeof fetch = (input, init = {}) => {
     .finally(() => clearTimeout(timeoutId));
 };
 
-// Typed Supabase client instance (Client-safe anon key only, never service_role)
+// Typed Supabase client instance (Client-safe public anon key only)
 export const supabase = createClient<Database>(
   SUPABASE_URL || 'https://placeholder.supabase.co',
   SUPABASE_ANON_KEY || 'placeholder',

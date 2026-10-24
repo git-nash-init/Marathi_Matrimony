@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Lock, CheckCircle2, AlertCircle } from 'lucide-react';
 import { useLanguage } from '../i18n/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 import { Button } from '../components/common/Button';
+import { BrandLogo } from '../components/common/BrandLogo';
 
 export const ResetPasswordPage: React.FC = () => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { updatePassword, isConfigured } = useAuth();
   const navigate = useNavigate();
 
@@ -62,19 +63,9 @@ export const ResetPasswordPage: React.FC = () => {
         <div className="card" style={{ padding: '36px 30px' }}>
           {/* Header */}
           <div style={{ textAlign: 'center', marginBottom: '28px' }}>
-            <div style={{
-              width: '48px',
-              height: '48px',
-              borderRadius: '12px',
-              background: 'var(--color-primary-light)',
-              color: 'var(--color-primary)',
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              marginBottom: '12px'
-            }}>
-              <Lock size={24} />
-            </div>
+            <Link to="/" style={{ display: 'inline-block', marginBottom: '14px', textDecoration: 'none' }} title={language === 'mr' ? 'सनईबंध मुख्यपृष्ठ' : 'Sanaibandh Home'}>
+              <BrandLogo size={58} />
+            </Link>
             <h2 style={{ fontSize: '1.5rem', color: 'var(--color-primary)', fontWeight: 800, marginBottom: '6px' }}>
               {t.auth.resetPasswordPage.title}
             </h2>
@@ -86,7 +77,7 @@ export const ResetPasswordPage: React.FC = () => {
           {!isConfigured && (
             <div style={{ padding: '12px', borderRadius: 'var(--radius-md)', background: '#FEF3C7', color: '#92400E', fontSize: '0.85rem', marginBottom: '20px', display: 'flex', gap: '8px' }}>
               <AlertCircle size={18} style={{ flexShrink: 0 }} />
-              <span>Supabase credentials are not yet configured. Please set them in your environment.</span>
+              <span>{language === 'mr' ? 'डेटाबेस जोडणी उपलब्ध नाही. कृपया सेटिंग्ज तपासा.' : 'Database credentials are not yet configured. Please set them in your environment.'}</span>
             </div>
           )}
 

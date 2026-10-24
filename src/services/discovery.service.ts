@@ -356,19 +356,21 @@ export const discoveryService = {
 
   // Fetch full details of a single profile by ID or profileId
   async fetchProfileById(id: string): Promise<Profile | null> {
-    // 1. Try fetching from Supabase
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .or(`id.eq.${id},profile_id.eq.${id}`)
-        .maybeSingle();
+    // 1. Try fetching from Supabase if configured
+    if (isSupabaseConfigured()) {
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .or(`id.eq.${id},profile_id.eq.${id}`)
+          .maybeSingle();
 
-      if (!error && data) {
-        return mapDbProfileToProfile(data);
+        if (!error && data) {
+          return mapDbProfileToProfile(data);
+        }
+      } catch (err) {
+        console.warn('DB single profile fetch error:', err);
       }
-    } catch (err) {
-      console.warn('DB single profile fetch error:', err);
     }
 
     // 2. Fallback to mock profiles

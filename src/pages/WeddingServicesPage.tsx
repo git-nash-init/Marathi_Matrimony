@@ -150,7 +150,7 @@ export const WeddingServicesPage: React.FC = () => {
 
           <p style={{ fontSize: '1.1rem', color: 'var(--color-ink-muted)', lineHeight: 1.6 }}>
             {language === 'mr'
-              ? 'मराठा लगीनसराई द्वारे विवाह जमवण्यासोबतच लग्न सोहळा दिमाखदार करण्यासाठी नामांकित व खात्रीशीर सेवा पुरवठादार.'
+              ? 'सनईबंध द्वारे विवाह जमवण्यासोबतच लग्न सोहळा दिमाखदार करण्यासाठी नामांकित व खात्रीशीर सेवा पुरवठादार.'
               : 'End-to-end trusted vendor partnerships ensuring a joyous and regal Maharashtrian wedding celebration.'}
           </p>
         </div>
@@ -267,7 +267,7 @@ export const WeddingServicesPage: React.FC = () => {
           </div>
 
           <a
-            href="https://wa.me/917208659356?text=Hello%20Maratha%20Laginsarai,%20I%20need%20assistance%20with%20Wedding%20Services"
+            href="https://wa.me/917208659356?text=Hello%20Sanaibandh,%20I%20need%20assistance%20with%20Wedding%20Services"
             target="_blank"
             rel="noopener noreferrer"
             style={{

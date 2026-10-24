@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Heart, Lock, Mail, AlertCircle } from 'lucide-react';
+import { Lock, Mail, AlertCircle } from 'lucide-react';
 import { useLanguage } from '../i18n/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 import { Button } from '../components/common/Button';
+import { BrandLogo } from '../components/common/BrandLogo';
 
 export const LoginPage: React.FC = () => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { signIn, isConfigured } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -73,9 +74,9 @@ export const LoginPage: React.FC = () => {
         <div className="card" style={{ padding: '36px 30px' }}>
           {/* Header */}
           <div style={{ textAlign: 'center', marginBottom: '28px' }}>
-            <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'var(--color-primary)', color: 'var(--color-white)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: '12px' }}>
-              <Heart size={24} fill="#C59A45" color="#C59A45" />
-            </div>
+            <Link to="/" style={{ display: 'inline-block', marginBottom: '14px', textDecoration: 'none' }} title={language === 'mr' ? 'सनईबंध मुख्यपृष्ठ' : 'Sanaibandh Home'}>
+              <BrandLogo size={58} />
+            </Link>
             <h2 style={{ fontSize: '1.5rem', color: 'var(--color-primary)', fontWeight: 800, marginBottom: '6px' }}>
               {t.auth.loginTitle}
             </h2>
@@ -87,7 +88,7 @@ export const LoginPage: React.FC = () => {
           {!isConfigured && (
             <div style={{ padding: '12px', borderRadius: 'var(--radius-md)', background: '#FEF3C7', color: '#92400E', fontSize: '0.85rem', marginBottom: '20px', display: 'flex', gap: '8px' }}>
               <AlertCircle size={18} style={{ flexShrink: 0 }} />
-              <span>Supabase credentials are not yet configured. Please set them in your environment.</span>
+              <span>{language === 'mr' ? 'डेटाबेस जोडणी उपलब्ध नाही. कृपया सेटिंग्ज तपासा.' : 'Database credentials are not yet configured. Please set them in your environment.'}</span>
             </div>
           )}
 

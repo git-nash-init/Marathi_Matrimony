@@ -80,12 +80,12 @@ export const Step1BasicDetails: React.FC<Step1Props> = ({
             options={[
               {
                 value: 'female',
-                label: `👰 ${t('auth.bride')}`,
+                label: t('auth.bride'),
                 sublabel: language === 'mr' ? 'वधू (स्त्री)' : 'Female (Bride)',
               },
               {
                 value: 'male',
-                label: `🤵 ${t('auth.groom')}`,
+                label: t('auth.groom'),
                 sublabel: language === 'mr' ? 'वर (पुरुष)' : 'Male (Groom)',
               },
             ]}

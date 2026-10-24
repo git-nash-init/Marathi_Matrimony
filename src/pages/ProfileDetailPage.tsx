@@ -284,7 +284,7 @@ export const ProfileDetailPage: React.FC = () => {
               ) : (
                 <>
                   <Sparkles size={18} />
-                  <span>{language === 'mr' ? 'पसंती (Interest) व्यक्त करा' : 'Express Interest'}</span>
+                  <span>{language === 'mr' ? 'पसंती व्यक्त करा' : 'Express Interest'}</span>
                 </>
               )}
             </button>
@@ -325,7 +325,7 @@ export const ProfileDetailPage: React.FC = () => {
       <div className={styles.sectionsContainer}>
         {/* 1. About Me */}
         <SectionCard
-          title={language === 'mr' ? '१. तुमच्याबद्दल सांगा (About Me)' : '1. About Member'}
+          title={language === 'mr' ? '१. तुमच्याबद्दल सांगा' : '1. About Member'}
           subtitle={language === 'mr' ? 'व्यक्तिमत्त्व, विचार व आवडी' : 'Personality, values & introduction'}
           icon={<User size={20} />}
         >
@@ -336,7 +336,7 @@ export const ProfileDetailPage: React.FC = () => {
 
         {/* 2. Basic Information */}
         <SectionCard
-          title={language === 'mr' ? '२. मूलभूत माहिती (Basic Information)' : '2. Basic Details'}
+          title={language === 'mr' ? '२. मूलभूत माहिती' : '2. Basic Details'}
           subtitle={language === 'mr' ? 'वैयक्तिक व जन्म तपशील' : 'Personal & cultural details'}
           icon={<User size={20} />}
         >
@@ -378,7 +378,7 @@ export const ProfileDetailPage: React.FC = () => {
 
         {/* 3. Education & Career */}
         <SectionCard
-          title={language === 'mr' ? '३. शिक्षण व करिअर (Education & Career)' : '3. Education & Career'}
+          title={language === 'mr' ? '३. शिक्षण व करिअर' : '3. Education & Career'}
           subtitle={language === 'mr' ? 'शैक्षणिक पात्रता व नोकरी/व्यवसाय' : 'Educational qualification & profession'}
           icon={<GraduationCap size={20} />}
         >
@@ -414,7 +414,7 @@ export const ProfileDetailPage: React.FC = () => {
 
         {/* 4. Family Details */}
         <SectionCard
-          title={language === 'mr' ? '४. कौटुंबिक माहिती (Family Information)' : '4. Family Details'}
+          title={language === 'mr' ? '४. कौटुंबिक माहिती' : '4. Family Details'}
           subtitle={language === 'mr' ? 'कुटुंब पार्श्वभूमी व भावंडे' : 'Family background & values'}
           icon={<Users size={20} />}
         >
@@ -452,21 +452,21 @@ export const ProfileDetailPage: React.FC = () => {
 
         {/* 5. Lifestyle & Habits */}
         <SectionCard
-          title={language === 'mr' ? '५. जीवनशैली व सवयी (Lifestyle & Habits)' : '5. Lifestyle & Habits'}
+          title={language === 'mr' ? '५. जीवनशैली व सवयी' : '5. Lifestyle & Habits'}
           subtitle={language === 'mr' ? 'आहार, सवयी व आवडीनिवडी' : 'Dietary habits & lifestyle'}
           icon={<Utensils size={20} />}
         >
           <div className={styles.infoGrid}>
             <div className={styles.infoField}>
-              <span className={styles.infoLabel}>{language === 'mr' ? 'आहार (Diet)' : 'Diet'}</span>
+              <span className={styles.infoLabel}>{language === 'mr' ? 'आहार' : 'Diet'}</span>
               <span className={styles.infoValue}>{diet}</span>
             </div>
             <div className={styles.infoField}>
-              <span className={styles.infoLabel}>{language === 'mr' ? 'धूम्रपान (Smoking)' : 'Smoking'}</span>
+              <span className={styles.infoLabel}>{language === 'mr' ? 'धूम्रपान' : 'Smoking'}</span>
               <span className={styles.infoValue}>{smoke}</span>
             </div>
             <div className={styles.infoField}>
-              <span className={styles.infoLabel}>{language === 'mr' ? 'मद्यपान (Drinking)' : 'Drinking'}</span>
+              <span className={styles.infoLabel}>{language === 'mr' ? 'मद्यपान' : 'Drinking'}</span>
               <span className={styles.infoValue}>{drink}</span>
             </div>
           </div>
@@ -474,7 +474,7 @@ export const ProfileDetailPage: React.FC = () => {
 
         {/* 6. Partner Preferences */}
         <SectionCard
-          title={language === 'mr' ? '६. अपेक्षित जोडीदार (Partner Preferences)' : '6. Partner Preferences'}
+          title={language === 'mr' ? '६. अपेक्षित जोडीदार' : '6. Partner Preferences'}
           subtitle={language === 'mr' ? 'अपेक्षित वय, शिक्षण व ठिकाण' : 'Expectations for life partner'}
           icon={<Heart size={20} />}
         >

@@ -5,12 +5,12 @@ export const mockFaqs: FAQItem[] = [
     id: "faq-1",
     category: "registration",
     question: {
-      mr: "मराठी जीवनसाथी वर नोंदणी करणे मोफत आहे का?",
-      en: "Is registration free on Marathi Jeevansathi?"
+      mr: "सनईबंध वर नोंदणी करणे मोफत आहे का?",
+      en: "Is registration free on Sanaibandh?"
     },
     answer: {
-      mr: "होय, मराठी जीवनसाथी वर नोंदणी पूर्णपणे मोफत आहे. आपण आपले मूलभूत प्रोफाइल तयार करू शकता, फोटो अपलोड करू शकता आणि हजारो वधू-वरांचे प्रोफाइल शोधू शकता.",
-      en: "Yes, registering on Marathi Jeevansathi is 100% free. You can create your comprehensive profile, upload photos, and search thousands of verified brides and grooms."
+      mr: "होय, सनईबंध वर नोंदणी पूर्णपणे मोफत आहे. आपण आपले मूलभूत प्रोफाइल तयार करू शकता, फोटो अपलोड करू शकता आणि हजारो वधू-वरांचे प्रोफाइल शोधू शकता.",
+      en: "Yes, registering on Sanaibandh is 100% free. You can create your comprehensive profile, upload photos, and search thousands of verified brides and grooms."
     }
   },
   {

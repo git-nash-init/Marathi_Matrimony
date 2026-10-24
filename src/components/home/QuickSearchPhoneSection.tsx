@@ -133,22 +133,6 @@ export const QuickSearchPhoneSection: React.FC = () => {
           <div className={styles.phoneColumn}>
             {/* iPhone 16 Pro Device Frame */}
             <div className={styles.iphoneWrapper}>
-              {/* Floating Trust Badge: Top Right */}
-              <div className={styles.floatingBadgeTop}>
-                <div className={styles.avatarGroup}>
-                  <span className={styles.avatarMini}>👰</span>
-                  <span className={styles.avatarMini}>🤵</span>
-                  <span className={styles.avatarMini}>✨</span>
-                </div>
-                <div>
-                  <span className={styles.floatTitle}>
-                    {language === 'mr' ? '२४०+ नवीन स्थळे आज' : '240+ New Matches Today'}
-                  </span>
-                  <span className={styles.floatSub}>
-                    {language === 'mr' ? 'मुंबई, पुणे, ठाणे' : 'Mumbai, Pune, Thane'}
-                  </span>
-                </div>
-              </div>
               {/* Hardware Side Buttons */}
               <div className={styles.sideBtnVolumeUp} />
               <div className={styles.sideBtnVolumeDown} />
@@ -233,16 +217,14 @@ export const QuickSearchPhoneSection: React.FC = () => {
                             className={`${styles.genderBtn} ${gender === 'female' ? styles.activeGender : ''}`}
                             onClick={() => setGender('female')}
                           >
-                            <span>👰</span>
-                            <span>{language === 'mr' ? 'वधू (Bride)' : 'Bride (Female)'}</span>
+                            <span>{language === 'mr' ? 'वधू' : 'Bride'}</span>
                           </button>
                           <button
                             type="button"
                             className={`${styles.genderBtn} ${gender === 'male' ? styles.activeGender : ''}`}
                             onClick={() => setGender('male')}
                           >
-                            <span>🤵</span>
-                            <span>{language === 'mr' ? 'वर (Groom)' : 'Groom (Male)'}</span>
+                            <span>{language === 'mr' ? 'वर' : 'Groom'}</span>
                           </button>
                         </div>
                       </div>
@@ -365,19 +347,6 @@ export const QuickSearchPhoneSection: React.FC = () => {
 
                   {/* iOS Home Indicator Bar */}
                   <div className={styles.homeIndicator} />
-                </div>
-              </div>
-
-              {/* Floating Trust Badge: Bottom Left */}
-              <div className={styles.floatingBadgeBottom}>
-                <VerifiedShieldIcon size={22} color="#B6873D" />
-                <div>
-                  <span className={styles.floatTitle}>
-                    {language === 'mr' ? '१००% सुरक्षित व पडताळणी' : '100% Verified Contacts'}
-                  </span>
-                  <span className={styles.floatSub}>
-                    {language === 'mr' ? 'थेट पालकांशी संपर्क' : 'Direct Family Matchmaking'}
-                  </span>
                 </div>
               </div>
             </div>

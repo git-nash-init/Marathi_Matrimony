@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Heart, Lock, Mail, User, Phone, Calendar, AlertCircle } from 'lucide-react';
+import { Lock, Mail, User, Phone, Calendar, AlertCircle } from 'lucide-react';
 import { useLanguage } from '../i18n/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 import { Button } from '../components/common/Button';
+import { BrandLogo } from '../components/common/BrandLogo';
 
 export const RegisterPage: React.FC = () => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { signUp, isConfigured } = useAuth();
   const navigate = useNavigate();
 
@@ -96,9 +97,9 @@ export const RegisterPage: React.FC = () => {
         <div className="card" style={{ padding: '36px 30px' }}>
           {/* Header */}
           <div style={{ textAlign: 'center', marginBottom: '28px' }}>
-            <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'var(--color-primary)', color: 'var(--color-white)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: '12px' }}>
-              <Heart size={24} fill="#C59A45" color="#C59A45" />
-            </div>
+            <Link to="/" style={{ display: 'inline-block', marginBottom: '14px', textDecoration: 'none' }} title={language === 'mr' ? 'सनईबंध मुख्यपृष्ठ' : 'Sanaibandh Home'}>
+              <BrandLogo size={58} />
+            </Link>
             <h2 style={{ fontSize: '1.6rem', color: 'var(--color-primary)', fontWeight: 800, marginBottom: '6px' }}>
               {t.auth.registerTitle}
             </h2>
@@ -110,7 +111,7 @@ export const RegisterPage: React.FC = () => {
           {!isConfigured && (
             <div style={{ padding: '12px', borderRadius: 'var(--radius-md)', background: '#FEF3C7', color: '#92400E', fontSize: '0.85rem', marginBottom: '20px', display: 'flex', gap: '8px' }}>
               <AlertCircle size={18} style={{ flexShrink: 0 }} />
-              <span>Supabase credentials are not yet configured. Please set them in your environment.</span>
+              <span>{language === 'mr' ? 'डेटाबेस जोडणी उपलब्ध नाही. कृपया सेटिंग्ज तपासा.' : 'Database credentials are not yet configured. Please set them in your environment.'}</span>
             </div>
           )}
 
@@ -129,12 +130,12 @@ export const RegisterPage: React.FC = () => {
               </label>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
                 {[
-                  { id: 'myself', label: t.auth.myself },
-                  { id: 'son', label: t.auth.son || 'Son / मुलगा' },
-                  { id: 'daughter', label: t.auth.daughter || 'Daughter / मुलगी' },
-                  { id: 'sibling', label: t.auth.sibling || 'Sibling / भाऊ-बहीण' },
-                  { id: 'relative', label: t.auth.relative || 'Relative / नातेवाईक' },
-                  { id: 'parent', label: t.auth.parent || 'Parent / पालक' }
+                  { id: 'myself', label: t.auth.myself || (language === 'mr' ? 'स्वतः' : 'Self') },
+                  { id: 'son', label: t.auth.son || (language === 'mr' ? 'मुलगा' : 'Son') },
+                  { id: 'daughter', label: t.auth.daughter || (language === 'mr' ? 'मुलगी' : 'Daughter') },
+                  { id: 'sibling', label: t.auth.sibling || (language === 'mr' ? 'भाऊ-बहीण' : 'Sibling') },
+                  { id: 'relative', label: t.auth.relative || (language === 'mr' ? 'नातेवाईक' : 'Relative') },
+                  { id: 'parent', label: t.auth.parent || (language === 'mr' ? 'पालक' : 'Parent') }
                 ].map((item) => (
                   <button
                     key={item.id}

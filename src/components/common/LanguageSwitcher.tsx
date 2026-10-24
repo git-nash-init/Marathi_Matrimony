@@ -17,7 +17,7 @@ export const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
     <div 
       className={`
         ${styles.switcherContainer} 
-        ${styles[variant]} 
+        ${variant === 'footer' ? styles.footer : ''} 
         ${isGlass ? styles.glassMode : ''}
       `}
       role="group"
@@ -31,7 +31,7 @@ export const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
         aria-label="मराठी भाषेत बदला"
         aria-pressed={language === 'mr'}
       >
-        <span className={styles.symbolChar}>आ</span>
+        <span className={styles.symbolChar}>अ</span>
       </button>
 
       <span className={styles.divider} aria-hidden="true">/</span>

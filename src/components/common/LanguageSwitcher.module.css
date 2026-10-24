@@ -1,36 +1,93 @@
-/* Compact Glassmorphism Language Switcher with 'आ' (Marathi) and 'A' (English) */
+/* Compact Glassmorphism Language Switcher with 'अ' (Marathi) and 'A' (English) */
 .switcherContainer {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 3px;
-  background: rgba(255, 255, 255, 0.12);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.28);
   border-radius: 9999px;
   padding: 3px 6px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  user-select: none;
 }
 
-.switcherContainer:hover {
+/* 1. Transparent Glass Mode (Hero overlay on homepage) */
+.switcherContainer.glassMode {
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.32);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+}
+
+.switcherContainer.glassMode:hover {
+  background: rgba(255, 255, 255, 0.22);
+  border-color: rgba(223, 193, 123, 0.65);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2), 0 0 12px rgba(223, 193, 123, 0.3);
+}
+
+.switcherContainer.glassMode .symbolBtn {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.switcherContainer.glassMode .symbolBtn:hover {
+  color: #FFFFFF;
   background: rgba(255, 255, 255, 0.2);
-  border-color: rgba(223, 193, 123, 0.6);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18), 0 0 12px rgba(223, 193, 123, 0.3);
 }
 
-/* Symbol Buttons */
+.switcherContainer.glassMode .symbolBtn.active {
+  color: #FFFFFF;
+  background: linear-gradient(135deg, rgba(182, 135, 61, 0.9) 0%, rgba(123, 25, 30, 0.95) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  box-shadow: 0 2px 8px rgba(123, 25, 30, 0.4);
+}
+
+.switcherContainer.glassMode .divider {
+  color: rgba(255, 255, 255, 0.45);
+}
+
+/* 2. Solid / Light Header Mode (All inner pages and when scrolled) */
+.switcherContainer:not(.glassMode):not(.footer) {
+  background: rgba(123, 25, 30, 0.08);
+  border: 1px solid rgba(182, 135, 61, 0.4);
+  box-shadow: 0 2px 8px rgba(48, 36, 31, 0.06);
+}
+
+.switcherContainer:not(.glassMode):not(.footer):hover {
+  background: rgba(123, 25, 30, 0.12);
+  border-color: var(--color-oxblood, #7B191E);
+  box-shadow: 0 3px 12px rgba(123, 25, 30, 0.12);
+}
+
+.switcherContainer:not(.glassMode):not(.footer) .symbolBtn {
+  color: var(--color-ink, #30241F);
+}
+
+.switcherContainer:not(.glassMode):not(.footer) .symbolBtn:hover {
+  color: var(--color-oxblood, #7B191E);
+  background: rgba(123, 25, 30, 0.1);
+}
+
+.switcherContainer:not(.glassMode):not(.footer) .symbolBtn.active {
+  color: #FFFFFF;
+  background: linear-gradient(135deg, #7B191E 0%, #A3282F 100%);
+  border: 1px solid var(--color-antique-gold, #B6873D);
+  box-shadow: 0 2px 8px rgba(123, 25, 30, 0.35);
+}
+
+.switcherContainer:not(.glassMode):not(.footer) .divider {
+  color: rgba(48, 36, 31, 0.35);
+}
+
+/* Shared Symbol Button Mechanics */
 .symbolBtn {
   border: none;
   background: transparent;
   cursor: pointer;
-  padding: 3px 8px;
+  padding: 3px 9px;
   border-radius: 9999px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: rgba(255, 255, 255, 0.75);
   font-family: inherit;
   font-weight: 700;
   font-size: 0.88rem;
@@ -45,77 +102,42 @@
 }
 
 .symbolBtn:hover {
-  color: #FFFFFF;
-  background: rgba(255, 255, 255, 0.18);
   transform: scale(1.05);
-}
-
-/* Active Language Symbol Pill with Gold / Glass Glow */
-.symbolBtn.active {
-  color: #FFFFFF;
-  background: linear-gradient(135deg, rgba(182, 135, 61, 0.85) 0%, rgba(123, 25, 30, 0.85) 100%);
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  box-shadow: 0 2px 8px rgba(123, 25, 30, 0.35);
 }
 
 /* Divider */
 .divider {
-  color: rgba(255, 255, 255, 0.4);
   font-size: 0.78rem;
   font-weight: 400;
   user-select: none;
 }
 
-/* Scrolled / Non-transparent header mode */
-:global(.scrolled) .switcherContainer,
-.header:not(.glassMode) .switcherContainer {
-  background: rgba(123, 25, 30, 0.06);
-  border-color: rgba(182, 135, 61, 0.3);
-}
-
-:global(.scrolled) .symbolBtn,
-.header:not(.glassMode) .symbolBtn {
-  color: var(--color-ink, #30241F);
-}
-
-:global(.scrolled) .symbolBtn:hover,
-.header:not(.glassMode) .symbolBtn:hover {
-  background: rgba(123, 25, 30, 0.1);
-  color: var(--color-oxblood, #7B191E);
-}
-
-:global(.scrolled) .symbolBtn.active,
-.header:not(.glassMode) .symbolBtn.active {
-  color: #FFFFFF;
-  background: var(--color-oxblood, #7B191E);
-  border-color: var(--color-antique-gold, #B6873D);
-}
-
-:global(.scrolled) .divider,
-.header:not(.glassMode) .divider {
-  color: rgba(48, 36, 31, 0.3);
-}
-
-/* Footer variant */
-.footer {
+/* 3. Footer Variant */
+.switcherContainer.footer {
   background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-.footer .symbolBtn {
-  color: rgba(255, 255, 255, 0.75);
+.switcherContainer.footer:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(223, 193, 123, 0.5);
 }
 
-.footer .symbolBtn:hover {
+.switcherContainer.footer .symbolBtn {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.switcherContainer.footer .symbolBtn:hover {
   color: #FFFFFF;
   background: rgba(255, 255, 255, 0.16);
 }
 
-.footer .symbolBtn.active {
+.switcherContainer.footer .symbolBtn.active {
   background: var(--color-antique-gold, #B6873D);
-  color: #1a1412;
+  color: #1A1412;
+  box-shadow: 0 2px 8px rgba(182, 135, 61, 0.4);
 }
 
-.footer .divider {
-  color: rgba(255, 255, 255, 0.35);
+.switcherContainer.footer .divider {
+  color: rgba(255, 255, 255, 0.4);
 }

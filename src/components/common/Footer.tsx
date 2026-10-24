@@ -98,12 +98,12 @@ export const Footer: React.FC = () => {
             <ul className={styles.linksList}>
               <li>
                 <Link to="/search?gender=female">
-                  {language === 'mr' ? 'मराठा वधू शोधा (Brides)' : 'Find Maratha Brides'}
+                  {language === 'mr' ? 'मराठा वधू शोधा' : 'Find Maratha Brides'}
                 </Link>
               </li>
               <li>
                 <Link to="/search?gender=male">
-                  {language === 'mr' ? 'मराठा वर शोधा (Grooms)' : 'Find Maratha Grooms'}
+                  {language === 'mr' ? 'मराठा वर शोधा' : 'Find Maratha Grooms'}
                 </Link>
               </li>
               <li>

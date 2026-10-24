@@ -16,7 +16,7 @@ import { useAuth } from '../context/AuthContext';
 import { Button } from '../components/common/Button';
 
 export const DashboardPage: React.FC = () => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { user, profile, signOut } = useAuth();
   const navigate = useNavigate();
 
@@ -81,10 +81,13 @@ export const DashboardPage: React.FC = () => {
               </div>
               <div>
                 <h3 style={{ fontSize: '1.05rem', color: '#1E40AF', fontWeight: 700, marginBottom: '4px' }}>
-                  {profile.completion_percentage ? `${profile.completion_percentage}% ` : ''} प्रोफाइल तपासणी प्रक्रियेत आहे / Profile Under Admin Review
+                  {profile.completion_percentage ? `${profile.completion_percentage}% ` : ''}
+                  {language === 'mr' ? 'प्रोफाइल तपासणी प्रक्रियेत आहे' : 'Profile Under Admin Review'}
                 </h3>
                 <p style={{ color: '#1E3A8A', fontSize: '0.88rem', margin: 0 }}>
-                  आपली प्रोफाइल आमच्या प्रशासक टीमकडे पडताळणीसाठी सादर केली आहे. (सामान्यतः २४ तासांत पडताळणी पूर्ण होते). / Your profile has been submitted for admin verification.
+                  {language === 'mr'
+                    ? 'आपली प्रोफाइल आमच्या प्रशासक टीमकडे पडताळणीसाठी सादर केली आहे. (सामान्यतः २४ तासांत पडताळणी पूर्ण होते).'
+                    : 'Your profile has been submitted for admin verification (usually completes within 24 hours).'}
                 </p>
               </div>
             </div>
@@ -103,7 +106,10 @@ export const DashboardPage: React.FC = () => {
               </div>
               <div>
                 <h3 style={{ fontSize: '1.05rem', color: '#92400E', fontWeight: 700, marginBottom: '4px' }}>
-                  {profile?.completion_percentage ? `(${profile.completion_percentage}% पूर्ण / Complete) ` : ''}{t.dashboard.profileIncompleteTitle}
+                  {profile?.completion_percentage
+                    ? `(${profile.completion_percentage}% ${language === 'mr' ? 'पूर्ण' : 'Complete'}) `
+                    : ''}
+                  {t.dashboard.profileIncompleteTitle}
                 </h3>
                 <p style={{ color: '#B45309', fontSize: '0.88rem', margin: 0 }}>
                   {t.dashboard.profileIncompleteDesc}

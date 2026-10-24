@@ -6,7 +6,7 @@ import { Button } from '../components/common/Button';
 import { brandConfig } from '../config/brand.config';
 
 export const ContactPage: React.FC = () => {
-  const { t, brandName, localize } = useLanguage();
+  const { t, brandName, localize, language } = useLanguage();
   const [formSubmitted, setFormSubmitted] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -26,7 +26,7 @@ export const ContactPage: React.FC = () => {
       <div className="container">
         <SectionHeading
           badge={t.contactPage.badge}
-          title={`${t.contactPage.titlePrefix} ${brandName}`}
+          title={language === 'mr' ? `${brandName} शी संपर्क साधा` : `Contact ${brandName}`}
           subtitle={t.contactPage.subtitle}
         />
 

@@ -314,7 +314,7 @@ export const SearchPage: React.FC = () => {
                   className={styles.sortSelect}
                   aria-label="Sort profiles"
                 >
-                  <option value="relevance">{language === 'mr' ? 'सुसंगतता (Relevance)' : 'Relevance'}</option>
+                  <option value="relevance">{language === 'mr' ? 'सुसंगतता' : 'Relevance'}</option>
                   <option value="ageAsc">{language === 'mr' ? 'वय: कमी ते जास्त' : 'Age: Low to High'}</option>
                   <option value="ageDesc">{language === 'mr' ? 'वय: जास्त ते कमी' : 'Age: High to Low'}</option>
                   <option value="incomeDesc">{language === 'mr' ? 'उत्पन्न: जास्त ते कमी' : 'Income: High to Low'}</option>
@@ -387,7 +387,7 @@ export const SearchPage: React.FC = () => {
                         ? 'लोड करत आहे...'
                         : 'Loading more profiles...'
                       : language === 'mr'
-                      ? 'अधिक प्रोफाइल पहा (Load More)'
+                      ? 'अधिक प्रोफाइल पहा'
                       : 'Load More Profiles'}
                   </button>
                 </div>

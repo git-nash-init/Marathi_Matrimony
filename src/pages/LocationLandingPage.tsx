@@ -20,7 +20,7 @@ import styles from './LocationLandingPage.module.css';
 export const LocationLandingPage: React.FC = () => {
   const { slug } = useParams<{ slug?: string }>();
   const location = useLocation();
-  const { language } = useLanguage();
+  const { language, brandName } = useLanguage();
 
   // Determine current hub by explicit slug or direct URL pathname
   const currentPath = location.pathname.replace(/^\//, '');
@@ -32,7 +32,7 @@ export const LocationLandingPage: React.FC = () => {
 
   // Set SEO metadata and Schema.org structured data
   useEffect(() => {
-    document.title = `${hub.title[language]} | मराठा लगीनसराई`;
+    document.title = `${hub.title[language]} | ${brandName}`;
 
     const metaDesc = document.querySelector('meta[name="description"]');
     if (metaDesc) {
@@ -54,7 +54,7 @@ export const LocationLandingPage: React.FC = () => {
       '@graph': [
         {
           '@type': 'LocalBusiness',
-          'name': `Maratha Laginsarai - ${hub.name.en}`,
+          'name': `${brandName} - ${hub.name.en}`,
           'url': window.location.href,
           'telephone': hub.helplinePhone,
           'address': {
@@ -167,7 +167,7 @@ export const LocationLandingPage: React.FC = () => {
                 {language === 'mr' ? 'मोफत नोंदणी करा' : 'Register Free in ' + hub.name.en}
               </Button>
               <a
-                href={`https://wa.me/917208659356?text=${encodeURIComponent(`Hello Maratha Laginsarai, I am looking for 96 Kuli Maratha matches in ${hub.name.en}`)}`}
+                href={`https://wa.me/917208659356?text=${encodeURIComponent(`Hello ${brandName}, I am looking for 96 Kuli Maratha matches in ${hub.name.en}`)}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 style={{
@@ -210,7 +210,7 @@ export const LocationLandingPage: React.FC = () => {
             <div className={styles.metaBlock}>
               <h3 className={styles.metaBlockTitle}>
                 <MarathaCrestIcon size={18} color="var(--color-antique-gold)" />
-                <span>{language === 'mr' ? 'स्थानिक सभासदांचे मूळ जिल्हे (Native Districts)' : 'Native Districts Represented'}</span>
+                <span>{language === 'mr' ? 'स्थानिक सभासदांचे मूळ जिल्हे' : 'Native Districts Represented'}</span>
               </h3>
               <div className={styles.chipList}>
                 {hub.nativeDistricts.map((district, idx) => (

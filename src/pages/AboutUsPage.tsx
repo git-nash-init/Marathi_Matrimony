@@ -5,14 +5,14 @@ import { SectionHeading } from '../components/common/SectionHeading';
 import { Button } from '../components/common/Button';
 
 export const AboutUsPage: React.FC = () => {
-  const { t, brandName } = useLanguage();
+  const { t, brandName, language } = useLanguage();
 
   return (
     <div className="section">
       <div className="container">
         <SectionHeading
           badge={t.aboutUsPage.badge}
-          title={`${brandName} ${t.aboutUsPage.titleSuffix}`}
+          title={language === 'mr' ? `${brandName} बद्दल` : `About ${brandName}`}
           subtitle={t.aboutUsPage.subtitle}
         />
 

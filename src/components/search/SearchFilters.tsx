@@ -47,17 +47,17 @@ export const SearchFilters: React.FC<SearchFiltersProps> = ({
 
   const maritalStatusOptions = [
     { value: 'all', labelMr: 'सर्व वैवाहिक स्थिती', labelEn: 'All Marital Status' },
-    { value: 'never_married', labelMr: 'अविवाहित (Never Married)', labelEn: 'Never Married' },
-    { value: 'divorced', labelMr: 'घटस्फोटित (Divorced)', labelEn: 'Divorced' },
-    { value: 'widowed', labelMr: 'विधवा / विधुर (Widowed)', labelEn: 'Widowed' },
+    { value: 'never_married', labelMr: 'अविवाहित', labelEn: 'Never Married' },
+    { value: 'divorced', labelMr: 'घटस्फोटित', labelEn: 'Divorced' },
+    { value: 'widowed', labelMr: 'विधवा / विधुर', labelEn: 'Widowed' },
   ];
 
   const religionOptions = [
-    { value: 'all', labelMr: 'सर्व धर्म (All)', labelEn: 'All Religions' },
-    { value: 'Hindu', labelMr: 'हिंदू (Hindu)', labelEn: 'Hindu' },
-    { value: 'Jain', labelMr: 'जैन (Jain)', labelEn: 'Jain' },
-    { value: 'Buddhist', labelMr: 'बौद्ध (Buddhist)', labelEn: 'Buddhist' },
-    { value: 'Lingayat', labelMr: 'लिंगायत (Lingayat)', labelEn: 'Lingayat' },
+    { value: 'all', labelMr: 'सर्व धर्म', labelEn: 'All Religions' },
+    { value: 'Hindu', labelMr: 'हिंदू', labelEn: 'Hindu' },
+    { value: 'Jain', labelMr: 'जैन', labelEn: 'Jain' },
+    { value: 'Buddhist', labelMr: 'बौद्ध', labelEn: 'Buddhist' },
+    { value: 'Lingayat', labelMr: 'लिंगायत', labelEn: 'Lingayat' },
   ];
 
   return (
@@ -67,7 +67,7 @@ export const SearchFilters: React.FC<SearchFiltersProps> = ({
         <div className={styles.headerTitleGroup}>
           <SlidersHorizontal size={18} className={styles.filterIcon} />
           <h2 className={styles.filterHeading}>
-            {language === 'mr' ? 'फिल्टर्स (Filters)' : 'Search Filters'}
+            {language === 'mr' ? 'शोध फिल्टर्स' : 'Search Filters'}
           </h2>
         </div>
         <div className={styles.headerActions}>
@@ -91,9 +91,9 @@ export const SearchFilters: React.FC<SearchFiltersProps> = ({
           </label>
           <div className={styles.segmentedGroup}>
             {[
-              { val: 'all', mr: 'सर्व (All)', en: 'All' },
-              { val: 'female', mr: '👰 वधू (Brides)', en: 'Brides' },
-              { val: 'male', mr: '🤵 वर (Grooms)', en: 'Grooms' },
+              { val: 'all', mr: 'सर्व', en: 'All' },
+              { val: 'female', mr: 'वधू', en: 'Brides' },
+              { val: 'male', mr: 'वर', en: 'Grooms' },
             ].map((g) => (
               <button
                 key={g.val}
@@ -110,7 +110,7 @@ export const SearchFilters: React.FC<SearchFiltersProps> = ({
         {/* 2. AGE RANGE */}
         <div className={styles.section}>
           <div className={styles.rangeHeader}>
-            <label className={styles.sectionLabel}>{language === 'mr' ? 'वय मर्यादा (Age)' : 'Age Range'}</label>
+            <label className={styles.sectionLabel}>{language === 'mr' ? 'वय मर्यादा' : 'Age Range'}</label>
             <span className={styles.rangeValues}>
               {filters.minAge} – {filters.maxAge} {language === 'mr' ? 'वर्षे' : 'yrs'}
             </span>
@@ -138,7 +138,7 @@ export const SearchFilters: React.FC<SearchFiltersProps> = ({
         {/* 3. HEIGHT RANGE */}
         <div className={styles.section}>
           <div className={styles.rangeHeader}>
-            <label className={styles.sectionLabel}>{language === 'mr' ? 'उंची मर्यादा (Height)' : 'Height Range'}</label>
+            <label className={styles.sectionLabel}>{language === 'mr' ? 'उंची मर्यादा' : 'Height Range'}</label>
             <span className={styles.rangeValues}>
               {Math.floor(filters.minHeight / 30.48)}'{Math.round((filters.minHeight % 30.48) / 2.54)}" –{' '}
               {Math.floor(filters.maxHeight / 30.48)}'{Math.round((filters.maxHeight % 30.48) / 2.54)}"
@@ -185,14 +185,14 @@ export const SearchFilters: React.FC<SearchFiltersProps> = ({
 
         {/* 5. COMMUNITY / CASTE */}
         <div className={styles.section}>
-          <label className={styles.sectionLabel}>{language === 'mr' ? 'जात / समाज (Community)' : 'Community / Caste'}</label>
+          <label className={styles.sectionLabel}>{language === 'mr' ? 'जात / समाज' : 'Community / Caste'}</label>
           <div className={styles.selectWrapper}>
             <select
               value={filters.community}
               onChange={(e) => handleFieldChange('community', e.target.value)}
               className={styles.selectInput}
             >
-              <option value="all">{language === 'mr' ? 'सर्व समाज (All Communities)' : 'All Communities'}</option>
+              <option value="all">{language === 'mr' ? 'सर्व समाज' : 'All Communities'}</option>
               {MARATHI_COMMUNITIES.map((c: OptionItem) => (
                 <option key={c.id} value={c.id}>
                   {language === 'mr' ? c.mr : c.en}
@@ -205,7 +205,7 @@ export const SearchFilters: React.FC<SearchFiltersProps> = ({
 
         {/* 6. RELIGION */}
         <div className={styles.section}>
-          <label className={styles.sectionLabel}>{language === 'mr' ? 'धर्म (Religion)' : 'Religion'}</label>
+          <label className={styles.sectionLabel}>{language === 'mr' ? 'धर्म' : 'Religion'}</label>
           <div className={styles.selectWrapper}>
             <select
               value={filters.religion}
@@ -224,14 +224,14 @@ export const SearchFilters: React.FC<SearchFiltersProps> = ({
 
         {/* 7. LOCATION / CITY */}
         <div className={styles.section}>
-          <label className={styles.sectionLabel}>{language === 'mr' ? 'जिल्हा / शहर (City / District)' : 'City / District'}</label>
+          <label className={styles.sectionLabel}>{language === 'mr' ? 'जिल्हा / शहर' : 'City / District'}</label>
           <div className={styles.selectWrapper}>
             <select
               value={filters.city}
               onChange={(e) => handleFieldChange('city', e.target.value)}
               className={styles.selectInput}
             >
-              <option value="all">{language === 'mr' ? 'सर्व शहरे (All Cities)' : 'All Cities'}</option>
+              <option value="all">{language === 'mr' ? 'सर्व शहरे' : 'All Cities'}</option>
               {MAHARASHTRA_CITIES.map((d: OptionItem) => (
                 <option key={d.id} value={d.id}>
                   {language === 'mr' ? d.mr : d.en}
@@ -244,14 +244,14 @@ export const SearchFilters: React.FC<SearchFiltersProps> = ({
 
         {/* 8. EDUCATION */}
         <div className={styles.section}>
-          <label className={styles.sectionLabel}>{language === 'mr' ? 'शिक्षण (Education)' : 'Education'}</label>
+          <label className={styles.sectionLabel}>{language === 'mr' ? 'शिक्षण' : 'Education'}</label>
           <div className={styles.selectWrapper}>
             <select
               value={filters.education}
               onChange={(e) => handleFieldChange('education', e.target.value)}
               className={styles.selectInput}
             >
-              <option value="all">{language === 'mr' ? 'सर्व शिक्षण (All Education)' : 'All Education'}</option>
+              <option value="all">{language === 'mr' ? 'सर्व शिक्षण' : 'All Education'}</option>
               {EDUCATION_OPTIONS.map((e: OptionItem) => (
                 <option key={e.id} value={e.id}>
                   {language === 'mr' ? e.mr : e.en}
@@ -264,14 +264,14 @@ export const SearchFilters: React.FC<SearchFiltersProps> = ({
 
         {/* 9. OCCUPATION */}
         <div className={styles.section}>
-          <label className={styles.sectionLabel}>{language === 'mr' ? 'व्यवसाय / नोकरी (Occupation)' : 'Occupation'}</label>
+          <label className={styles.sectionLabel}>{language === 'mr' ? 'व्यवसाय / नोकरी' : 'Occupation'}</label>
           <div className={styles.selectWrapper}>
             <select
               value={filters.occupation}
               onChange={(e) => handleFieldChange('occupation', e.target.value)}
               className={styles.selectInput}
             >
-              <option value="all">{language === 'mr' ? 'सर्व व्यवसाय (All Occupations)' : 'All Occupations'}</option>
+              <option value="all">{language === 'mr' ? 'सर्व व्यवसाय' : 'All Occupations'}</option>
               {OCCUPATION_OPTIONS.map((o: OptionItem) => (
                 <option key={o.id} value={o.id}>
                   {language === 'mr' ? o.mr : o.en}

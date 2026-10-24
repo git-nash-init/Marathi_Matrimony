@@ -231,71 +231,91 @@ export const ProfileBuilderContainer: React.FC<ProfileBuilderProps> = ({ mode: _
       setIsSaving(true);
       setSaveErrorMessage(null);
 
-      const incomeNumeric = formData.annual_income === 'not_disclosed' || !formData.annual_income
-        ? null
-        : typeof formData.annual_income === 'number'
-        ? formData.annual_income
-        : parseFloat(String(formData.annual_income).replace(/[^\d.]/g, '')) || null;
+      // Map profile_status enum safely
+      const profileStatusEnum = status === 'pending_review' ? 'pending_approval' : 'draft';
+      const verificationStatusEnum = formData.self_attested ? 'pending' : 'unverified';
+
+      // Parse height as integer
+      const heightInt = Number(formData.height_cm) || 165;
+      const incomeStr = formData.annual_income ? String(formData.annual_income) : null;
 
       const profilePayload: Record<string, any> = {
         user_id: user.id,
-        display_name: `${formData.first_name} ${formData.last_name || ''}`.trim(),
-        first_name: formData.first_name,
-        last_name: formData.last_name,
-        profile_for: formData.profile_for || 'self',
-        gender: formData.gender,
+        first_name: formData.first_name || 'Member',
+        last_name: formData.last_name || '',
+        gender: formData.gender || 'male',
         date_of_birth: formData.date_of_birth || null,
-        height_cm: formData.height_cm || null,
-        marital_status: formData.marital_status || null,
+        height: heightInt,
+        marital_status: formData.marital_status || 'never_married',
         mother_tongue: formData.mother_tongue || 'Marathi',
         religion: formData.religion || 'Hindu',
         community: formData.community || null,
         sub_community: formData.sub_community || null,
-        manglik_status: formData.manglik || (formData as any).manglik_status || null,
-        horoscope_available: formData.horoscope_match_required ?? (formData as any).horoscope_available ?? false,
+        gothra: formData.gothra || null,
 
-        education: formData.highest_education || (formData as any).education || null,
-        college: formData.college_institution || (formData as any).college || null,
+        education: formData.highest_education || null,
+        education_detail: formData.education_detail || null,
+        college: formData.college_institution || null,
         occupation: formData.occupation || null,
-        company: formData.organization_name || (formData as any).company || null,
-        annual_income: incomeNumeric,
-        employment_type: formData.employed_in || (formData as any).employment_type || null,
+        employed_in: formData.employed_in || 'Private Sector',
+        company: formData.organization_name || null,
+        income: incomeStr,
+        work_location: formData.work_location || null,
 
         father_occupation: formData.father_occupation || null,
         mother_occupation: formData.mother_occupation || null,
-        family_type: formData.family_type || null,
-        family_values: formData.family_values || null,
-        siblings_count: (Number(formData.brothers_count) || 0) + (Number(formData.sisters_count) || 0),
+        family_type: formData.family_type || 'Nuclear',
+        family_status: formData.family_status || 'Middle Class',
+        brothers_count: Number(formData.brothers_count) || 0,
+        sisters_count: Number(formData.sisters_count) || 0,
+        married_brothers_count: Number(formData.brothers_married) || 0,
+        married_sisters_count: Number(formData.sisters_married) || 0,
 
-        diet: formData.diet || null,
-        smoking: formData.smoking || null,
-        drinking: formData.drinking || null,
+        diet: formData.diet || 'Vegetarian',
+        smoking: formData.smoking || 'No',
+        drinking: formData.drinking || 'No',
 
-        city: formData.current_city || (formData as any).city || null,
-        district: formData.current_district || (formData as any).district || null,
-        state: formData.current_state || (formData as any).state || 'Maharashtra',
-        country: formData.current_country || (formData as any).country || 'India',
+        city: formData.current_city || null,
+        state: formData.current_state || 'Maharashtra',
+        country: formData.current_country || 'India',
 
         about_me: formData.about_me || null,
-        profile_status: status,
-        is_visible: false, // strictly private until review
-        verification_status: formData.self_attested ? 'verified' : 'not_started',
+        profile_status: profileStatusEnum,
+        verification_status: verificationStatusEnum,
+        profile_visibility: 'registered_only',
+        created_by: 'Self',
+        completion_percentage: calculateProfileCompletion(formData),
+        updated_at: new Date().toISOString()
       };
 
       let savedProfileId = profileId;
 
       if (!savedProfileId) {
-        profilePayload.profile_id = `MM${Math.floor(100000 + Math.random() * 900000)}`;
-        // Insert new profile
-        const { data: inserted, error: insertErr } = await (supabase.from('profiles') as any)
-          .insert(profilePayload)
-          .select('id')
-          .single();
+        // First check if profile was already created by the auth trigger
+        const { data: existingProf } = await (supabase.from('profiles') as any)
+          .select('id, profile_id')
+          .eq('user_id', user.id)
+          .maybeSingle();
 
-        if (insertErr) throw insertErr;
-        if (inserted) {
-          savedProfileId = inserted.id;
-          setProfileId(inserted.id);
+        if (existingProf?.id) {
+          savedProfileId = existingProf.id;
+          setProfileId(existingProf.id);
+          const { error: updateErr } = await (supabase.from('profiles') as any)
+            .update(profilePayload)
+            .eq('id', existingProf.id);
+          if (updateErr) throw updateErr;
+        } else {
+          // Insert new profile
+          const { data: inserted, error: insertErr } = await (supabase.from('profiles') as any)
+            .insert(profilePayload)
+            .select('id, profile_id')
+            .single();
+
+          if (insertErr) throw insertErr;
+          if (inserted) {
+            savedProfileId = inserted.id;
+            setProfileId(inserted.id);
+          }
         }
       } else {
         // Update existing profile
@@ -309,21 +329,40 @@ export const ProfileBuilderContainer: React.FC<ProfileBuilderProps> = ({ mode: _
 
       // Save partner preferences if profile id is available
       if (savedProfileId) {
+        const prefCities = formData.partner_location
+          ? formData.partner_location.split(',').map((c) => c.trim()).filter(Boolean)
+          : [];
+        const prefEdu = Array.isArray(formData.partner_education)
+          ? formData.partner_education.filter((e) => e && e !== 'any')
+          : [];
+        const prefOcc = Array.isArray(formData.partner_occupation)
+          ? formData.partner_occupation.filter((o) => o && o !== 'any')
+          : [];
+        const prefRel = Array.isArray(formData.partner_religion)
+          ? formData.partner_religion
+          : [formData.partner_religion || 'Hindu'];
+        const prefComm = Array.isArray(formData.partner_communities)
+          ? formData.partner_communities.filter((c) => c && c !== 'any')
+          : [];
+        const prefMarital = Array.isArray(formData.partner_marital_status)
+          ? formData.partner_marital_status.filter((m) => m && m !== 'any')
+          : ['never_married'];
+
         const prefPayload: Record<string, any> = {
           profile_id: savedProfileId,
-          min_age: formData.partner_min_age || 18,
-          max_age: formData.partner_max_age || 60,
-          min_height_cm: formData.partner_min_height || 140,
-          max_height_cm: formData.partner_max_height || 210,
-          marital_status: Array.isArray(formData.partner_marital_status) ? formData.partner_marital_status[0] : (formData.partner_marital_status || 'any'),
-          religion: Array.isArray(formData.partner_religion) ? formData.partner_religion[0] : (formData.partner_religion || 'Hindu'),
-          community: Array.isArray(formData.partner_communities) ? formData.partner_communities[0] : ((formData as any).partner_community || 'any'),
-          manglik_status: formData.partner_manglik || 'does_not_matter',
-          education: Array.isArray(formData.partner_education) ? formData.partner_education[0] : ((formData as any).partner_education || 'any'),
-          occupation: Array.isArray(formData.partner_occupation) ? formData.partner_occupation[0] : ((formData as any).partner_occupation || 'any'),
-          min_income: formData.partner_min_income && formData.partner_min_income !== 'any' ? parseFloat(String(formData.partner_min_income).replace(/[^\d.]/g, '')) || null : null,
-          diet: Array.isArray(formData.partner_diet) ? formData.partner_diet[0] : (formData.partner_diet || 'any'),
-          city: formData.partner_location || null,
+          min_age: Number(formData.partner_min_age) || 18,
+          max_age: Number(formData.partner_max_age) || 60,
+          min_height: Number(formData.partner_min_height) || 140,
+          max_height: Number(formData.partner_max_height) || 210,
+          preferred_cities: prefCities,
+          preferred_states: ['Maharashtra'],
+          preferred_education: prefEdu,
+          preferred_occupation: prefOcc,
+          preferred_religion: prefRel,
+          preferred_community: prefComm,
+          preferred_marital_status: prefMarital.length ? prefMarital : ['never_married'],
+          other_preferences: formData.partner_notes || null,
+          updated_at: new Date().toISOString()
         };
 
         const { error: prefErr } = await (supabase.from('partner_preferences') as any)

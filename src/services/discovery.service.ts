@@ -359,11 +359,11 @@ export const discoveryService = {
     // 1. Try fetching from Supabase if configured
     if (isSupabaseConfigured()) {
       try {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('*')
-          .or(`id.eq.${id},profile_id.eq.${id}`)
-          .maybeSingle();
+        const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+        const query = (supabase.from('profiles') as any).select('*');
+        const { data, error } = isUuid
+          ? await query.eq('id', id).maybeSingle()
+          : await query.eq('profile_id', id).maybeSingle();
 
         if (!error && data) {
           return mapDbProfileToProfile(data);

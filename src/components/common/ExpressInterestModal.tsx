@@ -5,6 +5,9 @@ import { interestService } from '../../services/interest.service';
 import { Heart, CheckCircle2, X, Sparkles, AlertCircle } from 'lucide-react';
 import { Button } from './Button';
 
+import { useAuth } from '../../context/AuthContext';
+import { useToast } from '../../context/ToastContext';
+
 interface ExpressInterestModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -19,6 +22,8 @@ export const ExpressInterestModal: React.FC<ExpressInterestModalProps> = ({
   onInterestSent,
 }) => {
   const { language, localize } = useLanguage();
+  const { user, profile: userProfile } = useAuth();
+  const toast = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -31,14 +36,27 @@ export const ExpressInterestModal: React.FC<ExpressInterestModalProps> = ({
     setIsSubmitting(true);
     setError(null);
     try {
-      const res = await interestService.sendInterest(profile.id);
+      const senderName = userProfile
+        ? `${userProfile.first_name} ${userProfile.last_name || ''}`.trim()
+        : (user?.user_metadata?.full_name || 'Member');
+
+      const res = await interestService.sendInterest(profile.id, userProfile?.id, {
+        senderName,
+        senderCity: userProfile?.city || undefined,
+      });
+
       if (res.success) {
         setIsSuccess(true);
+        toast.success(
+          language === 'mr'
+            ? `${profileName} यांना आपली पसंती यशस्वीरीत्या पोहोचली आहे! उमेदवाराला तात्काळ सूचना (Notification) पाठवण्यात आली आहे.`
+            : `Interest expressed! A notification has popped up for ${profileName}.`
+        );
         if (onInterestSent) onInterestSent(profile.id);
         setTimeout(() => {
           setIsSuccess(false);
           onClose();
-        }, 1500);
+        }, 1800);
       } else {
         setError(res.message || (language === 'mr' ? 'त्रुटी आली, कृपया पुन्हा प्रयत्न करा' : 'Failed to send interest'));
       }

@@ -59,7 +59,11 @@ export const interestService = {
   },
 
   // Send Express Interest to a profile
-  async sendInterest(receiverProfileId: string, senderProfileId?: string): Promise<{ success: boolean; status: InterestStatus; message?: string }> {
+  async sendInterest(
+    receiverProfileId: string,
+    senderProfileId?: string,
+    metadata?: { senderName?: string; senderPhoto?: string; senderCity?: string }
+  ): Promise<{ success: boolean; status: InterestStatus; message?: string }> {
     // Prevent duplicate sending if already sent
     const current = await this.getInterestStatus(receiverProfileId, senderProfileId);
     if (current === 'pending' || current === 'accepted') {
@@ -88,6 +92,20 @@ export const interestService = {
       } catch (err) {
         console.warn('Supabase interest insert error:', err);
       }
+    }
+
+    // Trigger notification popup for the recipient
+    try {
+      const { notificationService } = await import('./notification.service');
+      await notificationService.sendInterestNotification({
+        receiverProfileId,
+        senderProfileId,
+        senderName: metadata?.senderName || 'A Verified Member',
+        senderPhoto: metadata?.senderPhoto,
+        senderCity: metadata?.senderCity,
+      });
+    } catch (e) {
+      console.warn('Notification trigger note:', e);
     }
 
     return { success: true, status: 'pending' };

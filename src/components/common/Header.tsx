@@ -4,6 +4,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { useAuth } from '../../context/AuthContext';
 import { LanguageSwitcher } from './LanguageSwitcher';
+import { NotificationBell } from './NotificationBell';
 import { shortlistService } from '../../services/shortlist.service';
 import { ShortlistBookmarkIcon } from './CulturalIcons';
 import styles from './Header.module.css';
@@ -92,7 +93,7 @@ export const Header: React.FC = () => {
 
   const displayName = profile?.first_name 
     ? `${profile.first_name} ${profile.last_name || ''}`.trim()
-    : profile?.display_name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Member';
+    : (user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Member');
 
   return (
     <header 
@@ -155,6 +156,9 @@ export const Header: React.FC = () => {
                   <span className={styles.shortlistBadge}>{shortlistCount}</span>
                 )}
               </Link>
+
+              {/* Notification Bell with unread counter & real-time popup */}
+              <NotificationBell isTransparent={isTransparent} />
 
               {/* Compact 'आ / A' Glass Language Switcher */}
               <LanguageSwitcher variant="header" isGlass={isTransparent} />

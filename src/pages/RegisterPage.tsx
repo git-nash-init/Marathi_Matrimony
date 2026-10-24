@@ -63,11 +63,20 @@ export const RegisterPage: React.FC = () => {
     setErrorMessage(null);
 
     try {
+      const nameParts = fullName.trim().split(/\s+/);
+      const firstName = nameParts[0] || 'Member';
+      const lastName = nameParts.slice(1).join(' ') || '';
+      const createdFor = profileFor === 'myself' ? 'Self' : (profileFor.charAt(0).toUpperCase() + profileFor.slice(1));
+
       const { data, error } = await signUp(email.trim(), password, {
+        first_name: firstName,
+        last_name: lastName,
         full_name: fullName.trim(),
         profile_for: profileFor,
+        created_for: createdFor,
         gender: gender,
         mobile: mobile.trim(),
+        phone_number: mobile.trim(),
         date_of_birth: dob
       });
 
@@ -75,6 +84,8 @@ export const RegisterPage: React.FC = () => {
         const msg = error.message ? error.message.toLowerCase() : '';
         if (msg.includes('already registered') || msg.includes('duplicate')) {
           setErrorMessage(t.auth.validation.duplicateEmail);
+        } else if (msg.includes('rate limit') || msg.includes('429')) {
+          setErrorMessage(language === 'mr' ? 'सुरक्षा कारणास्तव ईमेल पाठवण्याची मर्यादा आली आहे. कृपया काही मिनिटांनंतर प्रयत्न करा किंवा लॉगिन करा.' : 'Security rate limit reached for email confirmations. Please try again in a few minutes or log in.');
         } else if (msg.includes('abort') || msg.includes('timed out')) {
           setErrorMessage(language === 'mr' ? 'जोडणी वेळ संपली. कृपया इंटरनेट तपासा व पुन्हा प्रयत्न करा.' : 'Connection timed out. Please check your internet connection and try again.');
         } else {
@@ -84,8 +95,14 @@ export const RegisterPage: React.FC = () => {
         return;
       }
 
-      // If signup is successful (either auto-confirmed or requiring email confirmation)
-      navigate('/verify-email', { state: { email: email.trim(), userCreated: Boolean(data.user) } });
+      // If active session is returned immediately, proceed directly to profile setup
+      if (data?.session) {
+        navigate('/profile/create', { replace: true });
+        return;
+      }
+
+      // If signup requires email confirmation
+      navigate('/verify-email', { state: { email: email.trim(), userCreated: Boolean(data?.user) } });
     } catch (err: unknown) {
       const errObj = err as Error;
       const msg = errObj?.message ? errObj.message.toLowerCase() : '';

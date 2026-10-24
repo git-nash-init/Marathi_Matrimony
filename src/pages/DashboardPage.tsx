@@ -25,7 +25,9 @@ export const DashboardPage: React.FC = () => {
     navigate('/', { replace: true });
   };
 
-  const displayName = profile?.display_name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Member';
+  const displayName = profile?.first_name
+    ? `${profile.first_name} ${profile.last_name || ''}`.trim()
+    : (user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Member');
 
   return (
     <div className="section" style={{ background: 'var(--color-bg)', minHeight: '80vh', padding: '40px 0' }}>
@@ -73,7 +75,7 @@ export const DashboardPage: React.FC = () => {
         </div>
 
         {/* Profile Pending Review Banner */}
-        {profile && (profile.profile_status === 'pending_approval' || profile.profile_status === 'pending_review') && (
+        {profile && profile.profile_status === 'pending_approval' && (
           <div className="card" style={{ padding: '24px 28px', marginBottom: '24px', background: '#EFF6FF', borderColor: '#BFDBFE', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: '14px', maxWidth: '650px' }}>
               <div style={{ color: '#2563EB', marginTop: '2px' }}>
@@ -139,7 +141,7 @@ export const DashboardPage: React.FC = () => {
               <User size={18} color="var(--color-primary)" />
             </div>
             <div style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--color-dark)' }}>
-              {profile?.profile_status === 'approved' || profile?.profile_status === 'active' ? t.dashboard.statusActive : t.dashboard.statusDraft}
+              {profile?.profile_status === 'approved' ? t.dashboard.statusActive : t.dashboard.statusDraft}
             </div>
           </div>
 
@@ -226,10 +228,16 @@ export const DashboardPage: React.FC = () => {
                 {t.dashboard.interestsDesc}
               </p>
             </div>
-            <Button to="/search" variant="outline" size="md" fullWidth>
-              <Clock size={16} style={{ marginRight: '6px' }} />
-              {t.dashboard.browseMatchesBtn}
-            </Button>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <Button to="/search" variant="primary" size="md" fullWidth>
+                <Heart size={16} style={{ marginRight: '6px' }} />
+                {language === 'mr' ? 'पसंती पाठवलेली स्थळे पहा' : 'View Expressed Interests'}
+              </Button>
+              <Button to="/search" variant="outline" size="md" fullWidth>
+                <Clock size={16} style={{ marginRight: '6px' }} />
+                {t.dashboard.browseMatchesBtn}
+              </Button>
+            </div>
           </div>
 
           {/* Shortlists Card */}

@@ -380,39 +380,170 @@
 /* Responsive Styles */
 @media (max-width: 992px) {
   .heroContainer {
-    padding-top: 160px;
-    padding-bottom: 50px;
+    padding-top: 100px;
+    padding-bottom: 24px;
+  }
+  .heroContentWrapper {
+    margin-top: 20px;
   }
   .heroContentCard {
     max-width: 100%;
   }
+  .slideImage {
+    object-position: center 20%;
+  }
   .slideOverlay {
     background: linear-gradient(
       180deg,
-      rgba(18, 8, 10, 0.85) 0%,
-      rgba(22, 10, 13, 0.78) 50%,
-      rgba(22, 10, 13, 0.88) 100%
+      rgba(15, 6, 8, 0.45) 0%,
+      rgba(15, 6, 8, 0.18) 25%,
+      rgba(15, 6, 8, 0.45) 60%,
+      rgba(15, 6, 8, 0.85) 100%
     );
+  }
+  .heroTitle {
+    font-size: 1.85rem;
+    line-height: 1.25;
+  }
+  .heroSubtitle {
+    font-size: 0.95rem;
+    line-height: 1.55;
   }
 }
 
 @media (max-width: 600px) {
+  .heroSection {
+    min-height: 100vh;
+    min-height: 100svh;
+  }
   .heroContainer {
-    padding-top: 145px;
-    padding-bottom: 40px;
+    padding-top: 70px;
+    padding-bottom: 14px;
+    justify-content: flex-end;
   }
-  .heroBtnGroup {
-    flex-direction: column;
-    align-items: stretch;
+  .heroContentWrapper {
+    margin-top: auto;
+    margin-bottom: 8px;
   }
-  .searchGlassBtn {
-    justify-content: center;
+  .heroContentCard {
+    max-width: 100%;
   }
-  .heroTrustPills {
-    flex-direction: column;
-    align-items: flex-start;
+  .slideImage {
+    object-position: center 18%;
+  }
+  .slideOverlay {
+    background: linear-gradient(
+      180deg,
+      rgba(15, 6, 8, 0.42) 0%,
+      rgba(15, 6, 8, 0.12) 28%,
+      rgba(15, 6, 8, 0.48) 64%,
+      rgba(15, 6, 8, 0.86) 100%
+    );
+  }
+  .culturalBadge {
+    font-size: 0.72rem;
+    padding: 3px 10px;
+    margin-bottom: 8px;
+    gap: 6px;
+  }
+  .heroTitle {
+    font-size: 1.38rem;
+    line-height: 1.22;
+    margin-bottom: 6px;
+    letter-spacing: -0.2px;
+  }
+  .heroSubtitle {
+    font-size: 0.82rem;
+    line-height: 1.42;
+    margin-bottom: 10px;
+    max-width: 100%;
   }
   .currentSlideBadge {
+    font-size: 0.72rem;
+    padding: 4px 10px;
+    margin-bottom: 12px;
+    gap: 6px;
+    border-radius: 8px;
+  }
+  .slideTaglineText {
+    font-size: 0.74rem;
+  }
+  .slideCaptionText {
+    font-size: 0.7rem;
+  }
+  .heroBtnGroup {
+    flex-direction: row;
+    gap: 8px;
+    margin-bottom: 12px;
+    width: 100%;
+  }
+  .registerCta {
+    flex: 1;
+    padding: 9px 12px !important;
+    font-size: 0.82rem !important;
+    justify-content: center;
+  }
+  .searchGlassBtn {
+    flex: 1;
+    padding: 9px 12px;
     font-size: 0.82rem;
+    justify-content: center;
+    gap: 6px;
+  }
+  .heroTrustPills {
+    flex-direction: row;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 4px;
+  }
+  .trustPill {
+    padding: 3px 8px;
+    font-size: 0.7rem;
+    gap: 5px;
+  }
+  .carouselBottomBar {
+    padding-top: 6px;
+    margin-top: 4px;
+    gap: 10px;
+  }
+  .carouselNavBtn {
+    width: 28px;
+    height: 28px;
+    font-size: 1.1rem;
+  }
+  .carouselDot {
+    width: 6px;
+    height: 6px;
+  }
+  .carouselDot.activeDot {
+    width: 18px;
+  }
+  .scrollDownIndicator {
+    margin: 4px auto 0;
+    gap: 2px;
+  }
+  .scrollText {
+    font-size: 0.65rem;
+    letter-spacing: 0.5px;
+  }
+  .scrollChevron {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+@media (max-width: 380px) {
+  .heroTitle {
+    font-size: 1.25rem;
+    line-height: 1.2;
+  }
+  .heroSubtitle {
+    font-size: 0.76rem;
+    line-height: 1.38;
+  }
+  .registerCta,
+  .searchGlassBtn {
+    padding: 8px 10px !important;
+    font-size: 0.78rem !important;
   }
 }

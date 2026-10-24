@@ -37,8 +37,8 @@ export interface BrandConfig {
 
 export const brandConfig: BrandConfig = {
   name: {
-    mr: "मराठा लगीनसराई",
-    en: "Maratha Laginsarai"
+    mr: "सनईबंध",
+    en: "Sanaibandh"
   },
   tagline: {
     mr: "९६ कुळी मराठा वधु-वर सूचक आणि विवाह मंडळ (कोकणस्थ व देशस्थ मराठा)",
@@ -50,15 +50,15 @@ export const brandConfig: BrandConfig = {
     secondary: "+91 95949 28780",
     office: "+91 98216 75567"
   },
-  email: "contact@marathalaginsarai.com",
+  email: "contact@sanaibandh.com",
   address: {
     mr: "मुंबई कार्यालय: दादर व बोरिवली | पुणे कार्यालय: धनकवडी व पिंपरी-चिंचवड, महाराष्ट्र",
     en: "Mumbai: Dadar & Borivali | Pune: Dhankawadi & Pimpri-Chinchwad, Maharashtra"
   },
   social: {
-    facebook: "https://facebook.com/marathalaginsarai",
-    instagram: "https://instagram.com/marathalaginsarai",
-    youtube: "https://youtube.com/@marathalaginsarai",
+    facebook: "https://facebook.com/sanaibandh",
+    instagram: "https://instagram.com/sanaibandh",
+    youtube: "https://youtube.com/@sanaibandh",
     whatsapp: "https://wa.me/917208659356"
   },
   colors: {

@@ -20,11 +20,15 @@ export const Header: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [shortlistCount, setShortlistCount] = useState(0);
 
+  const isHomePage = location.pathname === '/';
+  const isTransparent = isHomePage && !isScrolled;
+
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 15);
+      setIsScrolled(window.scrollY > 25);
     };
-    window.addEventListener('scroll', handleScroll);
+    handleScroll();
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
@@ -82,13 +86,20 @@ export const Header: React.FC = () => {
     : profile?.display_name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Member';
 
   return (
-    <header className={`${styles.header} ${isScrolled ? styles.scrolled : ''}`}>
+    <header 
+      className={`
+        ${styles.header} 
+        ${isScrolled ? styles.scrolled : ''} 
+        ${isHomePage ? styles.homeHeader : styles.innerHeader} 
+        ${isTransparent ? styles.transparentMode : styles.solidMode}
+      `}
+    >
       {/* Top micro bar with cultural trust badge and verified helpline */}
       <div className={styles.topMicroBar}>
         <div className="container">
           <div className={styles.topMicroContent}>
             <span className={styles.topBadge}>
-              <VerifiedShieldIcon size={14} className={styles.topIcon} color="#F5EBDD" />
+              <VerifiedShieldIcon size={14} className={styles.topIcon} color={isTransparent ? '#DFC17B' : '#F5EBDD'} />
               <span>{language === 'mr' ? '१००% पडताळणी झालेले ९६ कुळी मराठा प्रोफाइल्स' : '100% Verified 96 Kuli Maratha Profiles'}</span>
             </span>
             <div className={styles.topRight}>
@@ -126,7 +137,7 @@ export const Header: React.FC = () => {
               </div>
             </Link>
 
-            {/* Desktop Navigation Links - Centered, Uncluttered, Spaced */}
+            {/* Desktop Navigation Links - Centered, Uncluttered, Spaced with Glassmorphism */}
             <nav className={styles.desktopNav} aria-label="Main Navigation">
               {desktopNavLinks.map(link => {
                 const isActive = location.pathname === link.to;
@@ -151,13 +162,17 @@ export const Header: React.FC = () => {
                 title={language === 'mr' ? 'शॉर्टलिस्ट स्थळे' : 'Shortlisted Profiles'}
                 aria-label="Shortlist"
               >
-                <ShortlistBookmarkIcon size={18} color="var(--color-oxblood)" />
+                <ShortlistBookmarkIcon 
+                  size={18} 
+                  color={isTransparent ? '#DFC17B' : 'var(--color-oxblood)'} 
+                />
                 {shortlistCount > 0 && (
                   <span className={styles.shortlistBadge}>{shortlistCount}</span>
                 )}
               </Link>
 
-              <LanguageSwitcher variant="header" />
+              {/* Compact 'आ / A' Glass Language Switcher */}
+              <LanguageSwitcher variant="header" isGlass={isTransparent} />
               
               {isAuthenticated ? (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>

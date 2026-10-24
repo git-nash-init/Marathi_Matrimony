@@ -1,5 +1,6 @@
 import React from 'react';
 import { Hero } from '../components/home/Hero';
+import { QuickSearchPhoneSection } from '../components/home/QuickSearchPhoneSection';
 import { TrustSection } from '../components/home/TrustSection';
 import { HowItWorksSection } from '../components/home/HowItWorksSection';
 import { FeaturedProfilesSection } from '../components/home/FeaturedProfilesSection';
@@ -13,34 +14,37 @@ import { FinalCTASection } from '../components/home/FinalCTASection';
 export const HomePage: React.FC = () => {
   return (
     <div>
-      {/* 1. HERO */}
+      {/* 1. HERO - Fullscreen cinematic visuals, glass navbar overlay */}
       <Hero />
 
-      {/* 2. TRUST SECTION */}
+      {/* 2. DEDICATED IPHONE MATCH FINDER SECTION */}
+      <QuickSearchPhoneSection />
+
+      {/* 3. TRUST SECTION */}
       <TrustSection />
 
-      {/* 3. HOW IT WORKS */}
+      {/* 4. HOW IT WORKS */}
       <HowItWorksSection />
 
-      {/* 4. FEATURED PROFILES */}
+      {/* 5. FEATURED PROFILES */}
       <FeaturedProfilesSection />
 
-      {/* 5. WHY CHOOSE US */}
+      {/* 6. WHY CHOOSE US */}
       <WhyChooseUsSection />
 
-      {/* 6. MEMBERSHIP PREVIEW */}
+      {/* 7. MEMBERSHIP PREVIEW */}
       <MembershipSection />
 
-      {/* 7. SUCCESS STORIES */}
+      {/* 8. SUCCESS STORIES */}
       <SuccessStoriesSection />
 
-      {/* 8. SAFETY SECTION */}
+      {/* 9. SAFETY SECTION */}
       <SafetySection />
 
-      {/* 9. FAQ */}
+      {/* 10. FAQ */}
       <FAQSection />
 
-      {/* 10. FINAL CTA */}
+      {/* 11. FINAL CTA */}
       <FinalCTASection />
     </div>
   );

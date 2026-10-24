@@ -48,7 +48,7 @@ export const HowItWorksSection: React.FC = () => {
       <div className="container">
         <SectionHeading
           badge={language === 'mr' ? 'सुलभ पायऱ्या' : 'How It Works'}
-          title={language === 'mr' ? 'मराठा लगीनसराई द्वारे विवाह जमवणे सोपे आहे' : '4 Easy Steps to Your Ideal Maratha Match'}
+          title={language === 'mr' ? 'सनईबंध द्वारे विवाह जमवणे सोपे आहे' : '4 Easy Steps to Your Ideal Maratha Match'}
           subtitle={language === 'mr' ? 'नोंदणीपासून विवाह जमण्यापर्यंतचा अत्यंत सोपा व सुरक्षित प्रवास.' : 'A dignified, transparent journey from profile registration to Mangalashtak.'}
         />
 

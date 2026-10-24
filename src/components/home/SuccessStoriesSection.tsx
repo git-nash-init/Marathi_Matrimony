@@ -13,8 +13,8 @@ export const SuccessStoriesSection: React.FC = () => {
       <div className="container">
         <SectionHeading
           badge={language === 'mr' ? 'यशस्वी विवाह' : 'Success Stories'}
-          title={language === 'mr' ? 'मराठा लगीनसराई द्वारे जुळलेली शुभबंधने' : 'Celebrated Maratha Laginsarai Marriages'}
-          subtitle={language === 'mr' ? 'आमच्या विश्वासू सेवेने संपन्न झालेल्या आनंदी विवाहांची खरीखुरी यशोगाथा.' : 'Real couples whose sacred unions began with Maratha Laginsarai.'}
+          title={language === 'mr' ? 'सनईबंध द्वारे जुळलेली शुभबंधने' : 'Celebrated Sanaibandh Marriages'}
+          subtitle={language === 'mr' ? 'आमच्या विश्वासू सेवेने संपन्न झालेल्या आनंदी विवाहांची खरीखुरी यशोगाथा.' : 'Real couples whose sacred unions began with Sanaibandh.'}
         />
 
         <div className={styles.storiesGrid}>

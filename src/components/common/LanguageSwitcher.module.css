@@ -1,64 +1,121 @@
+/* Compact Glassmorphism Language Switcher with 'आ' (Marathi) and 'A' (English) */
 .switcherContainer {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  background: rgba(122, 31, 61, 0.06);
-  padding: 4px 10px;
-  border-radius: var(--radius-full);
-  border: 1px solid var(--color-border);
+  justify-content: center;
+  gap: 3px;
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 9999px;
+  padding: 3px 6px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.globeIcon {
-  color: var(--color-primary);
+.switcherContainer:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(223, 193, 123, 0.6);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18), 0 0 12px rgba(223, 193, 123, 0.3);
 }
 
-.langBtn {
+/* Symbol Buttons */
+.symbolBtn {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 3px 8px;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.75);
+  font-family: inherit;
+  font-weight: 700;
   font-size: 0.88rem;
-  font-weight: 600;
-  color: var(--color-text-muted);
-  padding: 2px 6px;
-  border-radius: 4px;
-  transition: all var(--transition-fast);
+  line-height: 1;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
 }
 
-.langBtn:hover {
-  color: var(--color-primary);
+.symbolChar {
+  display: inline-block;
+  line-height: 1;
 }
 
-.langBtn.active {
-  color: var(--color-primary);
-  background: var(--color-white);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+.symbolBtn:hover {
+  color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.18);
+  transform: scale(1.05);
 }
 
+/* Active Language Symbol Pill with Gold / Glass Glow */
+.symbolBtn.active {
+  color: #FFFFFF;
+  background: linear-gradient(135deg, rgba(182, 135, 61, 0.85) 0%, rgba(123, 25, 30, 0.85) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 2px 8px rgba(123, 25, 30, 0.35);
+}
+
+/* Divider */
 .divider {
-  color: var(--color-border);
-  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 0.78rem;
+  font-weight: 400;
+  user-select: none;
+}
+
+/* Scrolled / Non-transparent header mode */
+:global(.scrolled) .switcherContainer,
+.header:not(.glassMode) .switcherContainer {
+  background: rgba(123, 25, 30, 0.06);
+  border-color: rgba(182, 135, 61, 0.3);
+}
+
+:global(.scrolled) .symbolBtn,
+.header:not(.glassMode) .symbolBtn {
+  color: var(--color-ink, #30241F);
+}
+
+:global(.scrolled) .symbolBtn:hover,
+.header:not(.glassMode) .symbolBtn:hover {
+  background: rgba(123, 25, 30, 0.1);
+  color: var(--color-oxblood, #7B191E);
+}
+
+:global(.scrolled) .symbolBtn.active,
+.header:not(.glassMode) .symbolBtn.active {
+  color: #FFFFFF;
+  background: var(--color-oxblood, #7B191E);
+  border-color: var(--color-antique-gold, #B6873D);
+}
+
+:global(.scrolled) .divider,
+.header:not(.glassMode) .divider {
+  color: rgba(48, 36, 31, 0.3);
 }
 
 /* Footer variant */
 .footer {
   background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.18);
 }
 
-.footer .globeIcon {
-  color: var(--color-secondary);
+.footer .symbolBtn {
+  color: rgba(255, 255, 255, 0.75);
 }
 
-.footer .langBtn {
-  color: rgba(255, 255, 255, 0.7);
+.footer .symbolBtn:hover {
+  color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.16);
 }
 
-.footer .langBtn:hover {
-  color: var(--color-white);
-}
-
-.footer .langBtn.active {
-  color: var(--color-dark);
-  background: var(--color-secondary);
+.footer .symbolBtn.active {
+  background: var(--color-antique-gold, #B6873D);
+  color: #1a1412;
 }
 
 .footer .divider {
-  color: rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.35);
 }

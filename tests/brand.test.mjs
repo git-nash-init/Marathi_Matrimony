@@ -9,9 +9,9 @@ test('Brand Config Integrity', () => {
 
   const content = fs.readFileSync(brandConfigPath, 'utf-8');
 
-  // Verify Maratha Laginsarai brand identity
-  assert.ok(content.includes('मराठा लगीनसराई'), 'Brand marathi name must be मराठा लगीनसराई');
-  assert.ok(content.includes('Maratha Laginsarai'), 'Brand english name must be Maratha Laginsarai');
+  // Verify Sanaibandh brand identity
+  assert.ok(content.includes('सनईबंध'), 'Brand marathi name must be सनईबंध');
+  assert.ok(content.includes('Sanaibandh'), 'Brand english name must be Sanaibandh');
   assert.ok(content.includes('72086 59356'), 'Primary helpline 72086 59356 must be present');
   assert.ok(content.includes('95949 28780'), 'Secondary helpline 95949 28780 must be present');
   assert.ok(content.includes('98216 75567'), 'Office helpline 98216 75567 must be present');

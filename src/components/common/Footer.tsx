@@ -149,36 +149,6 @@ export const Footer: React.FC = () => {
               </li>
             </ul>
 
-            {/* Official Mobile App Download */}
-            <div style={{ marginTop: '16px' }}>
-              <span style={{ display: 'block', fontSize: '0.8rem', color: 'var(--color-text-muted)', marginBottom: '8px', fontWeight: 600 }}>
-                {language === 'mr' ? 'अधिकृत अँड्रॉइड अ‍ॅप' : 'Official Android App'}
-              </span>
-              <a
-                href="https://play.google.com/store/apps/details?id=com.marathalaginsarai.app&hl=en"
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  padding: '6px 12px',
-                  background: 'var(--color-card-bg)',
-                  border: '1px solid var(--color-border)',
-                  borderRadius: 'var(--radius-md)',
-                  color: 'var(--color-dark)',
-                  fontSize: '0.82rem',
-                  fontWeight: 600,
-                  textDecoration: 'none'
-                }}
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="#3DDC84" aria-hidden="true">
-                  <path d="M17.523 15.3414c-.5511 0-.9993-.4486-.9993-1.0001s.4482-1.0001.9993-1.0001c.551 0 .9992.4486.9992 1.0001s-.4482 1.0001-.9992 1.0001m-11.046 0c-.5511 0-.9993-.4486-.9993-1.0001s.4482-1.0001.9993-1.0001c.5511 0 .9993.4486.9993 1.0001s-.4482 1.0001-.9993 1.0001m11.4045-6.02l1.9973-3.4592a.416.416 0 00-.1521-.5676.416.416 0 00-.5676.1521l-2.0223 3.503C15.5902 8.4116 13.8533 8.081 12 8.081s-3.5902.3306-5.1367.8687L4.841 5.4467a.4161.4161 0 00-.5677-.1521.4157.4157 0 00-.1521.5676l1.9973 3.4592C2.6889 11.1867.3432 14.6589 0 18.761h24c-.3432-4.1021-2.6889-7.5743-6.1185-9.4396"/>
-                </svg>
-                <span>Google Play</span>
-              </a>
-            </div>
-
             {/* Language Switcher in Footer */}
             <div className={styles.footerLangWrap}>
               <span className={styles.langLabel}>{t.footer.languageSelect}</span>

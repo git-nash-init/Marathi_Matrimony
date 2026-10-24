@@ -12,11 +12,17 @@ const ScrollToTop: React.FC = () => {
 };
 
 export const MainLayout: React.FC = () => {
+  const location = useLocation();
+  const isHomePage = location.pathname === '/';
+
   return (
-    <div className="site-wrapper" style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+    <div 
+      className={`site-wrapper ${isHomePage ? 'has-hero-top' : ''}`} 
+      style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}
+    >
       <ScrollToTop />
       <Header />
-      <main style={{ flexGrow: 1 }}>
+      <main style={{ flexGrow: 1, paddingTop: isHomePage ? 0 : '96px' }}>
         <Outlet />
       </main>
       <Footer />

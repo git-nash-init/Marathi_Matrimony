@@ -51,7 +51,7 @@ export const WhyChooseUsSection: React.FC = () => {
     <section className={`section ${styles.whySection}`}>
       <div className="container">
         <SectionHeading
-          badge={language === 'mr' ? 'आमची वैशिष्ट्ये' : 'Why Maratha Laginsarai'}
+          badge={language === 'mr' ? 'आमची वैशिष्ट्ये' : 'Why Sanaibandh'}
           title={language === 'mr' ? 'महाराष्ट्रातील नंबर १ मराठा वधु-वर सूचक केंद्र' : 'Best Maratha Marriage Bureau in Maharashtra'}
           subtitle={language === 'mr' ? 'गेल्या १० वर्षांहून अधिक काळ मराठा समाजातील विवाहबंधने जोडणारा विश्वसनीय सेतू.' : 'Connecting trusted Maratha matrimonial alliances across Maharashtra and abroad for over a decade.'}
         />

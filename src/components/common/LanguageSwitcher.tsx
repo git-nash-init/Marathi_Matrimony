@@ -1,34 +1,50 @@
 import React from 'react';
 import { useLanguage } from '../../i18n/LanguageContext';
-import { Globe } from 'lucide-react';
 import styles from './LanguageSwitcher.module.css';
 
 interface LanguageSwitcherProps {
   variant?: 'header' | 'footer' | 'inline';
+  isGlass?: boolean;
 }
 
-export const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({ variant = 'header' }) => {
+export const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({ 
+  variant = 'header',
+  isGlass = false 
+}) => {
   const { language, setLanguage } = useLanguage();
 
   return (
-    <div className={`${styles.switcherContainer} ${styles[variant]}`}>
-      <Globe size={16} className={styles.globeIcon} />
+    <div 
+      className={`
+        ${styles.switcherContainer} 
+        ${styles[variant]} 
+        ${isGlass ? styles.glassMode : ''}
+      `}
+      role="group"
+      aria-label="Language selection"
+    >
       <button
         type="button"
-        className={`${styles.langBtn} ${language === 'mr' ? styles.active : ''}`}
+        className={`${styles.symbolBtn} ${language === 'mr' ? styles.active : ''}`}
         onClick={() => setLanguage('mr')}
-        aria-label="मराठी भाषेत पहा"
+        title="मराठी (Marathi)"
+        aria-label="मराठी भाषेत बदला"
+        aria-pressed={language === 'mr'}
       >
-        मराठी
+        <span className={styles.symbolChar}>आ</span>
       </button>
-      <span className={styles.divider}>|</span>
+
+      <span className={styles.divider} aria-hidden="true">/</span>
+
       <button
         type="button"
-        className={`${styles.langBtn} ${language === 'en' ? styles.active : ''}`}
+        className={`${styles.symbolBtn} ${language === 'en' ? styles.active : ''}`}
         onClick={() => setLanguage('en')}
-        aria-label="View in English"
+        title="English"
+        aria-label="Switch to English"
+        aria-pressed={language === 'en'}
       >
-        English
+        <span className={styles.symbolChar}>A</span>
       </button>
     </div>
   );

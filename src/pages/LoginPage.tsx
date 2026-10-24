@@ -45,10 +45,13 @@ export const LoginPage: React.FC = () => {
       const { data, error } = await signIn(email.trim(), password);
 
       if (error) {
-        if (error.message.includes('Invalid login credentials')) {
+        const msg = error.message ? error.message.toLowerCase() : '';
+        if (msg.includes('invalid login credentials')) {
           setErrorMessage(t.auth.validation.invalidCredentials);
-        } else if (error.message.toLowerCase().includes('email not confirmed')) {
+        } else if (msg.includes('email not confirmed')) {
           setErrorMessage(t.auth.validation.unverifiedEmail);
+        } else if (msg.includes('abort') || msg.includes('timed out')) {
+          setErrorMessage(language === 'mr' ? 'जोडणी वेळ संपली. कृपया इंटरनेट तपासा व पुन्हा प्रयत्न करा.' : 'Connection timed out. Please check your internet connection and try again.');
         } else {
           setErrorMessage(error.message || t.auth.validation.generalError);
         }
@@ -62,7 +65,12 @@ export const LoginPage: React.FC = () => {
       }
     } catch (err: unknown) {
       const errObj = err as Error;
-      setErrorMessage(errObj.message || t.auth.validation.generalError);
+      const msg = errObj?.message ? errObj.message.toLowerCase() : '';
+      if (msg.includes('abort') || msg.includes('timed out')) {
+        setErrorMessage(language === 'mr' ? 'जोडणी वेळ संपली. कृपया इंटरनेट तपासा व पुन्हा प्रयत्न करा.' : 'Connection timed out. Please check your internet connection and try again.');
+      } else {
+        setErrorMessage(errObj?.message || t.auth.validation.generalError);
+      }
     } finally {
       setLoading(false);
     }

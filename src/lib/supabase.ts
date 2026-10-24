@@ -8,13 +8,25 @@ export const isSupabaseConfigured = (): boolean => {
   return Boolean(SUPABASE_URL && SUPABASE_ANON_KEY);
 };
 
-// Fast timeout fetch wrapper to prevent hanging when Supabase host is unreachable
+// Safe timeout fetch wrapper (15s) to prevent premature aborts on slow connections
 const timedFetch: typeof fetch = (input, init = {}) => {
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 2000);
+  const timeoutId = setTimeout(() => {
+    try {
+      controller.abort(new Error('Network request timed out'));
+    } catch {
+      controller.abort();
+    }
+  }, 15000);
 
   if (init.signal) {
-    init.signal.addEventListener('abort', () => controller.abort());
+    init.signal.addEventListener('abort', () => {
+      try {
+        controller.abort(init.signal?.reason);
+      } catch {
+        controller.abort();
+      }
+    });
   }
 
   return fetch(input, { ...init, signal: controller.signal })

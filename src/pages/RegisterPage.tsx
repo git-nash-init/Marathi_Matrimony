@@ -72,8 +72,11 @@ export const RegisterPage: React.FC = () => {
       });
 
       if (error) {
-        if (error.message.toLowerCase().includes('already registered') || error.message.toLowerCase().includes('duplicate')) {
+        const msg = error.message ? error.message.toLowerCase() : '';
+        if (msg.includes('already registered') || msg.includes('duplicate')) {
           setErrorMessage(t.auth.validation.duplicateEmail);
+        } else if (msg.includes('abort') || msg.includes('timed out')) {
+          setErrorMessage(language === 'mr' ? 'जोडणी वेळ संपली. कृपया इंटरनेट तपासा व पुन्हा प्रयत्न करा.' : 'Connection timed out. Please check your internet connection and try again.');
         } else {
           setErrorMessage(error.message || t.auth.validation.generalError);
         }
@@ -85,7 +88,12 @@ export const RegisterPage: React.FC = () => {
       navigate('/verify-email', { state: { email: email.trim(), userCreated: Boolean(data.user) } });
     } catch (err: unknown) {
       const errObj = err as Error;
-      setErrorMessage(errObj.message || t.auth.validation.generalError);
+      const msg = errObj?.message ? errObj.message.toLowerCase() : '';
+      if (msg.includes('abort') || msg.includes('timed out')) {
+        setErrorMessage(language === 'mr' ? 'जोडणी वेळ संपली. कृपया इंटरनेट तपासा व पुन्हा प्रयत्न करा.' : 'Connection timed out. Please check your internet connection and try again.');
+      } else {
+        setErrorMessage(errObj?.message || t.auth.validation.generalError);
+      }
     } finally {
       setLoading(false);
     }

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { useAuth } from '../../context/AuthContext';
@@ -18,6 +19,18 @@ export const Header: React.FC = () => {
 
   const isHomePage = location.pathname === '/';
   const isTransparent = isHomePage && !isScrolled;
+
+  // Prevent background scroll when mobile drawer is open
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [mobileMenuOpen]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -199,8 +212,8 @@ export const Header: React.FC = () => {
         </div>
       </div>
 
-      {/* Mobile Drawer */}
-      {mobileMenuOpen && (
+      {/* Mobile Drawer portaled to document.body so it escapes header backdrop-filter & stacking context */}
+      {mobileMenuOpen && typeof document !== 'undefined' && createPortal(
         <div
           className={styles.mobileDrawerBackdrop}
           onClick={() => setMobileMenuOpen(false)}
@@ -208,17 +221,20 @@ export const Header: React.FC = () => {
           <div
             className={styles.mobileDrawer}
             onClick={e => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Navigation Menu"
           >
             <div className={styles.mobileDrawerHeader}>
-              <div className={styles.logo}>
-                <div className={styles.logoIcon}>
+              <div className={styles.drawerLogoWrap}>
+                <div className={styles.drawerLogoIcon}>
                   <img
                     src="/images/brand/logo.png"
                     alt={brandName}
                     className={styles.brandLogoImg}
                   />
                 </div>
-                <span className={styles.brandTitle} style={{ fontSize: '1.15rem' }}>{brandName}</span>
+                <span className={styles.drawerBrandTitle}>{brandName}</span>
               </div>
               <button
                 type="button"
@@ -242,6 +258,7 @@ export const Header: React.FC = () => {
                     key={link.to}
                     to={link.to}
                     className={`${styles.mobileNavLink} ${isActive ? styles.active : ''}`}
+                    onClick={() => setMobileMenuOpen(false)}
                   >
                     {link.label}
                   </Link>
@@ -252,12 +269,19 @@ export const Header: React.FC = () => {
             <div className={styles.mobileAuthActions}>
               {isAuthenticated ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  <Link to="/dashboard" className={styles.mobileUserLink}>
+                  <Link 
+                    to="/dashboard" 
+                    className={styles.mobileUserLink}
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
                     {t.nav.dashboard} ({displayName})
                   </Link>
                   <button
                     type="button"
-                    onClick={handleLogout}
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      handleLogout();
+                    }}
                     className={styles.mobileLogoutBtn}
                   >
                     {t.dashboard.logoutBtn}
@@ -265,17 +289,26 @@ export const Header: React.FC = () => {
                 </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  <Link to="/login" className={styles.mobileLoginBtn}>
+                  <Link 
+                    to="/login" 
+                    className={styles.mobileLoginBtn}
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
                     {t.nav.login}
                   </Link>
-                  <Link to="/register" className={styles.mobileRegisterBtn}>
+                  <Link 
+                    to="/register" 
+                    className={styles.mobileRegisterBtn}
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
                     {t.nav.registerFree}
                   </Link>
                 </div>
               )}
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </header>
   );

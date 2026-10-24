@@ -18,10 +18,6 @@
   box-shadow: 0 4px 25px rgba(0, 0, 0, 0.22);
 }
 
-.header.transparentMode .topMicroBar {
-  background: rgba(12, 5, 7, 0.55);
-  border-bottom: 1px solid rgba(182, 135, 61, 0.28);
-}
 
 .header.transparentMode .brandTitle {
   color: #FFFFFF;
@@ -132,11 +128,6 @@
   box-shadow: 0 6px 25px rgba(48, 36, 31, 0.08);
 }
 
-.header.solidMode .topMicroBar,
-.header.scrolled .topMicroBar {
-  background: var(--color-oxblood-dark, #5C1014);
-  border-bottom: 1px solid rgba(182, 135, 61, 0.4);
-}
 
 .header.solidMode .brandTitle,
 .header.scrolled .brandTitle {
@@ -234,54 +225,6 @@
   background: rgba(123, 25, 30, 0.08);
 }
 
-/* Micro bar */
-.topMicroBar {
-  color: #FFFFFF;
-  font-size: 0.8rem;
-  padding: 5px 0;
-  transition: all 0.35s ease;
-}
-
-.topMicroContent {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.topBadge {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  color: var(--color-warm-parchment, #F5EBDD);
-  font-weight: 500;
-  font-size: 0.82rem;
-}
-
-.topIcon {
-  color: var(--color-antique-gold, #B6873D);
-}
-
-.topRight {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.supportLink {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  color: #FFFFFF;
-  font-size: 0.82rem;
-  font-weight: 600;
-  text-decoration: none;
-  transition: transform 0.2s ease, opacity 0.2s ease;
-}
-
-.supportLink:hover {
-  opacity: 0.95;
-  transform: translateY(-1px);
-}
 
 /* Main Nav */
 .mainNav {

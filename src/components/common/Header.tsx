@@ -4,11 +4,7 @@ import { useLanguage } from '../../i18n/LanguageContext';
 import { useAuth } from '../../context/AuthContext';
 import { LanguageSwitcher } from './LanguageSwitcher';
 import { shortlistService } from '../../services/shortlist.service';
-import {
-  VerifiedShieldIcon,
-  WhatsAppCrestIcon,
-  ShortlistBookmarkIcon
-} from './CulturalIcons';
+import { ShortlistBookmarkIcon } from './CulturalIcons';
 import styles from './Header.module.css';
 
 export const Header: React.FC = () => {
@@ -94,30 +90,6 @@ export const Header: React.FC = () => {
         ${isTransparent ? styles.transparentMode : styles.solidMode}
       `}
     >
-      {/* Top micro bar with cultural trust badge and verified helpline */}
-      <div className={styles.topMicroBar}>
-        <div className="container">
-          <div className={styles.topMicroContent}>
-            <span className={styles.topBadge}>
-              <VerifiedShieldIcon size={14} className={styles.topIcon} color={isTransparent ? '#DFC17B' : '#F5EBDD'} />
-              <span>{language === 'mr' ? '१००% पडताळणी झालेले ९६ कुळी मराठा प्रोफाइल्स' : '100% Verified 96 Kuli Maratha Profiles'}</span>
-            </span>
-            <div className={styles.topRight}>
-              <a
-                href="https://wa.me/917208659356"
-                target="_blank"
-                rel="noopener noreferrer"
-                className={styles.supportLink}
-                aria-label="WhatsApp Helpline"
-              >
-                <WhatsAppCrestIcon size={14} color="#25D366" />
-                <span>+91 72086 59356</span>
-              </a>
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* Main Navigation Bar with Glassmorphism */}
       <div className={styles.mainNav}>
         <div className="container">

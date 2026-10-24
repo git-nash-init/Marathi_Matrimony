@@ -79,7 +79,7 @@ export const LoginPage: React.FC = () => {
   return (
     <div className="section" style={{ background: 'var(--color-bg)', minHeight: '80vh', display: 'flex', alignItems: 'center', padding: '40px 0' }}>
       <div className="container" style={{ maxWidth: '480px' }}>
-        <div className="card" style={{ padding: '36px 30px' }}>
+        <div className="card auth-card" style={{ padding: '38px 32px' }}>
           {/* Header */}
           <div style={{ textAlign: 'center', marginBottom: '28px' }}>
             <Link to="/" style={{ display: 'inline-block', marginBottom: '14px', textDecoration: 'none' }} title={language === 'mr' ? 'सनईबंध मुख्यपृष्ठ' : 'Sanaibandh Home'}>
@@ -109,58 +109,50 @@ export const LoginPage: React.FC = () => {
 
           {/* Form */}
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
-            <div>
-              <label style={{ display: 'block', fontSize: '0.86rem', fontWeight: 600, color: 'var(--color-dark)', marginBottom: '6px' }}>
-                {t.auth.emailLabel} *
+            {/* Email Address */}
+            <div className="form-group">
+              <label className="form-label">
+                <span>{t.auth.emailLabel}</span>
+                <span className="required-star">*</span>
               </label>
-              <div style={{ position: 'relative' }}>
+              <div className="input-wrapper">
+                <div className="input-icon">
+                  <Mail size={19} />
+                </div>
                 <input
                   type="email"
                   required
+                  className="form-input"
                   placeholder={t.auth.emailPlaceholder}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '10px 14px 10px 38px',
-                    borderRadius: 'var(--radius-md)',
-                    border: '1px solid var(--color-border)',
-                    outline: 'none',
-                    background: 'var(--color-bg)',
-                    fontSize: '0.95rem'
-                  }}
                 />
-                <Mail size={18} color="var(--color-text-muted)" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
               </div>
             </div>
 
-            <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                <label style={{ fontSize: '0.86rem', fontWeight: 600, color: 'var(--color-dark)' }}>
-                  {t.auth.password} *
+            {/* Password */}
+            <div className="form-group">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <label className="form-label">
+                  <span>{t.auth.password}</span>
+                  <span className="required-star">*</span>
                 </label>
                 <Link to="/forgot-password" style={{ fontSize: '0.82rem', color: 'var(--color-primary)', fontWeight: 600 }}>
                   {t.auth.forgotPasswordLink}
                 </Link>
               </div>
-              <div style={{ position: 'relative' }}>
+              <div className="input-wrapper">
+                <div className="input-icon">
+                  <Lock size={19} />
+                </div>
                 <input
                   type="password"
                   required
+                  className="form-input"
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '10px 14px 10px 38px',
-                    borderRadius: 'var(--radius-md)',
-                    border: '1px solid var(--color-border)',
-                    outline: 'none',
-                    background: 'var(--color-bg)',
-                    fontSize: '0.95rem'
-                  }}
                 />
-                <Lock size={18} color="var(--color-text-muted)" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
               </div>
             </div>
 

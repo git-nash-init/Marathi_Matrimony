@@ -60,7 +60,7 @@ export const FormInput: React.FC<FormInputProps> = ({
             width: '100%',
             minHeight: '50px',
             height: '50px',
-            padding: prefix ? '12px 14px 12px 42px' : suffix ? '12px 42px 12px 16px' : '12px 16px',
+            padding: prefix ? '12px 14px 12px 46px' : suffix ? '12px 46px 12px 16px' : '12px 16px',
             fontSize: '0.95rem',
             fontWeight: 500,
             fontFamily: 'inherit',

@@ -115,7 +115,7 @@ export const VerifyEmailPage: React.FC = () => {
   return (
     <div className="section" style={{ background: 'var(--color-bg)', minHeight: '80vh', display: 'flex', alignItems: 'center', padding: '40px 0' }}>
       <div className="container" style={{ maxWidth: '520px' }}>
-        <div className="card" style={{ padding: '40px 32px', textAlign: 'center' }}>
+        <div className="card auth-card" style={{ padding: '40px 32px', textAlign: 'center' }}>
           {/* Icon */}
           <div style={{
             width: '64px',
@@ -234,25 +234,21 @@ export const VerifyEmailPage: React.FC = () => {
           )}
 
           {!emailFromState && (
-            <div style={{ marginBottom: '16px', textAlign: 'left' }}>
-              <label style={{ display: 'block', fontSize: '0.86rem', fontWeight: 600, color: 'var(--color-dark)', marginBottom: '6px' }}>
+            <div className="form-group" style={{ textAlign: 'left', marginBottom: '18px' }}>
+              <label className="form-label" htmlFor="verify-email">
                 {t.auth.emailLabel}
               </label>
-              <input
-                type="email"
-                placeholder={t.auth.emailPlaceholder}
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '10px 14px',
-                  borderRadius: 'var(--radius-md)',
-                  border: '1px solid var(--color-border)',
-                  outline: 'none',
-                  background: 'var(--color-bg)',
-                  fontSize: '0.95rem'
-                }}
-              />
+              <div className="input-wrapper">
+                <Mail className="input-icon" size={18} />
+                <input
+                  id="verify-email"
+                  type="email"
+                  className="form-input"
+                  placeholder={t.auth.emailPlaceholder}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </div>
             </div>
           )}
 

@@ -119,7 +119,7 @@ export const RegisterPage: React.FC = () => {
   return (
     <div className="section" style={{ background: 'var(--color-bg)', minHeight: '80vh', padding: '40px 0' }}>
       <div className="container" style={{ maxWidth: '640px' }}>
-        <div className="card" style={{ padding: '36px 30px' }}>
+        <div className="card auth-card" style={{ padding: '38px 32px' }}>
           {/* Header */}
           <div style={{ textAlign: 'center', marginBottom: '28px' }}>
             <Link to="/" style={{ display: 'inline-block', marginBottom: '14px', textDecoration: 'none' }} title={language === 'mr' ? 'सनईबंध मुख्यपृष्ठ' : 'Sanaibandh Home'}>
@@ -223,109 +223,126 @@ export const RegisterPage: React.FC = () => {
             </div>
 
             {/* Full Name */}
-            <div>
-              <label style={{ display: 'block', fontSize: '0.86rem', fontWeight: 600, color: 'var(--color-dark)', marginBottom: '6px' }}>
-                {t.auth.fullName} *
+            <div className="form-group">
+              <label className="form-label">
+                <span>{t.auth.fullName}</span>
+                <span className="required-star">*</span>
               </label>
-              <div style={{ position: 'relative' }}>
+              <div className="input-wrapper">
+                <div className="input-icon">
+                  <User size={19} />
+                </div>
                 <input
                   type="text"
                   required
+                  className="form-input"
                   placeholder={t.auth.fullNamePlaceholder}
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  style={{ width: '100%', padding: '10px 14px 10px 38px', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', outline: 'none', background: 'var(--color-bg)', fontSize: '0.95rem' }}
                 />
-                <User size={18} color="var(--color-text-muted)" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
               </div>
             </div>
 
             {/* Email Address */}
-            <div>
-              <label style={{ display: 'block', fontSize: '0.86rem', fontWeight: 600, color: 'var(--color-dark)', marginBottom: '6px' }}>
-                {t.auth.emailLabel} *
+            <div className="form-group">
+              <label className="form-label">
+                <span>{t.auth.emailLabel}</span>
+                <span className="required-star">*</span>
               </label>
-              <div style={{ position: 'relative' }}>
+              <div className="input-wrapper">
+                <div className="input-icon">
+                  <Mail size={19} />
+                </div>
                 <input
                   type="email"
                   required
+                  className="form-input"
                   placeholder={t.auth.emailPlaceholder}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  style={{ width: '100%', padding: '10px 14px 10px 38px', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', outline: 'none', background: 'var(--color-bg)', fontSize: '0.95rem' }}
                 />
-                <Mail size={18} color="var(--color-text-muted)" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
               </div>
             </div>
 
             {/* Password & Confirm Password */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
-              <div>
-                <label style={{ display: 'block', fontSize: '0.86rem', fontWeight: 600, color: 'var(--color-dark)', marginBottom: '6px' }}>
-                  {t.auth.password} *
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px' }}>
+              <div className="form-group">
+                <label className="form-label">
+                  <span>{t.auth.password}</span>
+                  <span className="required-star">*</span>
                 </label>
-                <div style={{ position: 'relative' }}>
+                <div className="input-wrapper">
+                  <div className="input-icon">
+                    <Lock size={19} />
+                  </div>
                   <input
                     type="password"
                     required
+                    className="form-input"
                     placeholder={t.auth.passwordPlaceholder}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    style={{ width: '100%', padding: '10px 14px 10px 38px', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', outline: 'none', background: 'var(--color-bg)', fontSize: '0.95rem' }}
                   />
-                  <Lock size={18} color="var(--color-text-muted)" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
                 </div>
               </div>
 
-              <div>
-                <label style={{ display: 'block', fontSize: '0.86rem', fontWeight: 600, color: 'var(--color-dark)', marginBottom: '6px' }}>
-                  {t.auth.confirmPassword} *
+              <div className="form-group">
+                <label className="form-label">
+                  <span>{t.auth.confirmPassword}</span>
+                  <span className="required-star">*</span>
                 </label>
-                <div style={{ position: 'relative' }}>
+                <div className="input-wrapper">
+                  <div className="input-icon">
+                    <Lock size={19} />
+                  </div>
                   <input
                     type="password"
                     required
+                    className="form-input"
                     placeholder={t.auth.confirmPasswordPlaceholder}
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    style={{ width: '100%', padding: '10px 14px 10px 38px', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', outline: 'none', background: 'var(--color-bg)', fontSize: '0.95rem' }}
                   />
-                  <Lock size={18} color="var(--color-text-muted)" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
                 </div>
               </div>
             </div>
 
             {/* Mobile & DOB */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
-              <div>
-                <label style={{ display: 'block', fontSize: '0.86rem', fontWeight: 600, color: 'var(--color-dark)', marginBottom: '6px' }}>
-                  {t.auth.mobile}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px' }}>
+              <div className="form-group">
+                <label className="form-label">
+                  <span>{t.auth.mobile}</span>
                 </label>
-                <div style={{ position: 'relative' }}>
+                <div className="input-wrapper">
+                  <div className="input-icon">
+                    <Phone size={19} />
+                  </div>
                   <input
                     type="tel"
+                    className="form-input"
                     placeholder="98220xxxxx"
                     value={mobile}
                     onChange={(e) => setMobile(e.target.value)}
-                    style={{ width: '100%', padding: '10px 14px 10px 38px', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', outline: 'none', background: 'var(--color-bg)', fontSize: '0.95rem' }}
                   />
-                  <Phone size={18} color="var(--color-text-muted)" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
                 </div>
               </div>
 
-              <div>
-                <label style={{ display: 'block', fontSize: '0.86rem', fontWeight: 600, color: 'var(--color-dark)', marginBottom: '6px' }}>
-                  {t.auth.dob} *
+              <div className="form-group">
+                <label className="form-label">
+                  <span>{t.auth.dob}</span>
+                  <span className="required-star">*</span>
                 </label>
-                <div style={{ position: 'relative' }}>
+                <div className="input-wrapper">
+                  <div className="input-icon">
+                    <Calendar size={19} />
+                  </div>
                   <input
                     type="date"
                     required
+                    className="form-input"
                     value={dob}
                     onChange={(e) => setDob(e.target.value)}
-                    style={{ width: '100%', padding: '10px 14px 10px 38px', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', outline: 'none', background: 'var(--color-bg)', fontSize: '0.95rem', fontFamily: 'inherit' }}
                   />
-                  <Calendar size={18} color="var(--color-text-muted)" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
                 </div>
               </div>
             </div>

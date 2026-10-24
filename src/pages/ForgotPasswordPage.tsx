@@ -47,7 +47,7 @@ export const ForgotPasswordPage: React.FC = () => {
   return (
     <div className="section" style={{ background: 'var(--color-bg)', minHeight: '80vh', display: 'flex', alignItems: 'center', padding: '40px 0' }}>
       <div className="container" style={{ maxWidth: '480px' }}>
-        <div className="card" style={{ padding: '36px 30px' }}>
+        <div className="card auth-card" style={{ padding: '36px 30px' }}>
           {/* Header */}
           <div style={{ textAlign: 'center', marginBottom: '28px' }}>
             <Link to="/" style={{ display: 'inline-block', marginBottom: '14px', textDecoration: 'none' }} title={language === 'mr' ? 'सनईबंध मुख्यपृष्ठ' : 'Sanaibandh Home'}>
@@ -99,28 +99,21 @@ export const ForgotPasswordPage: React.FC = () => {
                 </div>
               )}
 
-              <div>
-                <label style={{ display: 'block', fontSize: '0.86rem', fontWeight: 600, color: 'var(--color-dark)', marginBottom: '6px' }}>
-                  {t.auth.emailLabel} *
+              <div className="form-group">
+                <label className="form-label" htmlFor="forgot-email">
+                  {t.auth.emailLabel} <span className="required-star">*</span>
                 </label>
-                <div style={{ position: 'relative' }}>
+                <div className="input-wrapper">
+                  <Mail className="input-icon" size={18} />
                   <input
+                    id="forgot-email"
                     type="email"
                     required
+                    className="form-input"
                     placeholder={t.auth.emailPlaceholder}
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    style={{
-                      width: '100%',
-                      padding: '10px 14px 10px 38px',
-                      borderRadius: 'var(--radius-md)',
-                      border: '1px solid var(--color-border)',
-                      outline: 'none',
-                      background: 'var(--color-bg)',
-                      fontSize: '0.95rem'
-                    }}
                   />
-                  <Mail size={18} color="var(--color-text-muted)" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
                 </div>
               </div>
 

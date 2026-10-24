@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Phone, Mail, MapPin, Send, CheckCircle2 } from 'lucide-react';
+import { Phone, Mail, MapPin, Send, CheckCircle2, User } from 'lucide-react';
 import { useLanguage } from '../i18n/LanguageContext';
 import { SectionHeading } from '../components/common/SectionHeading';
 import { Button } from '../components/common/Button';
@@ -89,7 +89,7 @@ export const ContactPage: React.FC = () => {
           </div>
 
           {/* Right: Contact Form */}
-          <div className="card" style={{ padding: '36px 30px' }}>
+          <div className="card auth-card" style={{ padding: '36px 30px' }}>
             <h3 style={{ fontSize: '1.4rem', color: 'var(--color-primary)', marginBottom: '18px' }}>
               {t.contactPage.formTitle}
             </h3>
@@ -108,64 +108,97 @@ export const ContactPage: React.FC = () => {
                 </Button>
               </div>
             ) : (
-              <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '6px' }}>{t.contactPage.nameLabel}</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder={t.contactPage.namePlaceholder}
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    style={{ width: '100%', padding: '10px 14px', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', outline: 'none', background: 'var(--color-bg)' }}
-                  />
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '6px' }}>{t.auth.emailOrMobile.split(' किंवा ')[0] || 'Email'} *</label>
+              <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+                <div className="form-group">
+                  <label className="form-label" htmlFor="contact-name">
+                    {t.contactPage.nameLabel.replace(/\s*\*/, '')} <span className="required-star">*</span>
+                  </label>
+                  <div className="input-wrapper">
+                    <User className="input-icon" size={18} />
                     <input
-                      type="email"
+                      id="contact-name"
+                      type="text"
                       required
-                      placeholder={t.contactPage.emailPlaceholder}
-                      value={formData.email}
-                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      style={{ width: '100%', padding: '10px 14px', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', outline: 'none', background: 'var(--color-bg)' }}
-                    />
-                  </div>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '6px' }}>{t.auth.mobile} *</label>
-                    <input
-                      type="tel"
-                      required
-                      placeholder={t.contactPage.mobilePlaceholder}
-                      value={formData.mobile}
-                      onChange={(e) => setFormData({ ...formData, mobile: e.target.value })}
-                      style={{ width: '100%', padding: '10px 14px', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', outline: 'none', background: 'var(--color-bg)' }}
+                      className="form-input"
+                      placeholder={t.contactPage.namePlaceholder}
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     />
                   </div>
                 </div>
 
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '6px' }}>{t.contactPage.subjectLabel}</label>
-                  <input
-                    type="text"
-                    placeholder={t.contactPage.subjectPlaceholder}
-                    value={formData.subject}
-                    onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                    style={{ width: '100%', padding: '10px 14px', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', outline: 'none', background: 'var(--color-bg)' }}
-                  />
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
+                  <div className="form-group">
+                    <label className="form-label" htmlFor="contact-email">
+                      {language === 'mr' ? 'ईमेल पत्ता' : 'Email Address'} <span className="required-star">*</span>
+                    </label>
+                    <div className="input-wrapper">
+                      <Mail className="input-icon" size={18} />
+                      <input
+                        id="contact-email"
+                        type="email"
+                        required
+                        className="form-input"
+                        placeholder={t.contactPage.emailPlaceholder}
+                        value={formData.email}
+                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      />
+                    </div>
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label" htmlFor="contact-mobile">
+                      {t.auth.mobile} <span className="required-star">*</span>
+                    </label>
+                    <div className="input-wrapper">
+                      <Phone className="input-icon" size={18} />
+                      <input
+                        id="contact-mobile"
+                        type="tel"
+                        required
+                        className="form-input"
+                        placeholder={t.contactPage.mobilePlaceholder}
+                        value={formData.mobile}
+                        onChange={(e) => setFormData({ ...formData, mobile: e.target.value })}
+                      />
+                    </div>
+                  </div>
                 </div>
 
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '6px' }}>{t.contactPage.messageLabel}</label>
+                <div className="form-group">
+                  <label className="form-label" htmlFor="contact-subject">
+                    {t.contactPage.subjectLabel}
+                  </label>
+                  <div className="input-wrapper">
+                    <input
+                      id="contact-subject"
+                      type="text"
+                      className="form-input"
+                      style={{ paddingLeft: '16px' }}
+                      placeholder={t.contactPage.subjectPlaceholder}
+                      value={formData.subject}
+                      onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+                    />
+                  </div>
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label" htmlFor="contact-message">
+                    {t.contactPage.messageLabel.replace(/\s*\*/, '')} <span className="required-star">*</span>
+                  </label>
                   <textarea
+                    id="contact-message"
                     rows={4}
                     required
+                    className="form-input"
+                    style={{
+                      height: 'auto',
+                      minHeight: '110px',
+                      padding: '12px 16px',
+                      resize: 'vertical'
+                    }}
                     placeholder={t.contactPage.messagePlaceholder}
                     value={formData.message}
                     onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                    style={{ width: '100%', padding: '10px 14px', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', outline: 'none', background: 'var(--color-bg)', fontFamily: 'inherit' }}
                   />
                 </div>
 

@@ -322,90 +322,66 @@ export const WeddingServicesPage: React.FC = () => {
             </div>
           )}
 
-          <form onSubmit={handleEnquirySubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <div>
-              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-ink)', marginBottom: '6px' }}>
-                {language === 'mr' ? 'आपले पूर्ण नाव *' : 'Full Name *'}
+          <form onSubmit={handleEnquirySubmit} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+            <div className="form-group">
+              <label className="form-label" htmlFor="wedding-name">
+                {language === 'mr' ? 'आपले पूर्ण नाव' : 'Full Name'} <span className="required-star">*</span>
               </label>
               <input
+                id="wedding-name"
                 type="text"
                 required
+                className="form-input"
+                style={{ paddingLeft: '16px' }}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder={language === 'mr' ? 'उदा. राजेश कदम' : 'e.g. Rajesh Kadam'}
-                style={{
-                  width: '100%',
-                  padding: '10px 14px',
-                  borderRadius: 'var(--radius-sm)',
-                  border: '1px solid var(--color-border)',
-                  background: 'var(--color-parchment)',
-                  color: 'var(--color-ink)',
-                  fontSize: '0.95rem'
-                }}
               />
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
-              <div>
-                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-ink)', marginBottom: '6px' }}>
-                  {language === 'mr' ? 'मोबाईल / व्हॉट्सअ‍ॅप नंबर *' : 'Phone / WhatsApp *'}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
+              <div className="form-group">
+                <label className="form-label" htmlFor="wedding-phone">
+                  {language === 'mr' ? 'मोबाईल / व्हॉट्सअ‍ॅप नंबर' : 'Phone / WhatsApp'} <span className="required-star">*</span>
                 </label>
                 <input
+                  id="wedding-phone"
                   type="tel"
                   required
+                  className="form-input"
+                  style={{ paddingLeft: '16px' }}
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder="98XXXXXXXX"
-                  style={{
-                    width: '100%',
-                    padding: '10px 14px',
-                    borderRadius: 'var(--radius-sm)',
-                    border: '1px solid var(--color-border)',
-                    background: 'var(--color-parchment)',
-                    color: 'var(--color-ink)',
-                    fontSize: '0.95rem'
-                  }}
                 />
               </div>
 
-              <div>
-                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-ink)', marginBottom: '6px' }}>
+              <div className="form-group">
+                <label className="form-label" htmlFor="wedding-city">
                   {language === 'mr' ? 'लग्न ठरलेले शहर' : 'Wedding City / Location'}
                 </label>
                 <input
+                  id="wedding-city"
                   type="text"
+                  className="form-input"
+                  style={{ paddingLeft: '16px' }}
                   value={city}
                   onChange={(e) => setCity(e.target.value)}
                   placeholder={language === 'mr' ? 'उदा. मुंबई / पुणे' : 'e.g. Mumbai / Pune'}
-                  style={{
-                    width: '100%',
-                    padding: '10px 14px',
-                    borderRadius: 'var(--radius-sm)',
-                    border: '1px solid var(--color-border)',
-                    background: 'var(--color-parchment)',
-                    color: 'var(--color-ink)',
-                    fontSize: '0.95rem'
-                  }}
                 />
               </div>
             </div>
 
-            <div>
-              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-ink)', marginBottom: '6px' }}>
+            <div className="form-group">
+              <label className="form-label" htmlFor="wedding-service">
                 {language === 'mr' ? 'अपेक्षित सेवा निवडा' : 'Service Required'}
               </label>
               <select
+                id="wedding-service"
+                className="form-input"
+                style={{ paddingLeft: '16px', cursor: 'pointer' }}
                 value={selectedService}
                 onChange={(e) => setSelectedService(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '10px 14px',
-                  borderRadius: 'var(--radius-sm)',
-                  border: '1px solid var(--color-border)',
-                  background: 'var(--color-parchment)',
-                  color: 'var(--color-ink)',
-                  fontSize: '0.95rem'
-                }}
               >
                 <option value="all">{language === 'mr' ? 'सर्व सेवा (संपूर्ण विवाह पॅकेज)' : 'All Services (Full Wedding Package)'}</option>
                 <option value="photography">{language === 'mr' ? 'फोटोग्राफी व सिनेमा' : 'Photography & Cinematography'}</option>
@@ -415,25 +391,23 @@ export const WeddingServicesPage: React.FC = () => {
               </select>
             </div>
 
-            <div>
-              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-ink)', marginBottom: '6px' }}>
+            <div className="form-group">
+              <label className="form-label" htmlFor="wedding-message">
                 {language === 'mr' ? 'काही विशेष सूचना / तारीख' : 'Additional Notes / Wedding Date'}
               </label>
               <textarea
+                id="wedding-message"
                 rows={3}
+                className="form-input"
+                style={{
+                  height: 'auto',
+                  minHeight: '90px',
+                  padding: '12px 16px',
+                  resize: 'vertical'
+                }}
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 placeholder={language === 'mr' ? 'लग्नाची तारीख, पाहुण्यांची संख्या, विशेष अपेक्षा...' : 'Approximate date, guest count, budget...'}
-                style={{
-                  width: '100%',
-                  padding: '10px 14px',
-                  borderRadius: 'var(--radius-sm)',
-                  border: '1px solid var(--color-border)',
-                  background: 'var(--color-parchment)',
-                  color: 'var(--color-ink)',
-                  fontSize: '0.95rem',
-                  fontFamily: 'inherit'
-                }}
               />
             </div>
 

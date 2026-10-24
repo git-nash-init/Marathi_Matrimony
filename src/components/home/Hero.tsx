@@ -108,12 +108,12 @@ export const Hero: React.FC = () => {
   const [isPaused, setIsPaused] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Auto-advance Carousel every 4.8 seconds
+  // Auto-advance Carousel every 5.0 seconds
   useEffect(() => {
     if (!isPaused) {
       timerRef.current = setInterval(() => {
         setCurrentSlide((prev) => (prev + 1) % CAROUSEL_SLIDES.length);
-      }, 4800);
+      }, 5000);
     }
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);

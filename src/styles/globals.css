@@ -410,3 +410,117 @@ img {
     font-size: 1.45rem;
   }
 }
+
+/* ==========================================================================
+   Premium Form Controls & Interactive Input Fields
+   ========================================================================== */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+
+.form-label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--color-ink, #30241F);
+  letter-spacing: 0.2px;
+}
+
+.form-label .required-star {
+  color: var(--color-oxblood, #7B191E);
+  font-weight: 800;
+}
+
+.input-wrapper {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.input-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #8E7E76;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease, transform 0.2s ease;
+  z-index: 2;
+}
+
+.input-wrapper:focus-within .input-icon {
+  color: var(--color-oxblood, #7B191E);
+  transform: translateY(-50%) scale(1.08);
+}
+
+.form-input {
+  width: 100%;
+  height: 48px;
+  min-height: 48px;
+  padding: 0 16px 0 46px; /* 46px prevents any icon overlap */
+  background: #FFFFFF !important;
+  color: #1E293B;
+  font-size: 0.95rem;
+  font-family: inherit;
+  font-weight: 500;
+  border: 1.5px solid #D6C7B2;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(48, 36, 31, 0.04), inset 0 1px 2px rgba(0, 0, 0, 0.02);
+  outline: none;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.form-input.no-icon {
+  padding-left: 16px;
+}
+
+.form-input::placeholder {
+  color: #94A3B8;
+  font-weight: 400;
+  opacity: 1;
+}
+
+.form-input:hover {
+  border-color: #B6873D;
+  box-shadow: 0 3px 10px rgba(182, 135, 61, 0.12);
+  background: #FFFFFF !important;
+}
+
+.form-input:focus {
+  border-color: var(--color-oxblood, #7B191E);
+  box-shadow: 0 0 0 3.5px rgba(123, 25, 30, 0.12), 0 4px 12px rgba(123, 25, 30, 0.08);
+  background: #FFFFFF !important;
+  outline: none;
+}
+
+/* Chrome/Safari Autofill Fix to prevent dull pale blue/gray overlay */
+.form-input:-webkit-autofill,
+.form-input:-webkit-autofill:hover,
+.form-input:-webkit-autofill:focus,
+.form-input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 50px #FFFFFF inset !important;
+  -webkit-text-fill-color: #1E293B !important;
+  border-color: #B6873D !important;
+  font-size: 0.95rem !important;
+  font-weight: 500 !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+/* Auth card enhancements */
+.auth-card {
+  background: #FFFFFF !important;
+  border: 1.5px solid #E8DFC8 !important;
+  border-radius: 16px !important;
+  box-shadow: 0 12px 36px rgba(48, 36, 31, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+}

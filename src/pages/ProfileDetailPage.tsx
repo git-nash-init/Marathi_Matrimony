@@ -6,10 +6,13 @@ import { Profile } from '../types';
 import { discoveryService } from '../services/discovery.service';
 import { shortlistService } from '../services/shortlist.service';
 import { interestService, InterestStatus } from '../services/interest.service';
+import { subscriptionService } from '../services/subscription.service';
 import { ExpressInterestModal } from '../components/common/ExpressInterestModal';
 import { ReportProfileModal } from '../components/common/ReportProfileModal';
 import { BlockProfileModal } from '../components/common/BlockProfileModal';
 import { SectionCard } from '../components/common/SectionCard';
+import { LockedField } from '../components/common/LockedField';
+import { useAuth } from '../context/AuthContext';
 import {
   ArrowLeft,
   Heart,
@@ -25,6 +28,8 @@ import {
   Sparkles,
   Lock,
   ChevronRight,
+  Moon,
+  Phone,
 } from 'lucide-react';
 import styles from './ProfileDetailPage.module.css';
 
@@ -33,6 +38,7 @@ export const ProfileDetailPage: React.FC = () => {
   const navigate = useNavigate();
   const { language, localize, t } = useLanguage();
   const { success, error } = useToast();
+  const { user } = useAuth();
 
   const [profile, setProfile] = useState<Profile | null>(null);
   const [selectedPhoto, setSelectedPhoto] = useState<string>('');
@@ -40,6 +46,10 @@ export const ProfileDetailPage: React.FC = () => {
   const [isShortlisted, setIsShortlisted] = useState<boolean>(false);
   const [isShortlistBusy, setIsShortlistBusy] = useState<boolean>(false);
   const [interestStatus, setInterestStatus] = useState<InterestStatus | null>(null);
+
+  // Subscription state
+  const [canUnlockContact, setCanUnlockContact] = useState<boolean>(false);
+  const [canUnlockDocuments, setCanUnlockDocuments] = useState<boolean>(false);
 
   // Modals
   const [isInterestOpen, setIsInterestOpen] = useState<boolean>(false);
@@ -75,6 +85,18 @@ export const ProfileDetailPage: React.FC = () => {
       });
     }
 
+    // Check subscription access for contact unlock
+    if (user?.id) {
+      subscriptionService.hasFeature(user.id, 'unlock_phone').then((val) => {
+        if (isMounted) setCanUnlockContact(val);
+      });
+      subscriptionService.hasFeature(user.id, 'unlock_documents').then((val) => {
+        if (isMounted) setCanUnlockDocuments(val);
+      });
+      // Track profile view
+      if (id) subscriptionService.trackProfileView(user.id, id);
+    }
+
     // Subscribe to shortlist updates
     const unsubscribe = shortlistService.subscribe((updatedId, nextState) => {
       if (isMounted && (updatedId === id || updatedId === profile?.id || updatedId === profile?.profileId)) {
@@ -86,7 +108,7 @@ export const ProfileDetailPage: React.FC = () => {
       isMounted = false;
       unsubscribe();
     };
-  }, [id, profile?.id, profile?.profileId]);
+  }, [id, profile?.id, profile?.profileId, user?.id]);
 
   const handleToggleShortlist = async () => {
     if (!profile || isShortlistBusy) return;
@@ -508,7 +530,94 @@ export const ProfileDetailPage: React.FC = () => {
           </div>
         </SectionCard>
 
-        {/* 7. Privacy & Security Notice Card */}
+        {/* 7. Kundali / Horoscope Section */}
+        {(profile.rashi || profile.nakshatra || profile.manglik) && (
+          <SectionCard
+            title={language === 'mr' ? '७. कुंडली माहिती' : '7. Kundali & Horoscope'}
+            subtitle={language === 'mr' ? 'राशी, नाडी, चरण, गण आणि मूल्यांक' : 'Rashi, Nadi, Charan, Gan & Mulyank'}
+            icon={<Moon size={20} />}
+          >
+            <div className={styles.infoGrid}>
+              {profile.rashi && (
+                <div className={styles.infoField}>
+                  <span className={styles.infoLabel}>{language === 'mr' ? 'राशी' : 'Rashi'}</span>
+                  <span className={styles.infoValue}>{localize(profile.rashi)}</span>
+                </div>
+              )}
+              {profile.nakshatra && (
+                <div className={styles.infoField}>
+                  <span className={styles.infoLabel}>{language === 'mr' ? 'नक्षत्र' : 'Nakshatra'}</span>
+                  <span className={styles.infoValue}>{localize(profile.nakshatra)}</span>
+                </div>
+              )}
+              {profile.manglik && (
+                <div className={styles.infoField}>
+                  <span className={styles.infoLabel}>{language === 'mr' ? 'मांगलिक' : 'Manglik'}</span>
+                  <span className={styles.infoValue}>{localize(profile.manglik)}</span>
+                </div>
+              )}
+              <div className={styles.infoField}>
+                <span className={styles.infoLabel}>{language === 'mr' ? 'नाडी' : 'Nadi'}</span>
+                <span className={styles.infoValue}>{language === 'mr' ? 'मध्यम नाडी' : 'Madhyam Nadi'}</span>
+              </div>
+              <div className={styles.infoField}>
+                <span className={styles.infoLabel}>{language === 'mr' ? 'चरण' : 'Charan'}</span>
+                <span className={styles.infoValue}>{language === 'mr' ? 'तृतीय' : 'Tritiya'}</span>
+              </div>
+              <div className={styles.infoField}>
+                <span className={styles.infoLabel}>{language === 'mr' ? 'गण' : 'Gan'}</span>
+                <span className={styles.infoValue}>{language === 'mr' ? 'मानव गण' : 'Manav Gan'}</span>
+              </div>
+              <div className={styles.infoField}>
+                <span className={styles.infoLabel}>{language === 'mr' ? 'मूल्यांक' : 'Mulyank'}</span>
+                <span className={styles.infoValue}>7</span>
+              </div>
+            </div>
+          </SectionCard>
+        )}
+
+        {/* 8. Contact Details — Subscription Locked */}
+        <SectionCard
+          title={language === 'mr' ? '८. संपर्क माहिती' : '8. Contact Details'}
+          subtitle={language === 'mr' ? 'आडनाव, ईमेल, फोन, पत्ता — सदस्यत्व आवश्यक' : 'Surname, Email, Phone & Address — Subscription Required'}
+          icon={<Phone size={20} />}
+        >
+          <div className={styles.infoGrid}>
+            <LockedField
+              label={language === 'mr' ? 'आडनाव' : 'Surname'}
+              value={language === 'mr' ? 'जोशी' : 'Joshi'}
+              featureLabel="Surname"
+              isUnlocked={canUnlockContact}
+            />
+            <LockedField
+              label={language === 'mr' ? 'ईमेल' : 'Email ID'}
+              value="prajakta@email.com"
+              featureLabel="Email ID"
+              isUnlocked={canUnlockContact}
+            />
+            <LockedField
+              label={language === 'mr' ? 'फोन नंबर' : 'Phone Number'}
+              value="+91 98765 43210"
+              featureLabel="Contact Number"
+              isUnlocked={canUnlockContact}
+            />
+            <LockedField
+              label={language === 'mr' ? 'पत्ता' : 'Address'}
+              value="Flat 12, Shivaji Nagar, Pune - 411005"
+              featureLabel="Address"
+              isUnlocked={canUnlockContact}
+            />
+            <LockedField
+              label={language === 'mr' ? 'कागदपत्रे' : 'Documents'}
+              value="Aadhaar, PAN, Degree Certificate"
+              featureLabel="Documents"
+              isUnlocked={canUnlockDocuments}
+              reason="Documents require a Diamond or Platinum plan."
+            />
+          </div>
+        </SectionCard>
+
+        {/* Privacy Notice */}
         <div className={styles.privacyNoticeCard}>
           <div className={styles.privacyIconCol}>
             <Lock size={22} color="var(--color-primary, #7A1F3D)" />
@@ -519,8 +628,8 @@ export const ProfileDetailPage: React.FC = () => {
             </h4>
             <p className={styles.privacyText}>
               {language === 'mr'
-                ? 'या प्रोफाइलचा फोन नंबर आणि ईमेल गोपनीय आहे. दोन्ही बाजूंची संमती आणि पडताळणी झाल्यानंतरच संपर्क तपशील सामायिक केले जातात.'
-                : 'Phone numbers and emails are strictly confidential and only shared upon mutual interest acceptance and verified approval.'}
+                ? 'या प्रोफाइलचा फोन नंबर आणि ईमेल गोपनीय आहे. सदस्यत्व घेतल्यानंतरच संपर्क तपशील उपलब्ध होतात.'
+                : 'Phone, email and address are protected. Subscribe to a Silver or higher plan to unlock contact details.'}
             </p>
           </div>
         </div>

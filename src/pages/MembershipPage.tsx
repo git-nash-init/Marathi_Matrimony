@@ -1,20 +1,38 @@
-import React, { useState } from 'react';
-import { Check, X, Sparkles, Shield, Info } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Check, Sparkles, Shield, Info, Crown } from 'lucide-react';
 import { useLanguage } from '../i18n/LanguageContext';
+import { useAuth } from '../context/AuthContext';
 import { SectionHeading } from '../components/common/SectionHeading';
 import { Button } from '../components/common/Button';
-import { Modal } from '../components/common/Modal';
-import { mockPlans } from '../data/mockPlans';
-import { PricingPlan } from '../types';
+import {
+  subscriptionService,
+  SubscriptionPlan,
+  PLAN_DISPLAY_INFO,
+  ActiveSubscription,
+  localizePlanFeature,
+} from '../services/subscription.service';
 
 export const MembershipPage: React.FC = () => {
-  const { t, localize } = useLanguage();
-  const [selectedPlan, setSelectedPlan] = useState<PricingPlan | null>(null);
-  const [modalOpen, setModalOpen] = useState(false);
+  const { t, language } = useLanguage();
+  const { user } = useAuth();
+  const navigate = useNavigate();
 
-  const handleSelectPlan = (plan: PricingPlan) => {
-    setSelectedPlan(plan);
-    setModalOpen(true);
+  const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
+  const [activeSub, setActiveSub] = useState<ActiveSubscription | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    subscriptionService.fetchPlans().then(setPlans).finally(() => setLoading(false));
+    if (user?.id) subscriptionService.getActiveSubscription(user.id).then(setActiveSub);
+  }, [user?.id]);
+
+  const handleSelectPlan = (plan: SubscriptionPlan) => {
+    if (!user) {
+      navigate('/login', { state: { redirect: `/payment/${plan.slug}` } });
+      return;
+    }
+    navigate(`/payment/${plan.slug}`, { state: { plan } });
   };
 
   return (
@@ -56,7 +74,18 @@ export const MembershipPage: React.FC = () => {
             marginBottom: '60px'
           }}
         >
-          {mockPlans.map((plan) => (
+          {loading ? (
+            [1,2,3].map(i => (
+              <div key={i} className="card" style={{ padding: '32px 24px', minHeight: '320px',
+                background: 'linear-gradient(90deg,#F0E8DC 25%,#E8DDD0 50%,#F0E8DC 75%)',
+                backgroundSize: '200% 100%', animation: 'shimmer 1.4s infinite' }} />
+            ))
+          ) : plans.map((plan) => {
+            const info = PLAN_DISPLAY_INFO[plan.slug] || PLAN_DISPLAY_INFO['silver'];
+            const isDiamond = plan.slug === 'diamond';
+            const isCurrentPlan = activeSub?.plan?.slug === plan.slug;
+            const planName = language === 'mr' ? (info.label_mr || plan.name) : plan.name;
+            return (
             <div
               key={plan.id}
               className="card"
@@ -65,48 +94,50 @@ export const MembershipPage: React.FC = () => {
                 display: 'flex',
                 flexDirection: 'column',
                 position: 'relative',
-                border: plan.popular ? '2px solid var(--color-secondary)' : undefined
+                border: isDiamond ? `2px solid ${info.borderColor}` : undefined,
+                background: isDiamond ? info.bgColor : undefined,
               }}
             >
-              {plan.popular && (
+              {isDiamond && (
                 <div
                   style={{
-                    position: 'absolute',
-                    top: '-14px',
-                    left: '50%',
+                    position: 'absolute', top: '-14px', left: '50%',
                     transform: 'translateX(-50%)',
-                    background: 'var(--color-secondary)',
-                    color: 'var(--color-dark)',
-                    fontSize: '0.8rem',
-                    fontWeight: 800,
-                    padding: '4px 16px',
-                    borderRadius: 'var(--radius-full)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '4px'
+                    background: '#1E40AF', color: '#fff',
+                    fontSize: '0.8rem', fontWeight: 800,
+                    padding: '4px 16px', borderRadius: 'var(--radius-full)',
+                    display: 'flex', alignItems: 'center', gap: '4px'
                   }}
                 >
                   <Sparkles size={12} />
-                  <span>{localize(plan.badge) || t.membership.popularBadge}</span>
+                  <span>{language === 'mr' ? 'सर्वात लोकप्रिय' : 'Most Popular'}</span>
+                </div>
+              )}
+              {isCurrentPlan && (
+                <div style={{
+                  position: 'absolute', top: 12, right: 12,
+                  background: '#DCFCE7', color: '#15803D',
+                  fontSize: '0.7rem', fontWeight: 800,
+                  padding: '3px 10px', borderRadius: '20px',
+                  display: 'flex', alignItems: 'center', gap: '4px'
+                }}>
+                  <Crown size={11} /> {language === 'mr' ? 'सक्रिय' : 'ACTIVE'}
                 </div>
               )}
 
               <div style={{ textAlign: 'center', borderBottom: '1px solid var(--color-border-light)', paddingBottom: '20px', marginBottom: '20px' }}>
-                <h3 style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--color-primary)', marginBottom: '8px' }}>
-                  {localize(plan.name)}
+                <div style={{ fontSize: '2.2rem', marginBottom: '6px' }}>{info.emoji}</div>
+                <h3 style={{ fontSize: '1.3rem', fontWeight: 800, color: info.color, marginBottom: '8px' }}>
+                  {planName}
                 </h3>
-                <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: '8px' }}>
-                  <span style={{ fontSize: '2.2rem', fontWeight: 800, color: 'var(--color-dark)' }}>
-                    {localize(plan.price)}
+                <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: '4px' }}>
+                  <span style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--color-dark)' }}>₹</span>
+                  <span style={{ fontSize: '2.4rem', fontWeight: 900, color: 'var(--color-dark)' }}>
+                    {plan.price.toLocaleString('en-IN')}
                   </span>
-                  {plan.originalPrice && (
-                    <span style={{ fontSize: '1.1rem', color: 'var(--color-text-light)', textDecoration: 'line-through' }}>
-                      {localize(plan.originalPrice)}
-                    </span>
-                  )}
                 </div>
                 <span style={{ fontSize: '0.85rem', color: 'var(--color-secondary-hover)', fontWeight: 600 }}>
-                  {localize(plan.duration)}
+                  {Math.round(plan.duration_days / 30)} {language === 'mr' ? 'महिने वैधता' : 'Months'}
                 </span>
               </div>
 
@@ -114,26 +145,26 @@ export const MembershipPage: React.FC = () => {
                 {plan.features.map((feat, fIdx) => (
                   <div key={fIdx} style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', fontSize: '0.9rem' }}>
                     <Check size={16} color="var(--color-success)" style={{ flexShrink: 0, marginTop: '2px' }} />
-                    <span>{localize(feat)}</span>
-                  </div>
-                ))}
-                {plan.nonFeatures?.map((nFeat, nIdx) => (
-                  <div key={nIdx} style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', fontSize: '0.9rem', color: 'var(--color-text-light)' }}>
-                    <X size={16} color="#C0392B" style={{ flexShrink: 0, marginTop: '2px', opacity: 0.5 }} />
-                    <span>{localize(nFeat)}</span>
+                    <span>{localizePlanFeature(feat, language)}</span>
                   </div>
                 ))}
               </div>
 
               <Button
-                variant={plan.popular ? 'secondary' : 'primary'}
+                variant={isDiamond ? 'secondary' : 'primary'}
                 fullWidth
                 onClick={() => handleSelectPlan(plan)}
+                disabled={isCurrentPlan}
               >
-                {localize(plan.buttonText)}
+                {isCurrentPlan
+                  ? (language === 'mr' ? '✓ सध्याचा प्लॅन' : '✓ Current Plan')
+                  : (user
+                      ? (language === 'mr' ? `${planName} प्लॅन निवडा` : `Get ${plan.name}`)
+                      : (language === 'mr' ? 'सदस्यत्वासाठी लॉगिन करा' : 'Login to Subscribe'))}
               </Button>
             </div>
-          ))}
+          );
+          })}
         </div>
 
         {/* Trust Badges */}
@@ -166,28 +197,6 @@ export const MembershipPage: React.FC = () => {
           </div>
         </div>
       </div>
-
-      {/* Plan Selection Demo Modal */}
-      <Modal
-        isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
-        title={t.membership.planSelectionTitle}
-      >
-        <div style={{ textAlign: 'center', padding: '10px 0' }}>
-          <div style={{ margin: '0 auto 12px auto', width: '50px', height: '50px', borderRadius: '50%', background: 'var(--color-secondary-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-secondary-hover)' }}>
-            <Sparkles size={26} />
-          </div>
-          <h3 style={{ color: 'var(--color-primary)', marginBottom: '6px' }}>
-            {selectedPlan && localize(selectedPlan.name)} - {selectedPlan && localize(selectedPlan.price)}
-          </h3>
-          <p style={{ color: 'var(--color-text-muted)', marginBottom: '20px', fontSize: '0.95rem' }}>
-            {t.membership.frontendNotice}
-          </p>
-          <Button variant="primary" size="md" onClick={() => setModalOpen(false)}>
-            {t.common.ok}
-          </Button>
-        </div>
-      </Modal>
     </div>
   );
 };

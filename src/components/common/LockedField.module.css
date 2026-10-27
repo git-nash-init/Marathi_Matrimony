@@ -1,0 +1,65 @@
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--color-text-muted, #6B7280);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.value {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--color-dark, #30241F);
+}
+
+/* ── Locked State ─────────────────────────────────────────── */
+.locked {
+  cursor: pointer;
+  border-radius: 8px;
+  padding: 8px 10px;
+  background: #FEF3C7;
+  border: 1px dashed #F59E0B;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.locked:hover {
+  background: #FDE68A;
+  border-color: #D97706;
+}
+
+.lockedRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.blurredValue {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--color-dark, #30241F);
+  filter: blur(5px);
+  user-select: none;
+  pointer-events: none;
+  flex-shrink: 0;
+}
+
+.lockBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--color-primary, #7B191E);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 20px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}

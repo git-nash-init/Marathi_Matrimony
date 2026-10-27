@@ -29,6 +29,8 @@ import { ResetPasswordPage } from './pages/ResetPasswordPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { ProfileCreatePage } from './pages/ProfileCreatePage';
 import { ProfileEditPage } from './pages/ProfileEditPage';
+import { PaymentPage } from './pages/PaymentPage';
+import { PaymentSuccessPage } from './pages/PaymentSuccessPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 
 export const App: React.FC = () => {
@@ -139,6 +141,22 @@ export const App: React.FC = () => {
                   element={
                     <ProtectedRoute>
                       <DashboardPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="payment/:planSlug"
+                  element={
+                    <ProtectedRoute>
+                      <PaymentPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="payment/success"
+                  element={
+                    <ProtectedRoute>
+                      <PaymentSuccessPage />
                     </ProtectedRoute>
                   }
                 />

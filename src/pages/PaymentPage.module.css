@@ -1,0 +1,485 @@
+.page {
+  min-height: 90vh;
+  background: var(--color-bg, #F5EBDD);
+  padding: 32px 0 60px;
+}
+
+.container {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--color-text-muted, #6B7280);
+  text-decoration: none;
+  margin-bottom: 24px;
+  transition: color 0.15s;
+}
+.backLink:hover { color: var(--color-primary, #7B191E); }
+
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 28px;
+  align-items: start;
+}
+
+@media (max-width: 860px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+  .summaryCol { order: -1; }
+}
+
+/* ── Form Card ────────────────────────────────────────────── */
+.formCard {
+  background: var(--color-white, #fff);
+  border-radius: 16px;
+  padding: 32px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.07);
+}
+
+.formTitle {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--color-dark, #30241F);
+  margin: 0 0 4px 0;
+}
+.formSubtitle {
+  font-size: 0.88rem;
+  color: var(--color-text-muted, #6B7280);
+  margin: 0 0 24px 0;
+}
+
+/* ── Method Tabs ──────────────────────────────────────────── */
+.methodTabs {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.methodTab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 4px;
+  border: 1.5px solid var(--color-border, #EAE0D0);
+  border-radius: 10px;
+  background: transparent;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--color-text-muted, #6B7280);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.methodTab:hover {
+  border-color: var(--color-primary, #7B191E);
+  color: var(--color-primary, #7B191E);
+}
+.methodTabActive {
+  border-color: var(--color-primary, #7B191E);
+  background: var(--color-primary-light, #FBF0F0);
+  color: var(--color-primary, #7B191E);
+}
+
+/* ── Method Form ──────────────────────────────────────────── */
+.methodForm {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Card Preview */
+.cardPreview {
+  background: linear-gradient(135deg, #7B191E 0%, #C63828 60%, #B6873D 100%);
+  border-radius: 14px;
+  padding: 24px 22px;
+  color: #fff;
+  min-height: 160px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 0 8px 24px rgba(123,25,30,0.35);
+}
+
+.cardChip {
+  width: 36px;
+  height: 26px;
+  background: linear-gradient(135deg, #FFD700, #FFA500);
+  border-radius: 5px;
+  margin-bottom: 16px;
+}
+
+.cardNumberDisplay {
+  font-size: 1.15rem;
+  font-family: 'Courier New', monospace;
+  letter-spacing: 0.15em;
+  font-weight: 700;
+}
+
+.cardBottomRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
+.cardPreviewLabel {
+  font-size: 0.65rem;
+  opacity: 0.7;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 2px;
+}
+.cardPreviewVal {
+  font-size: 0.88rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+/* Form Fields */
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.formRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.formLabel {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text-muted, #6B7280);
+}
+
+.formInput {
+  padding: 10px 14px;
+  border: 1.5px solid var(--color-border, #EAE0D0);
+  border-radius: 8px;
+  font-size: 0.92rem;
+  color: var(--color-dark, #30241F);
+  background: var(--color-white, #fff);
+  transition: border-color 0.15s;
+  width: 100%;
+  box-sizing: border-box;
+}
+.formInput:focus {
+  outline: none;
+  border-color: var(--color-primary, #7B191E);
+}
+
+/* QR Box */
+.qrBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 20px;
+  border: 1.5px dashed var(--color-border, #EAE0D0);
+  border-radius: 12px;
+  background: #FAFAFA;
+}
+
+.qrPlaceholder {
+  width: 140px;
+  height: 140px;
+  background: #fff;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #E5E7EB;
+}
+
+.qrGrid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 3px;
+  width: 100%;
+  height: 100%;
+}
+
+.qrCell {
+  background: #1F2937;
+  border-radius: 1px;
+}
+
+.qrLabel {
+  font-size: 0.82rem;
+  color: var(--color-text-muted, #6B7280);
+  margin: 0;
+}
+
+.qrAmount {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--color-dark, #30241F);
+  margin: 0;
+}
+
+.orDivider {
+  text-align: center;
+  position: relative;
+  color: var(--color-text-muted, #9CA3AF);
+  font-size: 0.8rem;
+}
+.orDivider::before,
+.orDivider::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 38%;
+  height: 1px;
+  background: var(--color-border, #EAE0D0);
+}
+.orDivider::before { left: 0; }
+.orDivider::after  { right: 0; }
+
+.upiApps {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.upiApp {
+  padding: 6px 14px;
+  border: 1px solid var(--color-border, #EAE0D0);
+  border-radius: 20px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--color-text-muted, #6B7280);
+  background: #FAFAFA;
+}
+
+/* Net Banking */
+.bankGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.bankBtn {
+  padding: 10px 12px;
+  border: 1.5px solid var(--color-border, #EAE0D0);
+  border-radius: 8px;
+  background: transparent;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--color-dark, #30241F);
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s;
+}
+.bankBtn:hover { border-color: var(--color-primary, #7B191E); }
+.bankBtnActive {
+  border-color: var(--color-primary, #7B191E);
+  background: var(--color-primary-light, #FBF0F0);
+  color: var(--color-primary, #7B191E);
+}
+
+.bankSelectedNote {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: var(--color-text-muted, #6B7280);
+  background: #EFF6FF;
+  border: 1px solid #BFDBFE;
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+.bankSelectedNote svg { flex-shrink: 0; color: #3B82F6; margin-top: 1px; }
+
+/* Wallet */
+.walletGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.walletBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+  border: 1.5px solid var(--color-border, #EAE0D0);
+  border-radius: 10px;
+  background: transparent;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--color-dark, #30241F);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.walletBtn:hover { border-color: var(--color-primary, #7B191E); }
+.walletBtnActive {
+  border-color: var(--color-primary, #7B191E);
+  background: var(--color-primary-light, #FBF0F0);
+  color: var(--color-primary, #7B191E);
+}
+
+/* Pay Button */
+.payBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 16px;
+  margin-top: 8px;
+  background: linear-gradient(135deg, #7B191E, #C63828);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-size: 1.05rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.15s;
+  box-shadow: 0 6px 20px rgba(123,25,30,0.3);
+}
+.payBtn:hover:not(:disabled) {
+  opacity: 0.92;
+  transform: translateY(-1px);
+}
+.payBtn:disabled {
+  opacity: 0.8;
+  cursor: not-allowed;
+}
+
+.payBtnProcessing {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.paySpinner {
+  width: 18px;
+  height: 18px;
+  border: 2.5px solid rgba(255,255,255,0.4);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.75s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.securityRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  color: var(--color-text-muted, #6B7280);
+  margin-top: 10px;
+}
+.securityRow svg { color: #16A34A; }
+
+/* ── Summary Card ─────────────────────────────────────────── */
+.summaryCard {
+  background: var(--color-white, #fff);
+  border-radius: 16px;
+  padding: 28px 24px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.07);
+}
+
+.summaryTitle {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--color-dark, #30241F);
+  margin: 0 0 20px 0;
+}
+
+.planBadge {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1.5px solid;
+  margin-bottom: 20px;
+}
+
+.planBadgeEmoji { font-size: 1.8rem; flex-shrink: 0; }
+.planBadgeName { font-size: 1rem; font-weight: 800; }
+.planBadgeDuration { font-size: 0.8rem; color: var(--color-text-muted, #6B7280); margin-top: 2px; }
+
+.summaryLines {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--color-border, #EAE0D0);
+  margin-bottom: 16px;
+}
+
+.summaryLine {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+  color: var(--color-text, #4B5563);
+}
+
+.summaryTotal {
+  font-weight: 800;
+  font-size: 1.05rem;
+  color: var(--color-dark, #30241F);
+}
+
+.featuresTitle {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--color-text-muted, #6B7280);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 10px;
+}
+
+.featureList {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 16px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.featureList li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: var(--color-text, #374151);
+  line-height: 1.4;
+}
+.featureList li svg { flex-shrink: 0; color: #16A34A; margin-top: 1px; }
+
+.validityNote {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: 0.78rem;
+  color: var(--color-text-muted, #6B7280);
+  background: var(--color-bg, #F5EBDD);
+  border-radius: 8px;
+  padding: 10px 12px;
+  line-height: 1.4;
+}
+.validityNote svg { flex-shrink: 0; margin-top: 1px; }
+
+/* Spinner for loading */
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--color-border, #EAE0D0);
+  border-top-color: var(--color-primary, #7B191E);
+  border-radius: 50%;
+  animation: spin 0.75s linear infinite;
+}

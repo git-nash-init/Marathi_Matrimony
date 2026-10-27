@@ -41,6 +41,8 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
     setLanguageState(lang);
     localStorage.setItem('app_language', lang);
     document.documentElement.lang = lang;
+    document.documentElement.setAttribute('translate', 'no');
+    document.documentElement.classList.add('notranslate');
   };
 
   const toggleLanguage = () => {
@@ -49,6 +51,8 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
 
   useEffect(() => {
     document.documentElement.lang = language;
+    document.documentElement.setAttribute('translate', 'no');
+    document.documentElement.classList.add('notranslate');
   }, [language]);
 
   const rawTranslations = translations[language];

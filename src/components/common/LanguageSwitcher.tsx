@@ -19,32 +19,36 @@ export const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
         ${styles.switcherContainer} 
         ${variant === 'footer' ? styles.footer : ''} 
         ${isGlass ? styles.glassMode : ''}
+        notranslate
       `}
+      translate="no"
       role="group"
       aria-label="Language selection"
     >
       <button
         type="button"
-        className={`${styles.symbolBtn} ${language === 'mr' ? styles.active : ''}`}
+        className={`${styles.symbolBtn} ${language === 'mr' ? styles.active : ''} notranslate`}
+        translate="no"
         onClick={() => setLanguage('mr')}
         title="मराठी (Marathi)"
         aria-label="मराठी भाषेत बदला"
         aria-pressed={language === 'mr'}
       >
-        <span className={styles.symbolChar}>अ</span>
+        <span className={`${styles.symbolChar} notranslate`} translate="no">आ</span>
       </button>
 
-      <span className={styles.divider} aria-hidden="true">/</span>
+      <span className={`${styles.divider} notranslate`} translate="no" aria-hidden="true">/</span>
 
       <button
         type="button"
-        className={`${styles.symbolBtn} ${language === 'en' ? styles.active : ''}`}
+        className={`${styles.symbolBtn} ${language === 'en' ? styles.active : ''} notranslate`}
+        translate="no"
         onClick={() => setLanguage('en')}
         title="English"
         aria-label="Switch to English"
         aria-pressed={language === 'en'}
       >
-        <span className={styles.symbolChar}>A</span>
+        <span className={`${styles.symbolChar} notranslate`} translate="no">A</span>
       </button>
     </div>
   );

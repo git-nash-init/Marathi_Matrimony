@@ -15,18 +15,25 @@ import {
   MatrimonySearchIcon,
   WeddingUnionIcon
 } from '../components/common/CulturalIcons';
+import { useAuth } from '../context/AuthContext';
 import styles from './LocationLandingPage.module.css';
 
 export const LocationLandingPage: React.FC = () => {
   const { slug } = useParams<{ slug?: string }>();
   const location = useLocation();
   const { language, brandName } = useLanguage();
+  const { user, profile } = useAuth();
 
   // Determine current hub by explicit slug or direct URL pathname
   const currentPath = location.pathname.replace(/^\//, '');
   const hub: LocationHub = locationHubs[slug || ''] || locationHubs[currentPath] || locationHubs['maratha-marriage-bureau-borivali'];
 
-  const [genderFilter, setGenderFilter] = useState<'all' | 'female' | 'male'>('all');
+  // Enforce opposite gender matching if user is logged in
+  const userGender = profile?.gender?.toLowerCase() || (user?.user_metadata?.gender as 'male' | 'female' | undefined);
+  const targetOppositeGender: 'male' | 'female' | undefined =
+    userGender === 'male' ? 'female' : userGender === 'female' ? 'male' : undefined;
+
+  const [genderFilter, setGenderFilter] = useState<'all' | 'female' | 'male'>(targetOppositeGender || 'all');
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
@@ -107,8 +114,9 @@ export const LocationLandingPage: React.FC = () => {
           pageSize: 6,
           city: hub.region === 'pune' ? 'Pune' : 'Mumbai'
         };
-        if (genderFilter !== 'all') {
-          queryParams.gender = genderFilter;
+        const effectiveGender = targetOppositeGender || (genderFilter !== 'all' ? genderFilter : undefined);
+        if (effectiveGender) {
+          queryParams.gender = effectiveGender;
         }
 
         const res = await discoveryService.fetchProfiles(queryParams);
@@ -124,7 +132,7 @@ export const LocationLandingPage: React.FC = () => {
 
     loadProfiles();
     return () => { isMounted = false; };
-  }, [hub, genderFilter]);
+  }, [hub, genderFilter, targetOppositeGender]);
 
   // Sibling regional hubs for cross-linking
   const siblingHubs = Object.values(locationHubs).filter(h => h.slug !== hub.slug);
@@ -236,50 +244,72 @@ export const LocationLandingPage: React.FC = () => {
             </div>
 
             {/* Quick Gender Filter Switch */}
-            <div style={{ display: 'flex', gap: '8px', background: 'var(--color-ivory)', padding: '4px', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)' }}>
-              <button
-                type="button"
-                onClick={() => setGenderFilter('all')}
+            {targetOppositeGender ? (
+              <div
                 style={{
-                  padding: '6px 14px',
-                  borderRadius: 'var(--radius-sm)',
-                  fontWeight: 600,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  background: targetOppositeGender === 'female' ? '#FDF2F8' : '#EFF6FF',
+                  padding: '8px 16px',
+                  borderRadius: 'var(--radius-md)',
+                  border: targetOppositeGender === 'female' ? '1.5px solid #FBCFE8' : '1.5px solid #BFDBFE',
+                  fontWeight: 700,
                   fontSize: '0.88rem',
-                  background: genderFilter === 'all' ? 'var(--color-oxblood)' : 'transparent',
-                  color: genderFilter === 'all' ? '#FFFFFF' : 'var(--color-ink)'
+                  color: targetOppositeGender === 'female' ? '#BE185D' : '#1D4ED8',
                 }}
               >
-                {language === 'mr' ? 'सर्व स्थळे' : 'All'}
-              </button>
-              <button
-                type="button"
-                onClick={() => setGenderFilter('female')}
-                style={{
-                  padding: '6px 14px',
-                  borderRadius: 'var(--radius-sm)',
-                  fontWeight: 600,
-                  fontSize: '0.88rem',
-                  background: genderFilter === 'female' ? 'var(--color-oxblood)' : 'transparent',
-                  color: genderFilter === 'female' ? '#FFFFFF' : 'var(--color-ink)'
-                }}
-              >
-                {language === 'mr' ? 'मराठा वधू' : 'Brides'}
-              </button>
-              <button
-                type="button"
-                onClick={() => setGenderFilter('male')}
-                style={{
-                  padding: '6px 14px',
-                  borderRadius: 'var(--radius-sm)',
-                  fontWeight: 600,
-                  fontSize: '0.88rem',
-                  background: genderFilter === 'male' ? 'var(--color-oxblood)' : 'transparent',
-                  color: genderFilter === 'male' ? '#FFFFFF' : 'var(--color-ink)'
-                }}
-              >
-                {language === 'mr' ? 'मराठा वर' : 'Grooms'}
-              </button>
-            </div>
+                <span>{targetOppositeGender === 'female' ? '👰 मराठा वधू (Brides Only)' : '🤵 मराठा वर (Grooms Only)'}</span>
+                <span style={{ fontSize: '0.75rem', opacity: 0.85, fontWeight: 600 }}>
+                  {language === 'mr' ? '• आपल्या प्रोफाइलनुसार' : '• Matched for you'}
+                </span>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', gap: '8px', background: 'var(--color-ivory)', padding: '4px', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)' }}>
+                <button
+                  type="button"
+                  onClick={() => setGenderFilter('all')}
+                  style={{
+                    padding: '6px 14px',
+                    borderRadius: 'var(--radius-sm)',
+                    fontWeight: 600,
+                    fontSize: '0.88rem',
+                    background: genderFilter === 'all' ? 'var(--color-oxblood)' : 'transparent',
+                    color: genderFilter === 'all' ? '#FFFFFF' : 'var(--color-ink)'
+                  }}
+                >
+                  {language === 'mr' ? 'सर्व स्थळे' : 'All'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setGenderFilter('female')}
+                  style={{
+                    padding: '6px 14px',
+                    borderRadius: 'var(--radius-sm)',
+                    fontWeight: 600,
+                    fontSize: '0.88rem',
+                    background: genderFilter === 'female' ? 'var(--color-oxblood)' : 'transparent',
+                    color: genderFilter === 'female' ? '#FFFFFF' : 'var(--color-ink)'
+                  }}
+                >
+                  {language === 'mr' ? 'मराठा वधू' : 'Brides'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setGenderFilter('male')}
+                  style={{
+                    padding: '6px 14px',
+                    borderRadius: 'var(--radius-sm)',
+                    fontWeight: 600,
+                    fontSize: '0.88rem',
+                    background: genderFilter === 'male' ? 'var(--color-oxblood)' : 'transparent',
+                    color: genderFilter === 'male' ? '#FFFFFF' : 'var(--color-ink)'
+                  }}
+                >
+                  {language === 'mr' ? 'मराठा वर' : 'Grooms'}
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Profiles Grid */}

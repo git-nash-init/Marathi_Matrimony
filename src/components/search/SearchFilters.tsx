@@ -26,6 +26,8 @@ interface SearchFiltersProps {
   onApply?: () => void;
   onClose?: () => void;
   isMobile?: boolean;
+  userGender?: 'male' | 'female' | string;
+  targetGender?: 'male' | 'female';
 }
 
 export const SearchFilters: React.FC<SearchFiltersProps> = ({
@@ -35,6 +37,7 @@ export const SearchFilters: React.FC<SearchFiltersProps> = ({
   onApply,
   onClose,
   isMobile = false,
+  targetGender,
 }) => {
   const { language } = useLanguage();
 
@@ -89,22 +92,44 @@ export const SearchFilters: React.FC<SearchFiltersProps> = ({
           <label className={styles.sectionLabel}>
             {language === 'mr' ? 'लिंग / जोडीदार शोध' : 'Looking For'}
           </label>
-          <div className={styles.segmentedGroup}>
-            {[
-              { val: 'all', mr: 'सर्व', en: 'All' },
-              { val: 'female', mr: 'वधू', en: 'Brides' },
-              { val: 'male', mr: 'वर', en: 'Grooms' },
-            ].map((g) => (
-              <button
-                key={g.val}
-                type="button"
-                className={`${styles.segmentedBtn} ${filters.gender === g.val ? styles.activeSegment : ''}`}
-                onClick={() => handleFieldChange('gender', g.val)}
-              >
-                {language === 'mr' ? g.mr : g.en}
-              </button>
-            ))}
-          </div>
+          {targetGender ? (
+            <div
+              style={{
+                padding: '10px 14px',
+                backgroundColor: targetGender === 'female' ? '#FDF2F8' : '#EFF6FF',
+                border: targetGender === 'female' ? '1.5px solid #FBCFE8' : '1.5px solid #BFDBFE',
+                borderRadius: '8px',
+                color: targetGender === 'female' ? '#BE185D' : '#1D4ED8',
+                fontWeight: 700,
+                fontSize: '0.9rem',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }}
+            >
+              <span>{targetGender === 'female' ? '👰 वधू स्थळे (Brides Only)' : '🤵 वर स्थळे (Grooms Only)'}</span>
+              <span style={{ fontSize: '0.72rem', opacity: 0.85, fontWeight: 600 }}>
+                {language === 'mr' ? 'आपल्या प्रोफाइलनुसार' : 'Opposite Gender'}
+              </span>
+            </div>
+          ) : (
+            <div className={styles.segmentedGroup}>
+              {[
+                { val: 'all', mr: 'सर्व', en: 'All' },
+                { val: 'female', mr: 'वधू', en: 'Brides' },
+                { val: 'male', mr: 'वर', en: 'Grooms' },
+              ].map((g) => (
+                <button
+                  key={g.val}
+                  type="button"
+                  className={`${styles.segmentedBtn} ${filters.gender === g.val ? styles.activeSegment : ''}`}
+                  onClick={() => handleFieldChange('gender', g.val)}
+                >
+                  {language === 'mr' ? g.mr : g.en}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* 2. AGE RANGE */}

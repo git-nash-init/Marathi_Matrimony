@@ -30,7 +30,7 @@ interface ProfileBuilderProps {
 }
 
 export const ProfileBuilderContainer: React.FC<ProfileBuilderProps> = ({ mode: _mode = 'create' }) => {
-  const { user } = useAuth();
+  const { user, refreshProfile } = useAuth();
   const { t, language } = useLanguage();
 
   const [currentStep, setCurrentStep] = useState<number>(1);
@@ -81,6 +81,12 @@ export const ProfileBuilderContainer: React.FC<ProfileBuilderProps> = ({ mode: _
             // Basic
             first_name: profile.first_name || '',
             last_name: profile.last_name || '',
+            avatar_url: profile.avatar_url || '',
+            photos: profile.photos || [],
+            photos_hidden: Boolean(profile.photos_hidden),
+            id_type: 'aadhaar',
+            id_number: profile.aadhaar_number || '',
+            self_attested: Boolean(profile.aadhaar_number),
             profile_for: profile.profile_for || 'self',
             gender: profile.gender || 'male',
             date_of_birth: profile.date_of_birth || '',
@@ -280,6 +286,10 @@ export const ProfileBuilderContainer: React.FC<ProfileBuilderProps> = ({ mode: _
         country: formData.current_country || 'India',
 
         about_me: formData.about_me || null,
+        avatar_url: formData.avatar_url || null,
+        photos: formData.photos || [],
+        photos_hidden: Boolean(formData.photos_hidden),
+        aadhaar_number: formData.id_number || null,
         profile_status: profileStatusEnum,
         verification_status: verificationStatusEnum,
         profile_visibility: 'registered_only',
@@ -325,6 +335,10 @@ export const ProfileBuilderContainer: React.FC<ProfileBuilderProps> = ({ mode: _
           .eq('user_id', user.id);
 
         if (updateErr) throw updateErr;
+      }
+
+      if (refreshProfile) {
+        refreshProfile();
       }
 
       // Save partner preferences if profile id is available

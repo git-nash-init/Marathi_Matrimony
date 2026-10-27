@@ -1,7 +1,10 @@
 export interface ProfileFormData {
-  // Step 1: Basic Details
+  // Step 1: Basic Details & Photos
   first_name: string;
   last_name: string;
+  avatar_url?: string;
+  photos?: string[];
+  photos_hidden?: boolean;
   profile_for: string;
   gender: string;
   date_of_birth: string;
@@ -83,6 +86,9 @@ export interface ProfileFormData {
 export const INITIAL_PROFILE_FORM_DATA: ProfileFormData = {
   first_name: '',
   last_name: '',
+  avatar_url: '',
+  photos: [],
+  photos_hidden: false,
   profile_for: 'self',
   gender: 'female',
   date_of_birth: '',

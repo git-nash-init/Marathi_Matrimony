@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   User,
@@ -30,6 +30,7 @@ import {
   PLAN_DISPLAY_INFO,
 } from '../services/subscription.service';
 import { mockProfiles } from '../data/mockProfiles';
+import { Profile } from '../types';
 import dashStyles from './DashboardPage.module.css';
 
 // ── Tab definitions ──────────────────────────────────────────────────────────
@@ -61,12 +62,6 @@ const TABS: Tab[] = [
   { key: 'contacts_by_me', label_en: 'Contacts I Viewed',   label_mr: 'मी पाहिलेले फोन',   icon: <Phone size={16} />,      requiresPlan: 'silver' },
 ];
 
-// Sample mock data for tabs (in real app, fetched from Supabase)
-const MOCK_INTEREST_PROFILES = mockProfiles.slice(0, 3);
-const MOCK_VIEWED_PROFILES   = mockProfiles.slice(1, 5);
-const MOCK_MATCH_PROFILES    = mockProfiles.slice(0, 6);
-const MOCK_RECO_PROFILES     = mockProfiles.slice(2, 5);
-
 // ── Main Component ────────────────────────────────────────────────────────────
 
 export const DashboardPage: React.FC = () => {
@@ -79,6 +74,21 @@ export const DashboardPage: React.FC = () => {
   const [subLoading, setSubLoading] = useState(true);
   const [gateOpen, setGateOpen] = useState(false);
   const [gateReason, setGateReason] = useState('');
+
+  // Enforce opposite gender for matrimonial matching
+  const userGender = profile?.gender?.toLowerCase() || (user?.user_metadata?.gender as 'male' | 'female' | undefined);
+  const targetOppositeGender: 'male' | 'female' | undefined =
+    userGender === 'male' ? 'female' : userGender === 'female' ? 'male' : undefined;
+
+  const oppositeProfiles = useMemo(() => {
+    if (!targetOppositeGender) return mockProfiles;
+    return mockProfiles.filter((p) => p.gender === targetOppositeGender);
+  }, [targetOppositeGender]);
+
+  const matchProfiles = useMemo(() => oppositeProfiles.slice(0, 6), [oppositeProfiles]);
+  const recoProfiles = useMemo(() => oppositeProfiles.slice(1, 5), [oppositeProfiles]);
+  const viewedProfiles = useMemo(() => oppositeProfiles.slice(0, 4), [oppositeProfiles]);
+  const interestProfiles = useMemo(() => oppositeProfiles.slice(0, 3), [oppositeProfiles]);
 
   const loadSubscription = useCallback(async () => {
     if (!user) return;
@@ -136,7 +146,15 @@ export const DashboardPage: React.FC = () => {
         <div className={dashStyles.welcomeCard}>
           <div className={dashStyles.welcomeLeft}>
             <div className={dashStyles.avatarCircle}>
-              {displayName.charAt(0).toUpperCase()}
+              {(profile as any)?.avatar_url ? (
+                <img
+                  src={(profile as any).avatar_url}
+                  alt={displayName}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
+                />
+              ) : (
+                displayName.charAt(0).toUpperCase()
+              )}
             </div>
             <div>
               <div className={dashStyles.welcomeNameRow}>
@@ -268,13 +286,13 @@ export const DashboardPage: React.FC = () => {
           </div>
 
           <div className={dashStyles.tabContent}>
-            {activeTab === 'matchmaking'    && <MatchmakingTab language={language} />}
-            {activeTab === 'recommendations'&& <RecommendationsTab language={language} />}
-            {activeTab === 'viewed_by_me'   && <ViewedByMeTab language={language} />}
-            {activeTab === 'who_viewed_me'  && <WhoViewedMeTab language={language} />}
-            {activeTab === 'interests'      && <InterestsTab language={language} />}
-            {activeTab === 'contact_viewers'&& <ContactViewersTab language={language} />}
-            {activeTab === 'contacts_by_me' && <ContactsByMeTab language={language} />}
+            {activeTab === 'matchmaking'    && <MatchmakingTab language={language} profiles={matchProfiles} />}
+            {activeTab === 'recommendations'&& <RecommendationsTab language={language} profiles={recoProfiles} />}
+            {activeTab === 'viewed_by_me'   && <ViewedByMeTab language={language} profiles={viewedProfiles} />}
+            {activeTab === 'who_viewed_me'  && <WhoViewedMeTab language={language} profiles={interestProfiles} />}
+            {activeTab === 'interests'      && <InterestsTab language={language} profiles={interestProfiles} />}
+            {activeTab === 'contact_viewers'&& <ContactViewersTab language={language} profiles={interestProfiles} />}
+            {activeTab === 'contacts_by_me' && <ContactsByMeTab language={language} profiles={viewedProfiles} />}
           </div>
         </div>
 
@@ -359,7 +377,7 @@ const EmptyState: React.FC<{ icon: React.ReactNode; title: string; desc: string 
   </div>
 );
 
-const MatchmakingTab: React.FC<{ language: string }> = ({ language: lang }) => (
+const MatchmakingTab: React.FC<{ language: string; profiles: Profile[] }> = ({ language: lang, profiles }) => (
   <div>
     <div className={dashStyles.tabHeader}>
       <Sparkles size={18} />
@@ -369,12 +387,12 @@ const MatchmakingTab: React.FC<{ language: string }> = ({ language: lang }) => (
       </div>
     </div>
     <div className={dashStyles.miniCardList}>
-      {MOCK_MATCH_PROFILES.map((p) => <ProfileMiniCard key={p.id} p={p} lang={lang} />)}
+      {profiles.map((p) => <ProfileMiniCard key={p.id} p={p} lang={lang} />)}
     </div>
   </div>
 );
 
-const RecommendationsTab: React.FC<{ language: string }> = ({ language: lang }) => (
+const RecommendationsTab: React.FC<{ language: string; profiles: Profile[] }> = ({ language: lang, profiles }) => (
   <div>
     <div className={dashStyles.tabHeader}>
       <Star size={18} />
@@ -384,12 +402,12 @@ const RecommendationsTab: React.FC<{ language: string }> = ({ language: lang }) 
       </div>
     </div>
     <div className={dashStyles.miniCardList}>
-      {MOCK_RECO_PROFILES.map((p) => <ProfileMiniCard key={p.id} p={p} lang={lang} />)}
+      {profiles.map((p) => <ProfileMiniCard key={p.id} p={p} lang={lang} />)}
     </div>
   </div>
 );
 
-const ViewedByMeTab: React.FC<{ language: string }> = ({ language: lang }) => (
+const ViewedByMeTab: React.FC<{ language: string; profiles: Profile[] }> = ({ language: lang, profiles }) => (
   <div>
     <div className={dashStyles.tabHeader}>
       <Eye size={18} />
@@ -398,7 +416,7 @@ const ViewedByMeTab: React.FC<{ language: string }> = ({ language: lang }) => (
         <p>{lang === 'mr' ? 'तुम्ही नुकत्याच पाहिलेल्या प्रोफाइलचा इतिहास' : 'History of profiles you have recently browsed'}</p>
       </div>
     </div>
-    {MOCK_VIEWED_PROFILES.length === 0 ? (
+    {profiles.length === 0 ? (
       <EmptyState
         icon={<Eye size={32} />}
         title={lang === 'mr' ? 'अजून कोणताही इतिहास नाही' : 'No browsing history yet'}
@@ -406,13 +424,13 @@ const ViewedByMeTab: React.FC<{ language: string }> = ({ language: lang }) => (
       />
     ) : (
       <div className={dashStyles.miniCardList}>
-        {MOCK_VIEWED_PROFILES.map((p) => <ProfileMiniCard key={p.id} p={p} lang={lang} />)}
+        {profiles.map((p) => <ProfileMiniCard key={p.id} p={p} lang={lang} />)}
       </div>
     )}
   </div>
 );
 
-const WhoViewedMeTab: React.FC<{ language: string }> = ({ language: lang }) => (
+const WhoViewedMeTab: React.FC<{ language: string; profiles: Profile[] }> = ({ language: lang, profiles }) => (
   <div>
     <div className={dashStyles.tabHeader}>
       <UserCheck size={18} />
@@ -422,12 +440,12 @@ const WhoViewedMeTab: React.FC<{ language: string }> = ({ language: lang }) => (
       </div>
     </div>
     <div className={dashStyles.miniCardList}>
-      {MOCK_INTEREST_PROFILES.map((p) => <ProfileMiniCard key={p.id} p={p} lang={lang} />)}
+      {profiles.map((p) => <ProfileMiniCard key={p.id} p={p} lang={lang} />)}
     </div>
   </div>
 );
 
-const InterestsTab: React.FC<{ language: string }> = ({ language: lang }) => {
+const InterestsTab: React.FC<{ language: string; profiles: Profile[] }> = ({ language: lang, profiles }) => {
   const [subTab, setSubTab] = useState<'received' | 'sent'>('received');
   return (
     <div>
@@ -447,7 +465,7 @@ const InterestsTab: React.FC<{ language: string }> = ({ language: lang }) => {
         </button>
       </div>
       <div className={dashStyles.miniCardList}>
-        {MOCK_INTEREST_PROFILES.map((p) => (
+        {profiles.map((p) => (
           <div key={p.id} className={dashStyles.interestRow}>
             <ProfileMiniCard p={p} lang={lang} />
             <div className={dashStyles.interestStatus}>
@@ -474,7 +492,7 @@ const InterestsTab: React.FC<{ language: string }> = ({ language: lang }) => {
   );
 };
 
-const ContactViewersTab: React.FC<{ language: string }> = ({ language: lang }) => (
+const ContactViewersTab: React.FC<{ language: string; profiles: Profile[] }> = ({ language: lang, profiles }) => (
   <div>
     <div className={dashStyles.tabHeader}>
       <PhoneCall size={18} />
@@ -484,7 +502,7 @@ const ContactViewersTab: React.FC<{ language: string }> = ({ language: lang }) =
       </div>
     </div>
     <div className={dashStyles.miniCardList}>
-      {MOCK_INTEREST_PROFILES.slice(0, 2).map((p) => (
+      {profiles.slice(0, 2).map((p) => (
         <div key={p.id} className={dashStyles.contactViewRow}>
           <ProfileMiniCard p={p} lang={lang} />
           <span className={dashStyles.viewedOnTag}>
@@ -496,7 +514,7 @@ const ContactViewersTab: React.FC<{ language: string }> = ({ language: lang }) =
   </div>
 );
 
-const ContactsByMeTab: React.FC<{ language: string }> = ({ language: lang }) => (
+const ContactsByMeTab: React.FC<{ language: string; profiles: Profile[] }> = ({ language: lang, profiles }) => (
   <div>
     <div className={dashStyles.tabHeader}>
       <Phone size={18} />
@@ -506,7 +524,7 @@ const ContactsByMeTab: React.FC<{ language: string }> = ({ language: lang }) => 
       </div>
     </div>
     <div className={dashStyles.miniCardList}>
-      {MOCK_VIEWED_PROFILES.slice(0, 3).map((p) => (
+      {profiles.slice(0, 3).map((p) => (
         <div key={p.id} className={dashStyles.contactViewRow}>
           <ProfileMiniCard p={p} lang={lang} />
           <div className={dashStyles.unlockedContact}>

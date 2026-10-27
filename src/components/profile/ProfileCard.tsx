@@ -20,6 +20,7 @@ import {
   Ban,
   Eye,
   Sparkles,
+  Lock,
 } from 'lucide-react';
 import styles from './ProfileCard.module.css';
 
@@ -112,7 +113,17 @@ export const ProfileCard: React.FC<ProfileCardProps> = ({ profile, onBlock, onSh
         {/* Top Media / Photo Section */}
         <div className={styles.mediaContainer}>
           <Link to={`/profile/${profile.id}`} className={styles.photoLink}>
-            {profile.photoUrl ? (
+            {profile.photosHidden ? (
+              <div className={styles.placeholderPhoto} style={{ backgroundColor: '#FBF8F2', color: 'var(--color-primary)' }}>
+                <Lock size={26} color="var(--color-secondary-hover)" style={{ marginBottom: '6px' }} />
+                <span style={{ fontSize: '0.82rem', fontWeight: 700 }}>
+                  {language === 'mr' ? '🔒 फोटो संरक्षित आहे' : '🔒 Photo Protected'}
+                </span>
+                <span style={{ fontSize: '0.72rem', color: '#666', marginTop: '2px' }}>
+                  {language === 'mr' ? 'केवळ सदस्यांसाठी' : 'Members Only'}
+                </span>
+              </div>
+            ) : profile.photoUrl ? (
               <img
                 src={profile.photoUrl}
                 alt={profileName}

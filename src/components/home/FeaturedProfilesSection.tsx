@@ -1,6 +1,7 @@
 import React from 'react';
 import { ArrowRight } from 'lucide-react';
 import { useLanguage } from '../../i18n/LanguageContext';
+import { useAuth } from '../../context/AuthContext';
 import { mockProfiles } from '../../data/mockProfiles';
 import { ProfileCard } from '../profile/ProfileCard';
 import { SectionHeading } from '../common/SectionHeading';
@@ -9,9 +10,18 @@ import styles from './FeaturedProfilesSection.module.css';
 
 export const FeaturedProfilesSection: React.FC = () => {
   const { t } = useLanguage();
+  const { user, profile } = useAuth();
+
+  // Enforce opposite gender matching if user is logged in
+  const userGender = profile?.gender?.toLowerCase() || (user?.user_metadata?.gender as 'male' | 'female' | undefined);
+  const targetOppositeGender = userGender === 'male' ? 'female' : userGender === 'female' ? 'male' : undefined;
+
+  const eligibleProfiles = targetOppositeGender
+    ? mockProfiles.filter((p) => p.gender === targetOppositeGender)
+    : mockProfiles;
 
   // Show first 4 featured profiles on homepage
-  const featured = mockProfiles.slice(0, 4);
+  const featured = eligibleProfiles.slice(0, 4);
 
   return (
     <section className={`section ${styles.featuredSection}`}>

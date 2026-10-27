@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useTransition } from 'react';
 import { useSearchParams, useParams } from 'react-router-dom';
 import { useLanguage } from '../i18n/LanguageContext';
 import { SearchFiltersState, Profile } from '../types';
+import { useAuth } from '../context/AuthContext';
 import { discoveryService } from '../services/discovery.service';
 import { ProfileCard, ProfileCardSkeleton } from '../components/profile/ProfileCard';
 import { SearchFilters } from '../components/search/SearchFilters';
@@ -39,16 +40,24 @@ const DEFAULT_FILTERS: SearchFiltersState = {
 
 export const SearchPage: React.FC = () => {
   const { language } = useLanguage();
+  const { user, profile } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const routeParams = useParams<{ category?: string; location?: string }>();
   const [, startTransition] = useTransition();
 
-  // Route-based default inference
-  const inferredGender = routeParams.category === 'groom' || routeParams.category === 'var'
-    ? 'male'
-    : routeParams.category === 'bride' || routeParams.category === 'vadhu'
-    ? 'female'
-    : DEFAULT_FILTERS.gender;
+  // Determine user gender and enforce strict opposite gender matching
+  const userGender = profile?.gender || (user?.user_metadata?.gender as 'male' | 'female' | undefined);
+  const targetOppositeGender: 'male' | 'female' | undefined =
+    userGender === 'male' ? 'female' : userGender === 'female' ? 'male' : undefined;
+
+  // Route-based default inference (only used if guest)
+  const inferredGender = targetOppositeGender || (
+    routeParams.category === 'groom' || routeParams.category === 'var'
+      ? 'male'
+      : routeParams.category === 'bride' || routeParams.category === 'vadhu'
+      ? 'female'
+      : DEFAULT_FILTERS.gender
+  );
 
   const inferredCity = routeParams.location
     ? routeParams.location.charAt(0).toUpperCase() + routeParams.location.slice(1).toLowerCase()
@@ -60,7 +69,7 @@ export const SearchPage: React.FC = () => {
 
   // Filter state
   const [filters, setFilters] = useState<SearchFiltersState>(() => ({
-    gender: (searchParams.get('gender') as any) || inferredGender,
+    gender: targetOppositeGender || (searchParams.get('gender') as any) || inferredGender,
     minAge: Number(searchParams.get('minAge')) || DEFAULT_FILTERS.minAge,
     maxAge: Number(searchParams.get('maxAge')) || DEFAULT_FILTERS.maxAge,
     minHeight: Number(searchParams.get('minHeight')) || DEFAULT_FILTERS.minHeight,
@@ -133,9 +142,11 @@ export const SearchPage: React.FC = () => {
       setError(null);
 
       try {
+        const activeGender = targetOppositeGender || filters.gender;
         const res = await discoveryService.fetchProfiles({
           q: debouncedSearch,
           ...filters,
+          gender: activeGender,
           sortBy,
           page: currentPage,
           pageSize: 12,
@@ -167,7 +178,10 @@ export const SearchPage: React.FC = () => {
   }, [debouncedSearch, filters, sortBy, loadProfiles, updateUrlParams]);
 
   const handleResetFilters = () => {
-    setFilters(DEFAULT_FILTERS);
+    setFilters({
+      ...DEFAULT_FILTERS,
+      gender: targetOppositeGender || DEFAULT_FILTERS.gender,
+    });
     setSearchTerm('');
     setDebouncedSearch('');
     setSortBy('relevance');
@@ -264,6 +278,7 @@ export const SearchPage: React.FC = () => {
             filters={filters}
             onChange={setFilters}
             onReset={handleResetFilters}
+            targetGender={targetOppositeGender}
           />
         </aside>
 
@@ -409,6 +424,7 @@ export const SearchPage: React.FC = () => {
           onReset={handleResetFilters}
           onApply={() => setMobileFilterOpen(false)}
           onClose={() => setMobileFilterOpen(false)}
+          targetGender={targetOppositeGender}
           isMobile
         />
       </Modal>

@@ -32,18 +32,21 @@ function mapDbProfileToProfile(row: any): Profile {
 
   const displayName = row.display_name || `${row.first_name || ''} ${row.last_name || ''}`.trim() || 'Marathi Member';
 
-  // Photo resolution: primary photo from joined photos or fallback
-  let photoUrl = row.profile_photo_url || '';
-  let gallery: string[] = [];
+  // Photo resolution: primary avatar_url from profile or joined photos
+  let photoUrl = row.avatar_url || row.profile_photo_url || '';
+  let gallery: string[] = Array.isArray(row.photos) ? row.photos.filter(Boolean) : [];
   if (Array.isArray(row.profile_photos) && row.profile_photos.length > 0) {
     const primary = row.profile_photos.find((p: any) => p.is_primary) || row.profile_photos[0];
     if (primary && primary.storage_path) {
       photoUrl = primary.storage_path;
     }
-    gallery = row.profile_photos.map((p: any) => p.storage_path).filter(Boolean);
-  } else if (photoUrl) {
+    if (gallery.length === 0) {
+      gallery = row.profile_photos.map((p: any) => p.storage_path).filter(Boolean);
+    }
+  } else if (photoUrl && gallery.length === 0) {
     gallery = [photoUrl];
   }
+  const photosHidden = Boolean(row.photos_hidden);
 
   const rawIncome = row.income || row.annual_income;
   const parsedIncomeNum = typeof rawIncome === 'number' ? rawIncome : parseFloat(String(rawIncome || '').replace(/[^0-9.]/g, '')) || 0;
@@ -115,6 +118,7 @@ function mapDbProfileToProfile(row: any): Profile {
     annualIncomeValue: parsedIncomeNum,
     photoUrl: photoUrl,
     gallery: gallery,
+    photosHidden: photosHidden,
     isVerified: row.verification_status === 'verified',
     isPremium: false,
     lastActive: {

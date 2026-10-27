@@ -207,7 +207,19 @@ export const ProfileDetailPage: React.FC = () => {
         {/* Photo Gallery Column */}
         <div className={styles.photoGalleryCol}>
           <div className={styles.mainPhotoWrapper}>
-            {selectedPhoto ? (
+            {profile.photosHidden && profile.id !== user?.id ? (
+              <div className={styles.photoPlaceholder} style={{ backgroundColor: '#FBF8F2', color: 'var(--color-primary)', padding: '24px', textAlign: 'center' }}>
+                <Lock size={36} color="var(--color-secondary-hover)" style={{ marginBottom: '10px' }} />
+                <span style={{ fontSize: '1rem', fontWeight: 700 }}>
+                  {language === 'mr' ? '🔒 फोटो संरक्षित आहे' : '🔒 Photos Protected'}
+                </span>
+                <span style={{ fontSize: '0.8rem', color: '#666', marginTop: '6px' }}>
+                  {language === 'mr'
+                    ? 'या सदस्याने फोटो सुरक्षित ठेवले आहेत. केवळ पडताळणी झालेले सदस्यच पाहू शकतात.'
+                    : 'This member has protected their photos from public view.'}
+                </span>
+              </div>
+            ) : selectedPhoto ? (
               <img src={selectedPhoto} alt={profileName} className={styles.mainPhoto} />
             ) : (
               <div className={styles.photoPlaceholder}>

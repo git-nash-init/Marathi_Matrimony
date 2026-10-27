@@ -94,6 +94,7 @@ export const Header: React.FC = () => {
   const displayName = profile?.first_name 
     ? `${profile.first_name} ${profile.last_name || ''}`.trim()
     : (user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Member');
+  const avatarUrl = (profile as any)?.avatar_url || user?.user_metadata?.avatar_url;
 
   return (
     <header 
@@ -166,10 +167,25 @@ export const Header: React.FC = () => {
               {isAuthenticated ? (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <Link to="/dashboard" className={styles.userProfilePill}>
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                      <circle cx="12" cy="7" r="4"></circle>
-                    </svg>
+                    {avatarUrl ? (
+                      <img
+                        src={avatarUrl}
+                        alt={displayName}
+                        style={{
+                          width: '24px',
+                          height: '24px',
+                          borderRadius: '50%',
+                          objectFit: 'cover',
+                          border: '1.5px solid var(--color-gold, #C59A45)',
+                          flexShrink: 0
+                        }}
+                      />
+                    ) : (
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                      </svg>
+                    )}
                     <span>{displayName}</span>
                   </Link>
                   <button
@@ -277,8 +293,23 @@ export const Header: React.FC = () => {
                     to="/dashboard" 
                     className={styles.mobileUserLink}
                     onClick={() => setMobileMenuOpen(false)}
+                    style={{ display: 'flex', alignItems: 'center', gap: '10px' }}
                   >
-                    {t.nav.dashboard} ({displayName})
+                    {avatarUrl ? (
+                      <img
+                        src={avatarUrl}
+                        alt={displayName}
+                        style={{
+                          width: '28px',
+                          height: '28px',
+                          borderRadius: '50%',
+                          objectFit: 'cover',
+                          border: '1.5px solid var(--color-gold, #C59A45)',
+                          flexShrink: 0
+                        }}
+                      />
+                    ) : null}
+                    <span>{t.nav.dashboard} ({displayName})</span>
                   </Link>
                   <button
                     type="button"

@@ -40,6 +40,7 @@ export interface Profile {
   // Media
   photoUrl: string;
   gallery: string[];
+  photosHidden?: boolean;
   isVerified: boolean;
   isPremium: boolean;
   lastActive: LocalizedString;

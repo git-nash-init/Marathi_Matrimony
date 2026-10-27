@@ -133,16 +133,16 @@ export const MembershipPage: React.FC = () => {
                 <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: '4px' }}>
                   <span style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--color-dark)' }}>₹</span>
                   <span style={{ fontSize: '2.4rem', fontWeight: 900, color: 'var(--color-dark)' }}>
-                    {plan.price.toLocaleString('en-IN')}
+                    {typeof plan.price === 'number' ? plan.price.toLocaleString('en-IN') : Number(plan.price || 0).toLocaleString('en-IN')}
                   </span>
                 </div>
                 <span style={{ fontSize: '0.85rem', color: 'var(--color-secondary-hover)', fontWeight: 600 }}>
-                  {Math.round(plan.duration_days / 30)} {language === 'mr' ? 'महिने वैधता' : 'Months'}
+                  {Math.round((plan.duration_days || 90) / 30)} {language === 'mr' ? 'महिने वैधता' : 'Months'}
                 </span>
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '28px', flexGrow: 1 }}>
-                {plan.features.map((feat, fIdx) => (
+                {(Array.isArray(plan.features) ? plan.features : []).map((feat, fIdx) => (
                   <div key={fIdx} style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', fontSize: '0.9rem' }}>
                     <Check size={16} color="var(--color-success)" style={{ flexShrink: 0, marginTop: '2px' }} />
                     <span>{localizePlanFeature(feat, language)}</span>

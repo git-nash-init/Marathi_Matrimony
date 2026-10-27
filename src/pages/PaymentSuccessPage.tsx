@@ -156,7 +156,7 @@ export const PaymentSuccessPage: React.FC = () => {
             {language === 'mr' ? '🎉 अनलॉक झालेल्या सुविधा' : '🎉 Features Now Unlocked'}
           </div>
           <ul className={styles.unlockedList}>
-            {plan.features.map((feat, i) => (
+            {(Array.isArray(plan.features) ? plan.features : []).map((feat, i) => (
               <li key={i}>
                 <CheckCircle2 size={13} />
                 <span>{localizePlanFeature(feat, language)}</span>

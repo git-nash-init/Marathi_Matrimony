@@ -126,13 +126,13 @@ export const SubscriptionGate: React.FC<SubscriptionGateProps> = ({
                   </div>
 
                   <ul className={styles.planFeatures}>
-                    {plan.features.slice(0, 3).map((feat, i) => (
+                    {(Array.isArray(plan.features) ? plan.features : []).slice(0, 3).map((feat, i) => (
                       <li key={i}>
                         <Check size={13} />
                         <span>{localizePlanFeature(feat, language)}</span>
                       </li>
                     ))}
-                    {plan.features.length > 3 && (
+                    {(Array.isArray(plan.features) ? plan.features.length : 0) > 3 && (
                       <li className={styles.moreFeat}>
                         <span>
                           {language === 'mr'

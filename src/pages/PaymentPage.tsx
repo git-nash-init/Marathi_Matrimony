@@ -435,7 +435,7 @@ export const PaymentPage: React.FC = () => {
                 {language === 'mr' ? 'प्लॅनचे प्रमुख फायदे' : 'What You Get'}
               </div>
               <ul className={styles.featureList}>
-                {plan.features.map((feat, i) => (
+                {(Array.isArray(plan.features) ? plan.features : []).map((feat, i) => (
                   <li key={i}>
                     <CheckCircle2 size={14} />
                     <span>{localizePlanFeature(feat, language)}</span>

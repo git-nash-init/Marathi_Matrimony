@@ -166,12 +166,43 @@ export const subscriptionService = {
         .eq('is_active', true)
         .order('sort_order', { ascending: true });
 
-      if (error || !data) {
+      if (error || !data || data.length === 0) {
         console.warn('Plans fetch error:', error?.message);
         return getMockPlans();
       }
 
-      _cachedPlans = data as unknown as SubscriptionPlan[];
+      const normalizedPlans: SubscriptionPlan[] = (data as any[]).map((p) => {
+        let features: string[] = [];
+        if (Array.isArray(p.features)) {
+          features = p.features;
+        } else if (typeof p.features === 'string') {
+          try {
+            const parsed = JSON.parse(p.features);
+            features = Array.isArray(parsed) ? parsed : [];
+          } catch {
+            features = [];
+          }
+        } else if (typeof p.features === 'object' && p.features !== null) {
+          features = Object.entries(p.features)
+            .filter(([, v]) => Boolean(v))
+            .map(([k]) => k.replace(/_/g, ' '));
+        }
+
+        return {
+          id: p.id,
+          name: p.name,
+          slug: p.slug as 'silver' | 'diamond' | 'platinum',
+          description: p.description || '',
+          price: typeof p.price === 'number' ? p.price : (parseFloat(p.price) || 0),
+          discounted_price: p.discounted_price ? (typeof p.discounted_price === 'number' ? p.discounted_price : parseFloat(p.discounted_price)) : undefined,
+          duration_days: p.duration_days || 90,
+          features,
+          is_active: Boolean(p.is_active),
+          sort_order: p.sort_order || 0,
+        };
+      });
+
+      _cachedPlans = normalizedPlans;
       _cacheTime = Date.now();
       return _cachedPlans;
     } catch (err) {
@@ -221,7 +252,29 @@ export const subscriptionService = {
         return null;
       }
 
-      _cachedSubscription = data as unknown as ActiveSubscription | null;
+      if (!data) {
+        _cachedSubscription = null;
+        return null;
+      }
+
+      const activeSub = data as any;
+      if (activeSub.plan) {
+        let planFeatures: string[] = [];
+        if (Array.isArray(activeSub.plan.features)) {
+          planFeatures = activeSub.plan.features;
+        } else if (typeof activeSub.plan.features === 'string') {
+          try {
+            const parsed = JSON.parse(activeSub.plan.features);
+            planFeatures = Array.isArray(parsed) ? parsed : [];
+          } catch {
+            planFeatures = [];
+          }
+        }
+        activeSub.plan.features = planFeatures;
+        activeSub.plan.price = typeof activeSub.plan.price === 'number' ? activeSub.plan.price : (parseFloat(activeSub.plan.price) || 0);
+      }
+
+      _cachedSubscription = activeSub as ActiveSubscription;
       _cacheTime = Date.now();
       return _cachedSubscription;
     } catch (err) {

@@ -42,14 +42,16 @@ export const Header: React.FC = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Sync shortlist counter
+  const userProfileId = profile?.id || user?.id;
+
+  // Sync shortlist counter strictly for current user
   useEffect(() => {
     let isMounted = true;
-    shortlistService.getShortlistedIds().then((ids) => {
+    shortlistService.getShortlistedIds(userProfileId).then((ids) => {
       if (isMounted) setShortlistCount(ids.length);
     });
     const unsubscribe = shortlistService.subscribe(() => {
-      shortlistService.getShortlistedIds().then((ids) => {
+      shortlistService.getShortlistedIds(userProfileId).then((ids) => {
         if (isMounted) setShortlistCount(ids.length);
       });
     });
@@ -57,7 +59,7 @@ export const Header: React.FC = () => {
       isMounted = false;
       unsubscribe();
     };
-  }, []);
+  }, [userProfileId]);
 
   // Close mobile menu on route change
   useEffect(() => {
@@ -120,7 +122,6 @@ export const Header: React.FC = () => {
               </div>
               <div className={styles.logoTextGroup}>
                 <span className={styles.brandTitle}>{brandName}</span>
-                <span className={styles.brandSub}>{t.topBar.brandSub}</span>
               </div>
             </Link>
 

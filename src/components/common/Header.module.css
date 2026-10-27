@@ -291,21 +291,26 @@
 }
 
 .brandTitle {
-  font-family: var(--font-serif, 'Bodoni Moda', serif);
-  font-size: 1.35rem;
+  font-family: var(--font-brand-fancy, 'Cinzel Decorative', 'Rozha One', 'Yatra One', 'Bodoni Moda', 'Noto Serif Devanagari', serif);
+  font-size: 1.7rem;
   font-weight: 800;
-  line-height: 1.15;
-  letter-spacing: -0.2px;
-  transition: color 0.3s ease;
+  line-height: 1;
+  letter-spacing: 0.6px;
+  color: var(--color-oxblood, #7B191E);
+  text-shadow: 0 1px 1px rgba(123, 25, 30, 0.12);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  display: inline-block;
+  user-select: none;
+}
+
+.logo:hover .brandTitle {
+  color: #A82026;
+  text-shadow: 0 2px 8px rgba(168, 32, 38, 0.2);
+  transform: translateY(-0.5px);
 }
 
 .brandSub {
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.4px;
-  text-transform: uppercase;
-  margin-top: 2px;
-  transition: color 0.3s ease;
+  display: none !important;
 }
 
 /* Desktop Nav Links - Centered, Balanced, Hover effects */
@@ -529,11 +534,12 @@
 }
 
 .drawerBrandTitle {
-  font-family: var(--font-serif, 'Bodoni Moda', serif);
-  font-size: 1.25rem;
+  font-family: var(--font-brand-fancy, 'Cinzel Decorative', 'Rozha One', 'Yatra One', 'Bodoni Moda', 'Noto Serif Devanagari', serif);
+  font-size: 1.55rem;
   font-weight: 800;
   color: var(--color-oxblood, #7B191E) !important;
-  line-height: 1.15;
+  line-height: 1.1;
+  letter-spacing: 0.5px;
 }
 
 .drawerCloseBtn {

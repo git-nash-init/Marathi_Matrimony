@@ -46,7 +46,11 @@
   --color-text-light: var(--color-ink-light);
   --color-white: #FFFFFF;
   
-  /* Typography Tokens (Anti-vibecoding: Bodoni Moda, Noto Serif Devanagari, Source Sans 3) */
+  /* Typography Tokens (Fancy Heritage & Royal Branding: Rozha One, Cinzel Decorative, Yatra One, Bodoni Moda) */
+  --font-brand-fancy: 'Cinzel Decorative', 'Rozha One', 'Yatra One', 'Bodoni Moda', 'Noto Serif Devanagari', Georgia, serif;
+  --font-brand-marathi: 'Rozha One', 'Yatra One', 'Noto Serif Devanagari', Georgia, serif;
+  --font-brand-english: 'Cinzel Decorative', 'Rozha One', 'Bodoni Moda', Georgia, serif;
+  
   --font-serif-display: 'Bodoni Moda', 'Noto Serif Devanagari', Georgia, serif;
   --font-marathi-display: 'Noto Serif Devanagari', Georgia, serif;
   --font-marathi-body: 'Noto Sans Devanagari', -apple-system, BlinkMacSystemFont, sans-serif;

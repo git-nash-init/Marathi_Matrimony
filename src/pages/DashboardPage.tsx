@@ -31,6 +31,7 @@ import {
 } from '../services/subscription.service';
 import { mockProfiles } from '../data/mockProfiles';
 import { Profile } from '../types';
+import { interestService } from '../services/interest.service';
 import dashStyles from './DashboardPage.module.css';
 
 // ── Tab definitions ──────────────────────────────────────────────────────────
@@ -215,6 +216,8 @@ export const DashboardPage: React.FC = () => {
             <div className={dashStyles.statVal}>
               {profile?.profile_status === 'approved'
                 ? (language === 'mr' ? 'सक्रिय' : 'Active')
+                : profile?.profile_status === 'pending_approval'
+                ? (language === 'mr' ? 'तपासणी सुरू' : 'Under Review')
                 : (language === 'mr' ? 'मसुदा' : 'Draft')}
             </div>
           </div>
@@ -225,9 +228,11 @@ export const DashboardPage: React.FC = () => {
               <span className={dashStyles.statLabel}>{t.dashboard.verificationStatus}</span>
               <ShieldCheck size={18} color="var(--color-primary)" />
             </div>
-            <div className={dashStyles.statVal} style={{ color: profile?.verification_status === 'verified' ? '#15803D' : '#D97706' }}>
+            <div className={dashStyles.statVal} style={{ color: profile?.verification_status === 'verified' ? '#15803D' : profile?.verification_status === 'rejected' ? '#DC2626' : '#D97706' }}>
               {profile?.verification_status === 'verified'
                 ? (language === 'mr' ? 'पडताळणी झालेले' : 'Verified')
+                : profile?.verification_status === 'rejected'
+                ? (language === 'mr' ? 'अस्वीकृत' : 'Rejected')
                 : (language === 'mr' ? 'प्रतीक्षेत' : 'Pending')}
             </div>
           </div>
@@ -445,8 +450,46 @@ const WhoViewedMeTab: React.FC<{ language: string; profiles: Profile[] }> = ({ l
   </div>
 );
 
-const InterestsTab: React.FC<{ language: string; profiles: Profile[] }> = ({ language: lang, profiles }) => {
+const InterestsTab: React.FC<{ language: string; profiles: Profile[] }> = ({ language: lang }) => {
+  const { user, profile } = useAuth();
   const [subTab, setSubTab] = useState<'received' | 'sent'>('received');
+  const [sentItems, setSentItems] = useState<{ profile: Profile; status: string; sentAt: string }[]>([]);
+  const [receivedItems, setReceivedItems] = useState<{ profile: Profile; status: string; receivedAt: string; id: string }[]>([]);
+
+  useEffect(() => {
+    const userProfileId = profile?.id || user?.id;
+
+    // 1. Sent: profiles that the current user expressed interest to
+    const rawSent = interestService.getSentInterests(userProfileId);
+    const mappedSent = rawSent
+      .map((item) => {
+        const found = mockProfiles.find((p) => p.id === item.receiverProfileId || p.profileId === item.receiverProfileId);
+        if (!found) return null;
+        return { profile: found, status: item.status, sentAt: item.sentAt };
+      })
+      .filter(Boolean) as { profile: Profile; status: string; sentAt: string }[];
+    setSentItems(mappedSent);
+
+    // 2. Received: interests sent to the current user by candidates
+    const rawReceived = interestService.getReceivedInterests(userProfileId);
+    const mappedReceived = rawReceived
+      .map((item) => {
+        const found = mockProfiles.find((p) => p.id === item.senderProfileId || p.profileId === item.senderProfileId);
+        if (!found) return null;
+        return { profile: found, status: item.status, receivedAt: item.receivedAt, id: item.id };
+      })
+      .filter(Boolean) as { profile: Profile; status: string; receivedAt: string; id: string }[];
+    setReceivedItems(mappedReceived);
+  }, [profile?.id, user?.id, subTab]);
+
+  const handleRespond = async (interestId: string, candidateProfileId: string, newStatus: 'accepted' | 'declined') => {
+    const userProfileId = profile?.id || user?.id || '';
+    await interestService.respondToInterest(interestId, userProfileId, newStatus, candidateProfileId);
+    setReceivedItems((prev) =>
+      prev.map((i) => (i.id === interestId ? { ...i, status: newStatus } : i))
+    );
+  };
+
   return (
     <div>
       <div className={dashStyles.tabHeader}>
@@ -457,37 +500,89 @@ const InterestsTab: React.FC<{ language: string; profiles: Profile[] }> = ({ lan
         </div>
       </div>
       <div className={dashStyles.subTabs}>
-        <button className={`${dashStyles.subTab} ${subTab === 'received' ? dashStyles.subTabActive : ''}`} onClick={() => setSubTab('received')}>
-          {lang === 'mr' ? 'मिळालेल्या पसंती' : 'Received'}
+        <button
+          className={`${dashStyles.subTab} ${subTab === 'received' ? dashStyles.subTabActive : ''}`}
+          onClick={() => setSubTab('received')}
+        >
+          {lang === 'mr' ? 'मिळालेल्या पसंती' : 'Received'} ({receivedItems.length})
         </button>
-        <button className={`${dashStyles.subTab} ${subTab === 'sent' ? dashStyles.subTabActive : ''}`} onClick={() => setSubTab('sent')}>
-          {lang === 'mr' ? 'पाठवलेल्या पसंती' : 'Sent'}
+        <button
+          className={`${dashStyles.subTab} ${subTab === 'sent' ? dashStyles.subTabActive : ''}`}
+          onClick={() => setSubTab('sent')}
+        >
+          {lang === 'mr' ? 'पाठवलेल्या पसंती' : 'Sent'} ({sentItems.length})
         </button>
       </div>
-      <div className={dashStyles.miniCardList}>
-        {profiles.map((p) => (
-          <div key={p.id} className={dashStyles.interestRow}>
-            <ProfileMiniCard p={p} lang={lang} />
-            <div className={dashStyles.interestStatus}>
-              <span className={subTab === 'received' ? dashStyles.statusPending : dashStyles.statusSent}>
-                {subTab === 'received'
-                  ? (lang === 'mr' ? 'प्रतीक्षेत' : 'Pending')
-                  : (lang === 'mr' ? 'पाठवले' : 'Sent')}
-              </span>
-              {subTab === 'received' && (
-                <div className={dashStyles.interestActions}>
-                  <button className={dashStyles.acceptBtn}>
-                    {lang === 'mr' ? 'स्वीकारा' : 'Accept'}
-                  </button>
-                  <button className={dashStyles.declineBtn}>
-                    {lang === 'mr' ? 'नकार द्या' : 'Decline'}
-                  </button>
+
+      {subTab === 'sent' && (
+        sentItems.length === 0 ? (
+          <EmptyState
+            icon={<Heart size={32} />}
+            title={lang === 'mr' ? 'अजून कोणतीही पसंती पाठवलेली नाही' : 'No interests sent yet'}
+            desc={lang === 'mr' ? 'स्थळे शोधा आणि आपल्या पसंतीच्या स्थळांना "पसंती दर्शवा" (Express Interest) वर क्लिक करा.' : 'Explore compatible matches and express interest to start a conversation.'}
+          />
+        ) : (
+          <div className={dashStyles.miniCardList}>
+            {sentItems.map((item) => (
+              <div key={item.profile.id} className={dashStyles.interestRow}>
+                <ProfileMiniCard p={item.profile} lang={lang} />
+                <div className={dashStyles.interestStatus}>
+                  <span className={dashStyles.statusSent}>
+                    {item.status === 'accepted'
+                      ? (lang === 'mr' ? 'स्वीकारले' : 'Accepted')
+                      : item.status === 'declined'
+                      ? (lang === 'mr' ? 'नकार दिला' : 'Declined')
+                      : (lang === 'mr' ? 'पाठवले • प्रतीक्षेत' : 'Sent • Pending')}
+                  </span>
                 </div>
-              )}
-            </div>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
+        )
+      )}
+
+      {subTab === 'received' && (
+        receivedItems.length === 0 ? (
+          <EmptyState
+            icon={<Heart size={32} />}
+            title={lang === 'mr' ? 'अजून कोणतीही पसंती मिळालेली नाही' : 'No interests received yet'}
+            desc={lang === 'mr' ? 'आपले प्रोफाइल पूर्ण आणि सक्रिय ठेवा, जेणेकरून सुयोग्य स्थळे आपल्या प्रोफाइलमध्ये पसंती दर्शवू शकतील.' : 'Keep your profile complete and verified so matching candidates can connect with you.'}
+          />
+        ) : (
+          <div className={dashStyles.miniCardList}>
+            {receivedItems.map((item) => (
+              <div key={item.profile.id} className={dashStyles.interestRow}>
+                <ProfileMiniCard p={item.profile} lang={lang} />
+                <div className={dashStyles.interestStatus}>
+                  <span className={item.status === 'accepted' ? dashStyles.statusSent : dashStyles.statusPending}>
+                    {item.status === 'accepted'
+                      ? (lang === 'mr' ? 'स्वीकारले' : 'Accepted')
+                      : item.status === 'declined'
+                      ? (lang === 'mr' ? 'नकार दिला' : 'Declined')
+                      : (lang === 'mr' ? 'प्रतीक्षेत' : 'Pending')}
+                  </span>
+                  {item.status === 'pending' && (
+                    <div className={dashStyles.interestActions}>
+                      <button
+                        className={dashStyles.acceptBtn}
+                        onClick={() => handleRespond(item.id, item.profile.id, 'accepted')}
+                      >
+                        {lang === 'mr' ? 'स्वीकारा' : 'Accept'}
+                      </button>
+                      <button
+                        className={dashStyles.declineBtn}
+                        onClick={() => handleRespond(item.id, item.profile.id, 'declined')}
+                      >
+                        {lang === 'mr' ? 'नकार द्या' : 'Decline'}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )
+      )}
     </div>
   );
 };

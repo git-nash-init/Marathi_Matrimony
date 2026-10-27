@@ -13,13 +13,13 @@ interface NotificationBellProps {
 
 export const NotificationBell: React.FC<NotificationBellProps> = ({ isTransparent = false }) => {
   const { language } = useLanguage();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const toast = useToast();
   const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Load initial notifications
+  // Load initial notifications for current user
   useEffect(() => {
     const load = async () => {
       const data = await notificationService.getNotifications(user?.id);
@@ -31,14 +31,32 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({ isTransparen
   // Listen for real-time notification events (when someone expresses interest)
   useEffect(() => {
     const handleNewNotification = (e: Event) => {
-      const customEvent = e as CustomEvent<AppNotification>;
+      const customEvent = e as CustomEvent<any>;
       const notif = customEvent.detail;
       if (!notif) return;
 
-      // Prepend new notification
+      // 1. If sender is the current user, ignore! (Do not pop up self-sent actions)
+      if (
+        notif.sender_profile_id &&
+        (notif.sender_profile_id === profile?.id || notif.sender_profile_id === user?.id)
+      ) {
+        return;
+      }
+
+      // 2. Target check: if this notification targets a specific user or profile,
+      // only show if the current user matches that target!
+      const isTargetUser = Boolean(user?.id && notif.targetUserId === user.id);
+      const isTargetProfile = Boolean(profile?.id && (notif.targetProfileId === profile.id || notif.targetProfileId === user?.id));
+      const hasSpecificTarget = Boolean(notif.targetUserId || notif.targetProfileId);
+
+      if (hasSpecificTarget && !isTargetUser && !isTargetProfile) {
+        return;
+      }
+
+      // Prepend new notification for the intended recipient
       setNotifications((prev) => [notif, ...prev]);
 
-      // Pop up notification toast to the user
+      // Pop up notification toast to the recipient
       const popupMsg =
         language === 'mr'
           ? `नवीन पसंती प्राप्त झाली! ${notif.sender_name || 'एका उमेदवाराने'} आपल्या प्रोफाइलमध्ये पसंती दर्शवली आहे.`
@@ -51,7 +69,7 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({ isTransparen
     return () => {
       window.removeEventListener('mm:notification_received', handleNewNotification);
     };
-  }, [language, toast]);
+  }, [language, toast, user?.id, profile?.id]);
 
   // Click outside listener
   useEffect(() => {

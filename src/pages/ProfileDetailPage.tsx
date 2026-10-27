@@ -38,7 +38,8 @@ export const ProfileDetailPage: React.FC = () => {
   const navigate = useNavigate();
   const { language, localize, t } = useLanguage();
   const { success, error } = useToast();
-  const { user } = useAuth();
+  const { user, profile: authProfile } = useAuth();
+  const currentUserId = authProfile?.id || user?.id;
 
   const [profile, setProfile] = useState<Profile | null>(null);
   const [selectedPhoto, setSelectedPhoto] = useState<string>('');
@@ -77,10 +78,10 @@ export const ProfileDetailPage: React.FC = () => {
     fetchDetails();
 
     if (id) {
-      shortlistService.isShortlisted(id).then((val: boolean) => {
+      shortlistService.isShortlisted(id, currentUserId).then((val: boolean) => {
         if (isMounted) setIsShortlisted(val);
       });
-      interestService.getInterestStatus(id).then((status: InterestStatus | null) => {
+      interestService.getInterestStatus(id, currentUserId).then((status: InterestStatus | null) => {
         if (isMounted) setInterestStatus(status);
       });
     }
@@ -108,7 +109,7 @@ export const ProfileDetailPage: React.FC = () => {
       isMounted = false;
       unsubscribe();
     };
-  }, [id, profile?.id, profile?.profileId, user?.id]);
+  }, [id, profile?.id, profile?.profileId, user?.id, currentUserId]);
 
   const handleToggleShortlist = async () => {
     if (!profile || isShortlistBusy) return;
@@ -116,7 +117,7 @@ export const ProfileDetailPage: React.FC = () => {
     setIsShortlistBusy(true);
 
     try {
-      const res = await shortlistService.toggleShortlist(profile.id);
+      const res = await shortlistService.toggleShortlist(profile.id, currentUserId);
       setIsShortlisted(res.isShortlisted);
 
       if (res.success) {

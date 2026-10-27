@@ -36,22 +36,22 @@
 }
 
 .brandNameDevanagari {
-  font-family: var(--font-serif, 'Bodoni Moda', serif);
-  font-size: 1.25rem;
+  font-family: var(--font-brand-marathi, 'Rozha One', 'Yatra One', 'Noto Serif Devanagari', serif);
+  font-size: 1.45rem;
   font-weight: 800;
   color: var(--color-oxblood, #7B191E);
   line-height: 1.1;
-  letter-spacing: 0.2px;
+  letter-spacing: 0.4px;
 }
 
 .brandNameEnglish {
-  font-family: var(--font-serif, 'Bodoni Moda', serif);
-  font-size: 0.72rem;
-  font-weight: 700;
+  font-family: var(--font-brand-english, 'Cinzel Decorative', 'Bodoni Moda', serif);
+  font-size: 0.8rem;
+  font-weight: 800;
   color: var(--color-antique-gold, #B6873D);
-  letter-spacing: 2px;
+  letter-spacing: 2.2px;
   text-transform: uppercase;
-  margin-top: 1px;
+  margin-top: 2px;
 }
 
 .brandSubText {

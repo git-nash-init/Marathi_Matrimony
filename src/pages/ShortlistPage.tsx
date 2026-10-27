@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '../i18n/LanguageContext';
+import { useAuth } from '../context/AuthContext';
 import { Profile } from '../types';
 import { discoveryService } from '../services/discovery.service';
 import { shortlistService } from '../services/shortlist.service';
@@ -10,15 +11,18 @@ import styles from './ShortlistPage.module.css';
 
 export const ShortlistPage: React.FC = () => {
   const { language, t } = useLanguage();
+  const { user, profile } = useAuth();
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+
+  const userProfileId = profile?.id || user?.id;
 
   useEffect(() => {
     let isMounted = true;
     const loadShortlisted = async () => {
       setIsLoading(true);
       try {
-        const shortIds = await shortlistService.getShortlistedIds();
+        const shortIds = await shortlistService.getShortlistedIds(userProfileId);
         const res = await discoveryService.fetchProfiles({ pageSize: 100 });
         const filtered = res.profiles.filter((p: Profile) => shortIds.includes(p.id) || shortIds.includes(p.profileId));
         if (isMounted) setProfiles(filtered);
@@ -53,7 +57,7 @@ export const ShortlistPage: React.FC = () => {
       isMounted = false;
       unsubscribe();
     };
-  }, []);
+  }, [userProfileId]);
 
   const handleShortlistChange = (profileId: string, isShortlisted: boolean) => {
     if (!isShortlisted) {

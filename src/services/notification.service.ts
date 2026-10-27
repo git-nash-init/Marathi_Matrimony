@@ -14,46 +14,65 @@ export interface AppNotification {
   sender_photo?: string;
 }
 
-const LOCAL_STORAGE_NOTIFICATIONS_KEY = 'mm_notifications_state';
+function getStorageKey(userId?: string): string {
+  return userId ? `mm_notifications_${userId}` : 'mm_notifications_guest';
+}
 
-// Initial demo notifications for new accounts
+// Initial demo notifications for newly created accounts
 const DEFAULT_NOTIFICATIONS: AppNotification[] = [
   {
-    id: 'notif-1',
+    id: 'notif-welcome',
     type: 'system',
     title: 'सनईबंधवर आपले स्वागत आहे!',
     message: 'सनईबंध ९६ कुळी मराठा मॅट्रिमोनीवर आपले सहर्ष स्वागत. आपले प्रोफाइल पूर्ण करा आणि सुयोग्य स्थळे शोधा.',
     action_url: '/profile/create',
     is_read: false,
-    created_at: new Date(Date.now() - 3600000).toISOString(),
+    created_at: new Date().toISOString(),
   },
 ];
 
 export const notificationService = {
-  // Get stored local notifications
-  getLocalNotifications(): AppNotification[] {
+  // Get stored local notifications strictly for this specific user
+  getLocalNotifications(userId?: string): AppNotification[] {
+    const key = getStorageKey(userId);
     try {
-      const stored = localStorage.getItem(LOCAL_STORAGE_NOTIFICATIONS_KEY);
+      // Clean up legacy global key if it exists
+      const legacy = localStorage.getItem('mm_notifications_state');
+      if (legacy && !localStorage.getItem(key)) {
+        try {
+          const parsed: AppNotification[] = JSON.parse(legacy);
+          // Only keep notifications not sent by this user
+          const cleaned = parsed.filter(
+            (n) => !n.sender_profile_id || n.sender_profile_id !== userId
+          );
+          localStorage.setItem(key, JSON.stringify(cleaned));
+        } catch {}
+      }
+
+      const stored = localStorage.getItem(key);
       if (!stored) {
-        localStorage.setItem(LOCAL_STORAGE_NOTIFICATIONS_KEY, JSON.stringify(DEFAULT_NOTIFICATIONS));
+        localStorage.setItem(key, JSON.stringify(DEFAULT_NOTIFICATIONS));
         return DEFAULT_NOTIFICATIONS;
       }
-      return JSON.parse(stored);
+      const list: AppNotification[] = JSON.parse(stored);
+      // Extra safety: filter out any self-sent notifications that may have been saved earlier
+      return list.filter((n) => !n.sender_profile_id || n.sender_profile_id !== userId);
     } catch {
       return DEFAULT_NOTIFICATIONS;
     }
   },
 
-  // Save local notifications
-  setLocalNotifications(notifs: AppNotification[]): void {
+  // Save local notifications strictly for this specific user
+  setLocalNotifications(notifs: AppNotification[], userId?: string): void {
+    const key = getStorageKey(userId);
     try {
-      localStorage.setItem(LOCAL_STORAGE_NOTIFICATIONS_KEY, JSON.stringify(notifs));
+      localStorage.setItem(key, JSON.stringify(notifs));
     } catch {}
   },
 
   // Fetch all notifications for active user
   async getNotifications(userId?: string): Promise<AppNotification[]> {
-    const local = this.getLocalNotifications();
+    const local = this.getLocalNotifications(userId);
 
     if (userId && isSupabaseConfigured()) {
       try {
@@ -71,7 +90,7 @@ export const notificationService = {
               merged.push(loc);
             }
           }
-          this.setLocalNotifications(merged);
+          this.setLocalNotifications(merged, userId);
           return merged;
         }
       } catch (err) {
@@ -84,10 +103,10 @@ export const notificationService = {
 
   // Mark a notification as read
   async markAsRead(notificationId: string, userId?: string): Promise<void> {
-    const local = this.getLocalNotifications().map((n) =>
+    const local = this.getLocalNotifications(userId).map((n) =>
       n.id === notificationId ? { ...n, is_read: true } : n
     );
-    this.setLocalNotifications(local);
+    this.setLocalNotifications(local, userId);
 
     if (userId && isSupabaseConfigured()) {
       try {
@@ -104,8 +123,8 @@ export const notificationService = {
 
   // Mark all as read
   async markAllAsRead(userId?: string): Promise<void> {
-    const local = this.getLocalNotifications().map((n) => ({ ...n, is_read: true }));
-    this.setLocalNotifications(local);
+    const local = this.getLocalNotifications(userId).map((n) => ({ ...n, is_read: true }));
+    this.setLocalNotifications(local, userId);
 
     if (userId && isSupabaseConfigured()) {
       try {
@@ -119,7 +138,7 @@ export const notificationService = {
     }
   },
 
-  // Send an Express Interest Notification to candidate
+  // Send an Express Interest Notification targeting the recipient ONLY
   async sendInterestNotification(payload: {
     receiverProfileId: string;
     receiverUserId?: string;
@@ -142,11 +161,18 @@ export const notificationService = {
       sender_photo: payload.senderPhoto,
     };
 
-    // 1. Add to local cache immediately
-    const current = this.getLocalNotifications();
-    this.setLocalNotifications([newNotif, ...current]);
+    // 1. DO NOT add to the sender's notification partition!
+    // Instead, save into the recipient's partition so recipient sees it when logged in:
+    const recipientKey = payload.receiverUserId
+      ? `mm_notifications_${payload.receiverUserId}`
+      : `mm_notifications_${payload.receiverProfileId}`;
+    try {
+      const stored = localStorage.getItem(recipientKey);
+      const recipientList: AppNotification[] = stored ? JSON.parse(stored) : [];
+      localStorage.setItem(recipientKey, JSON.stringify([newNotif, ...recipientList]));
+    } catch {}
 
-    // 2. Persist in Supabase DB if user_id or connection exists
+    // 2. Persist in Supabase DB for the RECEIVER if receiverUserId exists:
     if (payload.receiverUserId && isSupabaseConfigured()) {
       try {
         await supabase.from('notifications').insert({
@@ -162,11 +188,15 @@ export const notificationService = {
       }
     }
 
-    // 3. Dispatch global browser event so popups trigger instantly on recipient screen
+    // 3. Dispatch global browser event targeting the RECIPIENT ONLY
     if (typeof window !== 'undefined') {
       window.dispatchEvent(
         new CustomEvent('mm:notification_received', {
-          detail: newNotif,
+          detail: {
+            ...newNotif,
+            targetUserId: payload.receiverUserId,
+            targetProfileId: payload.receiverProfileId,
+          },
         })
       );
     }

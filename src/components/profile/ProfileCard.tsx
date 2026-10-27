@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Profile } from '../../types';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { useToast } from '../../context/ToastContext';
+import { useAuth } from '../../context/AuthContext';
 import { shortlistService } from '../../services/shortlist.service';
 import { interestService, InterestStatus } from '../../services/interest.service';
 import { ExpressInterestModal } from '../common/ExpressInterestModal';
@@ -33,6 +34,9 @@ interface ProfileCardProps {
 export const ProfileCard: React.FC<ProfileCardProps> = ({ profile, onBlock, onShortlistChange }) => {
   const { language, localize, t } = useLanguage();
   const { success, error } = useToast();
+  const { user, profile: authProfile } = useAuth();
+  const currentUserId = authProfile?.id || user?.id;
+
   const [isShortlisted, setIsShortlisted] = useState(false);
   const [isShortlistBusy, setIsShortlistBusy] = useState(false);
   const [interestStatus, setInterestStatus] = useState<InterestStatus | null>(null);
@@ -43,10 +47,10 @@ export const ProfileCard: React.FC<ProfileCardProps> = ({ profile, onBlock, onSh
 
   useEffect(() => {
     let isMounted = true;
-    shortlistService.isShortlisted(profile.id).then((val) => {
+    shortlistService.isShortlisted(profile.id, currentUserId).then((val) => {
       if (isMounted) setIsShortlisted(val);
     });
-    interestService.getInterestStatus(profile.id).then((status) => {
+    interestService.getInterestStatus(profile.id, currentUserId).then((status) => {
       if (isMounted) setInterestStatus(status);
     });
 
@@ -61,7 +65,7 @@ export const ProfileCard: React.FC<ProfileCardProps> = ({ profile, onBlock, onSh
       isMounted = false;
       unsubscribe();
     };
-  }, [profile.id, profile.profileId]);
+  }, [profile.id, profile.profileId, currentUserId]);
 
   const handleToggleShortlist = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -71,7 +75,7 @@ export const ProfileCard: React.FC<ProfileCardProps> = ({ profile, onBlock, onSh
     setIsShortlistBusy(true);
 
     try {
-      const res = await shortlistService.toggleShortlist(profile.id);
+      const res = await shortlistService.toggleShortlist(profile.id, currentUserId);
       setIsShortlisted(res.isShortlisted);
       if (onShortlistChange) onShortlistChange(profile.id, res.isShortlisted);
 

@@ -40,8 +40,12 @@ export const ExpressInterestModal: React.FC<ExpressInterestModalProps> = ({
         ? `${userProfile.first_name} ${userProfile.last_name || ''}`.trim()
         : (user?.user_metadata?.full_name || 'Member');
 
-      const res = await interestService.sendInterest(profile.id, userProfile?.id, {
+      const senderId = userProfile?.id || user?.id;
+      const senderPhoto = (userProfile as any)?.avatar_url || (user?.user_metadata as any)?.avatar_url;
+
+      const res = await interestService.sendInterest(profile.id, senderId, {
         senderName,
+        senderPhoto,
         senderCity: userProfile?.city || undefined,
       });
 

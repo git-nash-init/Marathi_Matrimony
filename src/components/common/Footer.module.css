@@ -47,10 +47,11 @@
 }
 
 .footerBrandName {
-  font-size: 1.4rem;
+  font-family: var(--font-brand-fancy, 'Cinzel Decorative', 'Rozha One', 'Yatra One', 'Bodoni Moda', 'Noto Serif Devanagari', serif);
+  font-size: 1.55rem;
   font-weight: 800;
   color: var(--color-white);
-  letter-spacing: -0.3px;
+  letter-spacing: 0.5px;
 }
 
 .brandTagline {

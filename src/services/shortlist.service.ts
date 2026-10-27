@@ -1,6 +1,8 @@
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
-const LOCAL_STORAGE_KEY = 'mm_shortlisted_ids';
+function getShortlistKey(profileId?: string | null): string {
+  return profileId ? `mm_shortlists_${profileId}` : 'mm_shortlists_guest';
+}
 
 type ShortlistListener = (profileId: string, isShortlisted: boolean) => void;
 const listeners = new Set<ShortlistListener>();
@@ -22,6 +24,7 @@ async function resolveCurrentProfileId(explicitId?: string): Promise<string | nu
     if (!error && data?.id) {
       return data.id;
     }
+    return user.id;
   } catch {
     // Non-critical: unauthenticated or offline
   }
@@ -47,9 +50,10 @@ export const shortlistService = {
     });
   },
 
-  // Get all shortlisted profile IDs
+  // Get all shortlisted profile IDs strictly for this user
   async getShortlistedIds(userProfileId?: string): Promise<string[]> {
     const profileId = await resolveCurrentProfileId(userProfileId);
+    const key = getShortlistKey(profileId);
 
     // 1. Check database if user profile ID exists
     if (profileId) {
@@ -61,9 +65,9 @@ export const shortlistService = {
         if (!error && data) {
           const dbIds: string[] = data.map((item: { shortlisted_profile_id: string }) => item.shortlisted_profile_id);
           try {
-            const cached: string[] = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY) || '[]');
+            const cached: string[] = JSON.parse(localStorage.getItem(key) || '[]');
             const merged = Array.from(new Set([...dbIds, ...cached]));
-            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(merged));
+            localStorage.setItem(key, JSON.stringify(merged));
             return merged;
           } catch {
             return dbIds;
@@ -74,9 +78,9 @@ export const shortlistService = {
       }
     }
 
-    // 2. Fallback to localStorage cache
+    // 2. Fallback to user-scoped localStorage cache
     try {
-      return JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY) || '[]');
+      return JSON.parse(localStorage.getItem(key) || '[]');
     } catch {
       return [];
     }
@@ -93,24 +97,25 @@ export const shortlistService = {
     targetProfileId: string,
     userProfileId?: string
   ): Promise<{ isShortlisted: boolean; success: boolean }> {
+    const profileId = await resolveCurrentProfileId(userProfileId);
+    const key = getShortlistKey(profileId);
     const currentIds = await this.getShortlistedIds(userProfileId);
     const exists = currentIds.includes(targetProfileId);
     const nextState = !exists;
 
-    // 1. Optimistic Local Update
+    // 1. Optimistic Local Update in user-scoped partition
     const updatedIds = nextState
       ? Array.from(new Set([...currentIds, targetProfileId]))
       : currentIds.filter((id) => id !== targetProfileId);
 
     try {
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updatedIds));
+      localStorage.setItem(key, JSON.stringify(updatedIds));
     } catch {}
 
     // Notify all UI listeners immediately
     this.notifyListeners(targetProfileId, nextState);
 
     // 2. Persist to Supabase if authenticated
-    const profileId = await resolveCurrentProfileId(userProfileId);
     if (profileId) {
       try {
         if (nextState) {
@@ -126,7 +131,7 @@ export const shortlistService = {
           if (error) {
             console.error('Failed to save shortlist to database:', error);
             // Rollback local storage
-            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(currentIds));
+            localStorage.setItem(key, JSON.stringify(currentIds));
             this.notifyListeners(targetProfileId, exists);
             return { isShortlisted: exists, success: false };
           }
@@ -139,14 +144,14 @@ export const shortlistService = {
           if (error) {
             console.error('Failed to remove shortlist from database:', error);
             // Rollback local storage
-            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(currentIds));
+            localStorage.setItem(key, JSON.stringify(currentIds));
             this.notifyListeners(targetProfileId, exists);
             return { isShortlisted: exists, success: false };
           }
         }
       } catch (err) {
         console.error('Shortlist persistence error:', err);
-        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(currentIds));
+        localStorage.setItem(key, JSON.stringify(currentIds));
         this.notifyListeners(targetProfileId, exists);
         return { isShortlisted: exists, success: false };
       }

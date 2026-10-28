@@ -33,6 +33,7 @@ import { mockProfiles } from '../data/mockProfiles';
 import { Profile } from '../types';
 import { interestService } from '../services/interest.service';
 import { discoveryService } from '../services/discovery.service';
+import { isAdminEmail } from '../services/admin.service';
 import dashStyles from './DashboardPage.module.css';
 
 // ── Tab definitions ──────────────────────────────────────────────────────────
@@ -133,10 +134,12 @@ export const DashboardPage: React.FC = () => {
     ? `${profile.first_name} ${profile.last_name || ''}`.trim()
     : (user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Member');
 
-  const currentPlanSlug = subscription?.plan?.slug || null;
+  const isAdmin = Boolean(user?.email && isAdminEmail(user.email));
+  const currentPlanSlug = isAdmin ? 'platinum' : (subscription?.plan?.slug || null);
   const planInfo = currentPlanSlug ? PLAN_DISPLAY_INFO[currentPlanSlug] : null;
 
   const hasAccess = (required: Tab['requiresPlan']): boolean => {
+    if (isAdmin) return true; // Administrator has full VIP access to all activity tabs
     if (required === 'free') return true;
     if (!currentPlanSlug) return false;
     const order: Record<string, number> = { silver: 1, diamond: 2, platinum: 3 };

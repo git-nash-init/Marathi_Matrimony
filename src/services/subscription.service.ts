@@ -1,4 +1,45 @@
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import { PRIMARY_ADMIN_EMAIL, isAdminEmail } from './admin.service';
+
+export { PRIMARY_ADMIN_EMAIL, isAdminEmail };
+
+export const ADMIN_VIP_USER_ID = '8843037d-3423-4844-bb17-61c0f382b112';
+
+export const ADMIN_VIP_SUBSCRIPTION: ActiveSubscription = {
+  id: 'sub-admin-vip-platinum',
+  user_id: ADMIN_VIP_USER_ID,
+  plan_id: '7d0869d2-9029-49cf-a33b-476af8601f21',
+  status: 'active',
+  start_date: '2026-01-01T00:00:00.000Z',
+  end_date: '2036-12-31T23:59:59.000Z',
+  plan: {
+    id: '7d0869d2-9029-49cf-a33b-476af8601f21',
+    name: 'Platinum Plan (VIP All-Access)',
+    slug: 'platinum',
+    description: 'All premium features unlocked for administrator',
+    price: 3000,
+    duration_days: 3650,
+    features: [
+      'Unlock Surname, Email, Phone & Address of profiles',
+      'Unlock Documents section',
+      'See who viewed your contact number',
+      'See who visited your profile',
+      'Unlimited Direct Messages & Chat',
+      'Kundali & Gun Milan Report',
+      'View 150+ Verified Phone Numbers',
+      'Priority placement in search results',
+      'Advanced matchmaking algorithm',
+      'Unlimited profile view history',
+      'Download profile PDF',
+      'Dedicated relationship manager',
+      'Profile highlighted in recommendations',
+      'Unlimited contact unlocks per day',
+      'Early access to new premium profiles'
+    ],
+    is_active: true,
+    sort_order: 3,
+  },
+};
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -219,7 +260,15 @@ export const subscriptionService = {
       return _cachedSubscription;
     }
 
+    // Admin VIP automatic entitlement
+    const isAdmin = userId === ADMIN_VIP_USER_ID;
+
     if (!isSupabaseConfigured()) {
+      if (isAdmin) {
+        _cachedSubscription = ADMIN_VIP_SUBSCRIPTION;
+        return ADMIN_VIP_SUBSCRIPTION;
+      }
+
       // Check local demo subscription
       const localSub = localStorage.getItem('mm_demo_subscription');
       if (localSub) {
@@ -248,11 +297,19 @@ export const subscriptionService = {
 
       if (error) {
         console.warn('Subscription fetch error:', error.message);
+        if (isAdmin) {
+          _cachedSubscription = ADMIN_VIP_SUBSCRIPTION;
+          return ADMIN_VIP_SUBSCRIPTION;
+        }
         _cachedSubscription = null;
         return null;
       }
 
       if (!data) {
+        if (isAdmin) {
+          _cachedSubscription = ADMIN_VIP_SUBSCRIPTION;
+          return ADMIN_VIP_SUBSCRIPTION;
+        }
         _cachedSubscription = null;
         return null;
       }
@@ -279,6 +336,10 @@ export const subscriptionService = {
       return _cachedSubscription;
     } catch (err) {
       console.warn('Subscription fetch failed:', err);
+      if (isAdmin) {
+        _cachedSubscription = ADMIN_VIP_SUBSCRIPTION;
+        return ADMIN_VIP_SUBSCRIPTION;
+      }
       _cachedSubscription = null;
       return null;
     }
@@ -287,6 +348,8 @@ export const subscriptionService = {
   // Check if user has a specific feature
   async hasFeature(userId: string | undefined, feature: SubscriptionFeature): Promise<boolean> {
     if (!userId) return false;
+    if (userId === ADMIN_VIP_USER_ID) return true; // Administrator has full VIP access to all features
+
     const sub = await this.getActiveSubscription(userId);
     if (!sub) return false;
 
@@ -298,6 +361,8 @@ export const subscriptionService = {
   // Get current plan slug
   async getCurrentPlanSlug(userId: string | undefined): Promise<string | null> {
     if (!userId) return null;
+    if (userId === ADMIN_VIP_USER_ID) return 'platinum';
+
     const sub = await this.getActiveSubscription(userId);
     return sub?.plan?.slug || null;
   },

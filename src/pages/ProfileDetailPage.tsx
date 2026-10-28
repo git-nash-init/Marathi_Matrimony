@@ -13,6 +13,7 @@ import { BlockProfileModal } from '../components/common/BlockProfileModal';
 import { SectionCard } from '../components/common/SectionCard';
 import { LockedField } from '../components/common/LockedField';
 import { useAuth } from '../context/AuthContext';
+import { isAdminEmail } from '../services/admin.service';
 import {
   ArrowLeft,
   Heart,
@@ -88,12 +89,20 @@ export const ProfileDetailPage: React.FC = () => {
 
     // Check subscription access for contact unlock
     if (user?.id) {
-      subscriptionService.hasFeature(user.id, 'unlock_phone').then((val) => {
-        if (isMounted) setCanUnlockContact(val);
-      });
-      subscriptionService.hasFeature(user.id, 'unlock_documents').then((val) => {
-        if (isMounted) setCanUnlockDocuments(val);
-      });
+      const isAdmin = Boolean(user.email && isAdminEmail(user.email));
+      if (isAdmin) {
+        if (isMounted) {
+          setCanUnlockContact(true);
+          setCanUnlockDocuments(true);
+        }
+      } else {
+        subscriptionService.hasFeature(user.id, 'unlock_phone').then((val) => {
+          if (isMounted) setCanUnlockContact(val);
+        });
+        subscriptionService.hasFeature(user.id, 'unlock_documents').then((val) => {
+          if (isMounted) setCanUnlockDocuments(val);
+        });
+      }
       // Track profile view
       if (id) subscriptionService.trackProfileView(user.id, id);
     }
@@ -598,31 +607,39 @@ export const ProfileDetailPage: React.FC = () => {
           <div className={styles.infoGrid}>
             <LockedField
               label={language === 'mr' ? 'आडनाव' : 'Surname'}
-              value={language === 'mr' ? 'जोशी' : 'Joshi'}
+              value={(() => {
+                const nameStr = profile?.name ? (profile.name[language] || profile.name.en || '') : '';
+                const parts = nameStr.trim().split(' ');
+                return parts.length > 1 ? parts[parts.length - 1] : (language === 'mr' ? 'मराठा' : 'Maratha');
+              })()}
               featureLabel="Surname"
               isUnlocked={canUnlockContact}
             />
             <LockedField
               label={language === 'mr' ? 'ईमेल' : 'Email ID'}
-              value="prajakta@email.com"
+              value={(() => {
+                const nameStr = profile?.name ? (profile.name.en || profile.name[language] || '') : 'candidate';
+                const first = nameStr.trim().split(' ')[0] || 'candidate';
+                return `${first.toLowerCase()}@sanaibandh.com`;
+              })()}
               featureLabel="Email ID"
               isUnlocked={canUnlockContact}
             />
             <LockedField
               label={language === 'mr' ? 'फोन नंबर' : 'Phone Number'}
-              value="+91 98765 43210"
+              value="+91 98234 56789"
               featureLabel="Contact Number"
               isUnlocked={canUnlockContact}
             />
             <LockedField
               label={language === 'mr' ? 'पत्ता' : 'Address'}
-              value="Flat 12, Shivaji Nagar, Pune - 411005"
+              value={`${profile?.city ? (profile.city[language] || profile.city.en) : 'Pune'}, Maharashtra, India`}
               featureLabel="Address"
               isUnlocked={canUnlockContact}
             />
             <LockedField
               label={language === 'mr' ? 'कागदपत्रे' : 'Documents'}
-              value="Aadhaar, PAN, Degree Certificate"
+              value={language === 'mr' ? 'आधार कार्ड, पदवी प्रमाणपत्र (पडताळणी झालेले)' : 'Aadhaar Card, Degree Certificate (Verified)'}
               featureLabel="Documents"
               isUnlocked={canUnlockDocuments}
               reason="Documents require a Diamond or Platinum plan."

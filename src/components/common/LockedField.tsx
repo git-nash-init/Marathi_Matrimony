@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Lock } from 'lucide-react';
 import { useLanguage } from '../../i18n/LanguageContext';
+import { useAuth } from '../../context/AuthContext';
+import { isAdminEmail } from '../../services/admin.service';
 import { SubscriptionGate } from './SubscriptionGate';
 import styles from './LockedField.module.css';
 
@@ -28,9 +30,13 @@ export const LockedField: React.FC<LockedFieldProps> = ({
   className,
 }) => {
   const { language } = useLanguage();
+  const { user } = useAuth();
   const [gateOpen, setGateOpen] = useState(false);
 
-  if (isUnlocked && value) {
+  const isAdmin = Boolean(user?.email && isAdminEmail(user.email));
+  const isFieldUnlocked = isUnlocked || isAdmin;
+
+  if (isFieldUnlocked && value) {
     return (
       <div className={`${styles.field} ${className || ''}`}>
         <span className={styles.label}>{label}</span>

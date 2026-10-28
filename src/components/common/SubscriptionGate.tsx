@@ -7,6 +7,7 @@ import {
   PLAN_DISPLAY_INFO,
   localizePlanFeature,
 } from '../../services/subscription.service';
+import { isAdminEmail } from '../../services/admin.service';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../i18n/LanguageContext';
 import styles from './SubscriptionGate.module.css';
@@ -34,6 +35,8 @@ export const SubscriptionGate: React.FC<SubscriptionGateProps> = ({
   const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const isAdmin = Boolean(user?.email && isAdminEmail(user.email));
+
   const loadPlans = useCallback(async () => {
     setLoading(true);
     const data = await subscriptionService.fetchPlans();
@@ -42,8 +45,8 @@ export const SubscriptionGate: React.FC<SubscriptionGateProps> = ({
   }, []);
 
   useEffect(() => {
-    if (isOpen) loadPlans();
-  }, [isOpen, loadPlans]);
+    if (isOpen && !isAdmin) loadPlans();
+  }, [isOpen, isAdmin, loadPlans]);
 
   const handleSelectPlan = (plan: SubscriptionPlan) => {
     onClose();
@@ -54,7 +57,7 @@ export const SubscriptionGate: React.FC<SubscriptionGateProps> = ({
     }
   };
 
-  if (!isOpen) return null;
+  if (!isOpen || isAdmin) return null;
 
   return (
     <div className={styles.overlay} onClick={onClose} role="dialog" aria-modal="true">

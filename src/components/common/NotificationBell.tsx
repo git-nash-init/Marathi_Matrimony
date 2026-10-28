@@ -1,10 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
-import { Bell, Heart, Check, Clock, ExternalLink, Undo2 } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Bell, BellRing, Heart, Check, Clock, ExternalLink, Undo2 } from 'lucide-react';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
-import { notificationService, AppNotification } from '../../services/notification.service';
+import {
+  notificationService,
+  browserNotifications,
+  AppNotification,
+  BrowserPermission,
+} from '../../services/notification.service';
+import { NotificationPermissionPrompt } from './NotificationPermissionPrompt';
 import styles from './NotificationBell.module.css';
 
 interface NotificationBellProps {
@@ -13,10 +19,12 @@ interface NotificationBellProps {
 
 export const NotificationBell: React.FC<NotificationBellProps> = ({ isTransparent = false }) => {
   const { language } = useLanguage();
-  const { user, profile } = useAuth();
+  const { user } = useAuth();
   const toast = useToast();
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
+  const [permission, setPermission] = useState<BrowserPermission>(() => browserNotifications.permission());
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Load initial notifications for current user
@@ -28,48 +36,29 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({ isTransparen
     load();
   }, [user?.id]);
 
-  // Listen for real-time notification events (when someone expresses interest)
+  // Real-time: new rows in public.notifications for this user arrive over Supabase Realtime
+  // (written server-side by send_interest / respond_to_interest / withdraw_interest).
   useEffect(() => {
-    const handleNewNotification = (e: Event) => {
-      const customEvent = e as CustomEvent<any>;
-      const notif = customEvent.detail;
-      if (!notif) return;
+    if (!user?.id) return;
+    return notificationService.subscribe(user.id, (notif) => {
+      setNotifications((prev) => (prev.some((n) => n.id === notif.id) ? prev : [notif, ...prev]));
+      toast.info(`${notif.title} — ${notif.message}`, 6000);
+      // OS notification too, so it is seen when the tab is in the background.
+      if (document.hidden) browserNotifications.show(notif, (url) => navigate(url));
+    });
+  }, [user?.id, toast, navigate]);
 
-      // 1. If sender is the current user, ignore! (Do not pop up self-sent actions)
-      if (
-        notif.sender_profile_id &&
-        (notif.sender_profile_id === profile?.id || notif.sender_profile_id === user?.id)
-      ) {
-        return;
-      }
-
-      // 2. Target check: if this notification targets a specific user or profile,
-      // only show if the current user matches that target!
-      const isTargetUser = Boolean(user?.id && notif.targetUserId === user.id);
-      const isTargetProfile = Boolean(profile?.id && (notif.targetProfileId === profile.id || notif.targetProfileId === user?.id));
-      const hasSpecificTarget = Boolean(notif.targetUserId || notif.targetProfileId);
-
-      if (hasSpecificTarget && !isTargetUser && !isTargetProfile) {
-        return;
-      }
-
-      // Prepend new notification for the intended recipient
-      setNotifications((prev) => [notif, ...prev]);
-
-      // Pop up notification toast to the recipient
-      const popupMsg =
-        language === 'mr'
-          ? `नवीन पसंती प्राप्त झाली! ${notif.sender_name || 'एका उमेदवाराने'} आपल्या प्रोफाइलमध्ये पसंती दर्शवली आहे.`
-          : `New Interest Received! ${notif.sender_name || 'A candidate'} has expressed interest in your profile.`;
-
-      toast.info(popupMsg, 6000);
-    };
-
-    window.addEventListener('mm:notification_received', handleNewNotification);
-    return () => {
-      window.removeEventListener('mm:notification_received', handleNewNotification);
-    };
-  }, [language, toast, user?.id, profile?.id]);
+  const handleEnableNotifications = async () => {
+    const result = await browserNotifications.request();
+    setPermission(result);
+    if (result === 'granted') {
+      toast.success(language === 'mr' ? 'सूचना सुरू झाल्या.' : 'Notifications enabled.');
+    } else if (result === 'denied') {
+      toast.error(language === 'mr'
+        ? 'सूचना ब्लॉक आहेत. ब्राउझरच्या साइट सेटिंग्जमधून परवानगी द्या.'
+        : 'Notifications are blocked. Allow them in your browser\'s site settings.');
+    }
+  };
 
   // Click outside listener
   useEffect(() => {
@@ -136,6 +125,27 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({ isTransparen
             )}
           </div>
 
+          {user && permission === 'default' && (
+            <button type="button" className={styles.permissionRow} onClick={handleEnableNotifications}>
+              <BellRing size={16} />
+              <span>
+                <strong>{language === 'mr' ? 'ब्राउझर सूचना सुरू करा' : 'Turn on browser notifications'}</strong>
+                <small>
+                  {language === 'mr'
+                    ? 'नवीन पसंती व उत्तरे साइट बंद असतानाही कळतील.'
+                    : 'Get alerted about new interests and replies even when this tab is in the background.'}
+                </small>
+              </span>
+            </button>
+          )}
+          {user && permission === 'denied' && (
+            <div className={styles.permissionBlocked}>
+              {language === 'mr'
+                ? 'ब्राउझर सूचना ब्लॉक आहेत. पत्त्याच्या पट्टीतील 🔒 चिन्हावर क्लिक करून “Notifications” ला परवानगी द्या.'
+                : 'Browser notifications are blocked. Click the 🔒 icon in the address bar and allow “Notifications”.'}
+            </div>
+          )}
+
           <div className={styles.notificationList}>
             {notifications.length === 0 ? (
               <div className={styles.emptyState}>
@@ -191,6 +201,8 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({ isTransparen
           </div>
         </div>
       )}
+
+      {user && permission === 'default' && <NotificationPermissionPrompt onEnable={handleEnableNotifications} />}
     </div>
   );
 };

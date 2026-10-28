@@ -138,69 +138,78 @@ export const notificationService = {
     }
   },
 
-  // Send an Express Interest Notification targeting the recipient ONLY
-  async sendInterestNotification(payload: {
-    receiverProfileId: string;
-    receiverUserId?: string;
-    senderProfileId?: string;
-    senderName: string;
-    senderPhoto?: string;
-    senderCity?: string;
-  }): Promise<AppNotification> {
-    const newNotif: AppNotification = {
-      id: `notif-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-      user_id: payload.receiverUserId,
-      type: 'interest_received',
-      title: 'नवीन पसंती (Express Interest) प्राप्त झाली!',
-      message: `${payload.senderName} यांनी आपल्या प्रोफाइलमध्ये पसंती दर्शवली आहे.`,
-      action_url: `/dashboard`,
-      is_read: false,
-      created_at: new Date().toISOString(),
-      sender_name: payload.senderName,
-      sender_profile_id: payload.senderProfileId,
-      sender_photo: payload.senderPhoto,
+  /**
+   * Live feed of new notifications for this user via Supabase Realtime (the notifications
+   * table is in the supabase_realtime publication; RLS limits rows to the owner).
+   * Returns an unsubscribe function.
+   */
+  subscribe(userId: string, onInsert: (n: AppNotification) => void): () => void {
+    if (!isSupabaseConfigured()) return () => {};
+    const channel = supabase
+      .channel(`notifications:${userId}`)
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${userId}` },
+        (payload) => onInsert(payload.new as AppNotification)
+      )
+      .subscribe();
+    return () => {
+      void supabase.removeChannel(channel);
     };
+  },
+};
 
-    // 1. DO NOT add to the sender's notification partition!
-    // Instead, save into the recipient's partition so recipient sees it when logged in:
-    const recipientKey = payload.receiverUserId
-      ? `mm_notifications_${payload.receiverUserId}`
-      : `mm_notifications_${payload.receiverProfileId}`;
+// ─── Browser (OS-level) notifications ───────────────────────────────────────
+
+export type BrowserPermission = NotificationPermission | 'unsupported';
+
+const PROMPT_DISMISSED_KEY = 'mm_notif_prompt_dismissed';
+
+export const browserNotifications = {
+  permission(): BrowserPermission {
+    return typeof window !== 'undefined' && 'Notification' in window ? Notification.permission : 'unsupported';
+  },
+
+  /** Must be called from a click handler — browsers ignore permission requests without a user gesture. */
+  async request(): Promise<BrowserPermission> {
+    if (this.permission() === 'unsupported') return 'unsupported';
     try {
-      const stored = localStorage.getItem(recipientKey);
-      const recipientList: AppNotification[] = stored ? JSON.parse(stored) : [];
-      localStorage.setItem(recipientKey, JSON.stringify([newNotif, ...recipientList]));
+      return await Notification.requestPermission();
+    } catch {
+      return Notification.permission;
+    }
+  },
+
+  isPromptDismissed(): boolean {
+    try {
+      return localStorage.getItem(PROMPT_DISMISSED_KEY) === '1';
+    } catch {
+      return false;
+    }
+  },
+
+  dismissPrompt(): void {
+    try {
+      localStorage.setItem(PROMPT_DISMISSED_KEY, '1');
     } catch {}
+  },
 
-    // 2. Persist in Supabase DB for the RECEIVER if receiverUserId exists:
-    if (payload.receiverUserId && isSupabaseConfigured()) {
-      try {
-        await supabase.from('notifications').insert({
-          user_id: payload.receiverUserId,
-          type: newNotif.type,
-          title: newNotif.title,
-          message: newNotif.message,
-          action_url: newNotif.action_url,
-          is_read: false,
-        });
-      } catch (err) {
-        console.warn('Notification insert DB warning:', err);
-      }
+  /** Shows an OS notification when permitted; clicking it focuses the tab and opens action_url. */
+  show(n: AppNotification, onClick?: (url: string) => void): void {
+    if (this.permission() !== 'granted') return;
+    try {
+      const notification = new Notification(n.title, {
+        body: n.message,
+        icon: '/images/brand/logo.png',
+        tag: n.id,
+      });
+      notification.onclick = () => {
+        window.focus();
+        onClick?.(n.action_url || '/dashboard');
+        notification.close();
+      };
+    } catch {
+      // Some mobile browsers only allow notifications through a service worker.
     }
-
-    // 3. Dispatch global browser event targeting the RECIPIENT ONLY
-    if (typeof window !== 'undefined') {
-      window.dispatchEvent(
-        new CustomEvent('mm:notification_received', {
-          detail: {
-            ...newNotif,
-            targetUserId: payload.receiverUserId,
-            targetProfileId: payload.receiverProfileId,
-          },
-        })
-      );
-    }
-
-    return newNotif;
   },
 };

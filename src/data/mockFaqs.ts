@@ -41,12 +41,12 @@ export const mockFaqs: FAQItem[] = [
     id: "faq-4",
     category: "membership",
     question: {
-      mr: "सिल्व्हर, गोल्ड आणि प्रीमियम योजनांमध्ये काय फरक आहे?",
-      en: "What is the difference between Silver, Gold, and Premium plans?"
+      mr: "सिल्व्हर, डायमंड आणि प्लॅटिनम योजनांमध्ये काय फरक आहे?",
+      en: "What is the difference between Silver, Diamond, and Platinum plans?"
     },
     answer: {
-      mr: "सिल्व्हर प्लॅनमध्ये २५ संपर्क क्रमांक आणि ३ महिने वैधता मिळते. गोल्ड प्लॅन हा सर्वाधिक लोकप्रिय असून त्यात ६० संपर्क, थेट चॅट आणि ६ महिने वैधता मिळते. प्रीमियम प्लॅनमध्ये १ वर्षासाठी १५० संपर्क आणि व्हीआयपी प्राधान्य दिले जाते.",
-      en: "Silver offers 25 verified contact views for 3 months. Gold is our most popular plan with 60 contacts, direct messaging, and 6 months validity. Premium gives you 150 contact unlocks and VIP priority placement for 1 full year."
+      mr: "सिल्व्हर (₹१,०००, ३ महिने): दररोज १० संपर्क अनलॉक, तुमची प्रोफाइल कोणी पाहिली ते पहा, अमर्यादित पसंती व शिफारसी. डायमंड (₹२,५००, १ वर्ष): दररोज २५ अनलॉक, कागदपत्रे, संपर्क कोणी पाहिला ते पहा, शोधात प्राधान्य, प्रोफाइल PDF. प्लॅटिनम (₹३,०००, १८ महिने): अमर्यादित अनलॉक, हायलाइट केलेली प्रोफाइल, नवीन प्रोफाइलचा लवकर प्रवेश, प्राधान्य सपोर्ट व व्हॉट्सअ‍ॅप मदत.",
+      en: "Silver (₹1,000, 3 months): 10 contact unlocks a day, see who visited your profile, unlimited interests and recommendations. Diamond (₹2,500, 1 year): 25 unlocks a day, documents, see who viewed your contact, priority in search, profile PDF. Platinum (₹3,000, 18 months): unlimited unlocks, highlighted profile, early access to new profiles, priority support and WhatsApp assistance."
     }
   },
   {

@@ -4,6 +4,7 @@ import { useLanguage } from '../i18n/LanguageContext';
 import { SectionHeading } from '../components/common/SectionHeading';
 import { Button } from '../components/common/Button';
 import { brandConfig } from '../config/brand.config';
+import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
 export const ContactPage: React.FC = () => {
   const { t, brandName, localize, language } = useLanguage();
@@ -16,8 +17,20 @@ export const ContactPage: React.FC = () => {
     message: ''
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSupabaseConfigured()) {
+      // `priority` is stamped by a database trigger for Platinum members; the client cannot set it.
+      const { error } = await supabase.from('contact_inquiries').insert({
+        name: formData.name.trim(),
+        email: formData.email.trim(),
+        phone: formData.mobile.trim(),
+        subject: formData.subject.trim() || 'Website enquiry',
+        message: formData.message.trim(),
+        status: 'pending',
+      });
+      if (error) console.warn('Contact inquiry insert notice:', error.message);
+    }
     setFormSubmitted(true);
   };
 

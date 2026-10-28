@@ -1,3 +1,4 @@
+import { AdminInquiries } from '../components/premium/AdminInquiries';
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import {
@@ -463,6 +464,8 @@ export const AdminVerificationPage: React.FC = () => {
             })}
           </div>
         )}
+
+        <AdminInquiries language={language} />
       </div>
     </div>
   );

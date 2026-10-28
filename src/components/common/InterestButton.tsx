@@ -3,6 +3,7 @@ import { CheckCircle2, Sparkles, Undo2 } from 'lucide-react';
 import { Profile } from '../../types';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { useToast } from '../../context/ToastContext';
+import { useAuth } from '../../context/AuthContext';
 import { interestService, InterestStatus } from '../../services/interest.service';
 import { ExpressInterestModal } from './ExpressInterestModal';
 import { ConfirmDialog } from './ConfirmDialog';
@@ -17,9 +18,9 @@ interface InterestButtonProps {
 
 /** Express Interest / "Interest Sent · Withdraw" split button, backed by the interests RPCs. */
 export const InterestButton: React.FC<InterestButtonProps> = ({ profile, className = '', sentClassName = '' }) => {
-  const { language } = useLanguage();
+  const { t } = useLanguage();
   const toast = useToast();
-  const mr = language === 'mr';
+  const { user } = useAuth();
   const [status, setStatus] = useState<InterestStatus | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -27,14 +28,15 @@ export const InterestButton: React.FC<InterestButtonProps> = ({ profile, classNa
 
   useEffect(() => {
     let mounted = true;
-    interestService.getInterestStatus(profile.id).then((s) => { if (mounted) setStatus(s); });
+    // Logged-out visitors have no interests to look up (the RPC requires a session).
+    if (user) interestService.getInterestStatus(profile.id).then((s) => { if (mounted) setStatus(s); });
     const onChange = (e: Event) => {
       const d = (e as CustomEvent).detail;
       if (d?.receiverProfileId === profile.id) setStatus(d.status);
     };
     window.addEventListener('mm:interest_changed', onChange);
     return () => { mounted = false; window.removeEventListener('mm:interest_changed', onChange); };
-  }, [profile.id]);
+  }, [profile.id, user]);
 
   const active = status === 'pending' || status === 'accepted';
 
@@ -45,11 +47,11 @@ export const InterestButton: React.FC<InterestButtonProps> = ({ profile, classNa
     setConfirmOpen(false);
     if (res.success) {
       setStatus('withdrawn');
-      toast.success(mr ? 'पसंती मागे घेतली.' : 'Interest withdrawn.');
+      toast.success(t.interests.withdrawnToast);
     } else {
-      toast.error(res.message || (mr ? 'पसंती मागे घेता आली नाही.' : 'Could not withdraw interest.'));
+      toast.error(res.message || t.interests.withdrawFailed);
     }
-  }, [profile.id, mr, toast]);
+  }, [profile.id, t, toast]);
 
   const stop = (e: React.MouseEvent) => { e.preventDefault(); e.stopPropagation(); };
 
@@ -59,23 +61,23 @@ export const InterestButton: React.FC<InterestButtonProps> = ({ profile, classNa
         <div style={{ display: 'flex', gap: 6, flex: 1 }}>
           <button type="button" className={`${className} ${sentClassName}`} disabled style={{ flex: 1 }}>
             <CheckCircle2 size={15} />
-            <span>{mr ? 'पसंती पाठवली' : 'Interest Sent'}</span>
+            <span>{t.interests.sent}</span>
           </button>
           <button
             type="button"
             className={className}
             style={{ flex: '0 0 auto' }}
             onClick={(e) => { stop(e); setConfirmOpen(true); }}
-            aria-label={mr ? 'पसंती मागे घ्या' : 'Withdraw interest'}
+            aria-label={t.interests.withdrawTitle}
           >
             <Undo2 size={15} />
-            <span>{mr ? 'मागे घ्या' : 'Withdraw'}</span>
+            <span>{t.interests.withdraw}</span>
           </button>
         </div>
       ) : (
         <button type="button" className={className} onClick={(e) => { stop(e); setModalOpen(true); }}>
           <Sparkles size={15} />
-          <span>{status === 'withdrawn' ? (mr ? 'पुन्हा पाठवा' : 'Send again') : (mr ? 'पसंती कळवा' : 'Express Interest')}</span>
+          <span>{status === 'withdrawn' ? t.interests.sendAgain : t.interests.expressInterest}</span>
         </button>
       )}
 
@@ -87,12 +89,10 @@ export const InterestButton: React.FC<InterestButtonProps> = ({ profile, classNa
       />
       <ConfirmDialog
         isOpen={confirmOpen}
-        title={mr ? 'पसंती मागे घ्यायची?' : 'Withdraw interest?'}
-        message={mr
-          ? 'ही पसंती मागे घेतल्यास समोरच्या सदस्याला सूचित केले जाईल. तुम्ही नंतर पुन्हा पसंती पाठवू शकता.'
-          : 'The other member will be notified that you withdrew your interest. You can send it again later.'}
-        confirmLabel={mr ? 'मागे घ्या' : 'Withdraw'}
-        cancelLabel={mr ? 'रद्द करा' : 'Cancel'}
+        title={t.interests.withdrawTitle}
+        message={t.interests.withdrawMessage}
+        confirmLabel={t.interests.withdraw}
+        cancelLabel={t.interests.cancel}
         busy={busy}
         onConfirm={handleWithdraw}
         onCancel={() => setConfirmOpen(false)}

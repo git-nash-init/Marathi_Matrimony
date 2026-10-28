@@ -4,6 +4,7 @@ import { ChevronRight, Clock, Eye, Heart, Phone, PhoneCall, Sparkles, Star, User
 import { supabase } from '../../lib/supabase';
 import { interestService, InterestRow } from '../../services/interest.service';
 import { useAuth } from '../../context/AuthContext';
+import { useLanguage } from '../../i18n/LanguageContext';
 import { useToast } from '../../context/ToastContext';
 import { ConfirmDialog } from '../common/ConfirmDialog';
 import { SubscriptionGate } from '../common/SubscriptionGate';
@@ -156,6 +157,7 @@ export const NewProfilesTab: React.FC<Lang> = ({ language: lang }) => {
 };
 
 export const ViewedByMeTab: React.FC<Lang & { onUpgrade: () => void }> = ({ language: lang, onUpgrade }) => {
+  const { t } = useLanguage();
   const { data, loading } = useRpcList<{ items: CardRow[]; capped: boolean }>('get_my_viewed_profiles');
   return (
     <div>
@@ -166,7 +168,7 @@ export const ViewedByMeTab: React.FC<Lang & { onUpgrade: () => void }> = ({ lang
         empty={{ icon: <Eye size={32} />, title: lang === 'mr' ? 'अजून कोणताही इतिहास नाही' : 'No browsing history yet', desc: lang === 'mr' ? 'स्थळे शोधणे सुरू करा.' : 'Start browsing profiles to see your history here.' }} />
       {data?.capped && (
         <button type="button" onClick={onUpgrade} style={{ margin: '12px 0', color: 'var(--color-primary)', fontWeight: 700, background: 'none', border: 'none', cursor: 'pointer' }}>
-          {lang === 'mr' ? 'संपूर्ण इतिहास पाहण्यासाठी अपग्रेड करा →' : 'Upgrade to see full history →'}
+          {t.premium.upgradeHistory}
         </button>
       )}
     </div>

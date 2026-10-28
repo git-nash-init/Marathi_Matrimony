@@ -22,7 +22,7 @@ export const ExpressInterestModal: React.FC<ExpressInterestModalProps> = ({
   profile,
   onInterestSent,
 }) => {
-  const { language, localize } = useLanguage();
+  const { language, localize, t } = useLanguage();
   const toast = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -122,10 +122,8 @@ export const ExpressInterestModal: React.FC<ExpressInterestModalProps> = ({
         <SubscriptionGate
           isOpen={gateOpen}
           onClose={() => setGateOpen(false)}
-          featureLabel={language === 'mr' ? 'अमर्यादित पसंती' : 'Unlimited interests'}
-          reason={language === 'mr'
-            ? 'या महिन्याच्या ५ मोफत पसंती संपल्या आहेत. अमर्यादित पसंतीसाठी प्लॅन निवडा.'
-            : 'You have used all 5 free interests this month. Upgrade for unlimited interests.'}
+          featureLabel={t.interests.limitFeature}
+          reason={t.interests.limitReason}
         />
         {isSuccess ? (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '14px', padding: '20px 0' }}>
@@ -183,9 +181,9 @@ export const ExpressInterestModal: React.FC<ExpressInterestModalProps> = ({
               </p>
               {interestLimit !== null && (
                 <p style={{ color: '#7A1F3D', fontSize: '0.82rem', fontWeight: 600, margin: '8px 0 0' }}>
-                  {language === 'mr'
-                    ? `या महिन्यात ${Math.max(interestLimit - interestsThisMonth, 0)} / ${interestLimit} पसंती शिल्लक`
-                    : `${Math.max(interestLimit - interestsThisMonth, 0)} of ${interestLimit} interests left this month`}
+                  {t.interests.quotaLeft
+                    .replace('{left}', String(Math.max(interestLimit - interestsThisMonth, 0)))
+                    .replace('{limit}', String(interestLimit))}
                 </p>
               )}
             </div>

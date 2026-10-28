@@ -753,6 +753,40 @@ export const translations = {
       cancel: "रद्द करा",
       success: "यशस्वी!",
       actionNotice: "टप्पा १ सूचना: ही सुविधा पुढील टप्प्यात (Step 2) सक्रिय केली जाईल."
+    },
+    interests: {
+      sent: "पसंती पाठवली",
+      expressInterest: "पसंती कळवा",
+      withdraw: "मागे घ्या",
+      sendAgain: "पुन्हा पाठवा",
+      cancel: "रद्द करा",
+      withdrawTitle: "पसंती मागे घ्यायची?",
+      withdrawMessage: "ही पसंती मागे घेतल्यास समोरच्या सदस्याला सूचित केले जाईल. तुम्ही नंतर पुन्हा पसंती पाठवू शकता.",
+      withdrawnToast: "पसंती मागे घेतली.",
+      withdrawFailed: "पसंती मागे घेता आली नाही.",
+      quotaLeft: "या महिन्यात {left} / {limit} पसंती शिल्लक",
+      limitReason: "या महिन्याच्या ५ मोफत पसंती संपल्या आहेत. अमर्यादित पसंतीसाठी प्लॅन निवडा.",
+      limitFeature: "अमर्यादित पसंती"
+    },
+    premium: {
+      unlockContact: "संपर्क अनलॉक करा",
+      unlimited: "अमर्यादित",
+      unlocksLeft: "आज {left}/{limit} शिल्लक",
+      unlockedToast: "संपर्क तपशील अनलॉक झाले.",
+      unlockFailed: "अनलॉक करता आले नाही.",
+      dailyLimit: "आजची संपर्क अनलॉक मर्यादा संपली. प्लॅन अपग्रेड करा किंवा उद्या प्रयत्न करा.",
+      needSilver: "संपर्क तपशील पाहण्यासाठी सिल्व्हर किंवा त्यावरील प्लॅन आवश्यक आहे.",
+      documents: "कागदपत्रे",
+      noDocuments: "कोणतेही कागदपत्र अपलोड केलेले नाही.",
+      view: "पहा",
+      downloadPdf: "PDF डाउनलोड",
+      preparing: "तयार होत आहे…",
+      pdfFailed: "PDF तयार करता आला नाही.",
+      pdfGateReason: "प्रोफाइल PDF डाउनलोडसाठी डायमंड किंवा प्लॅटिनम प्लॅन आवश्यक आहे.",
+      upgradeHistory: "संपूर्ण इतिहास पाहण्यासाठी अपग्रेड करा →",
+      conciergeTitle: "प्लॅटिनम कन्सीयर्ज",
+      conciergeDesc: "समर्पित रिलेशनशिप सहाय्य, प्राधान्य सपोर्ट आणि व्हॉट्सअ‍ॅप मदत.",
+      call: "कॉल करा"
     }
   },
   en: {
@@ -1509,6 +1543,40 @@ export const translations = {
       cancel: "Cancel",
       success: "Success!",
       actionNotice: "Step 1 Notice: This action will be enabled in Step 2."
+    },
+    interests: {
+      sent: "Interest Sent",
+      expressInterest: "Express Interest",
+      withdraw: "Withdraw",
+      sendAgain: "Send again",
+      cancel: "Cancel",
+      withdrawTitle: "Withdraw interest?",
+      withdrawMessage: "The other member will be notified that you withdrew your interest. You can send it again later.",
+      withdrawnToast: "Interest withdrawn.",
+      withdrawFailed: "Could not withdraw interest.",
+      quotaLeft: "{left} of {limit} interests left this month",
+      limitReason: "You have used all 5 free interests this month. Upgrade for unlimited interests.",
+      limitFeature: "Unlimited interests"
+    },
+    premium: {
+      unlockContact: "Unlock contact",
+      unlimited: "Unlimited",
+      unlocksLeft: "{left} of {limit} left today",
+      unlockedToast: "Contact details unlocked.",
+      unlockFailed: "Could not unlock contact.",
+      dailyLimit: "Daily unlock limit reached. Upgrade your plan or try again tomorrow.",
+      needSilver: "A Silver or higher plan is required to unlock contact details.",
+      documents: "Documents",
+      noDocuments: "No documents uploaded.",
+      view: "View",
+      downloadPdf: "Download PDF",
+      preparing: "Preparing…",
+      pdfFailed: "Could not generate the PDF.",
+      pdfGateReason: "Downloading a profile PDF requires a Diamond or Platinum plan.",
+      upgradeHistory: "Upgrade to see full history →",
+      conciergeTitle: "Platinum Concierge",
+      conciergeDesc: "Dedicated relationship help, priority support and WhatsApp assistance.",
+      call: "Call"
     }
   }
 };

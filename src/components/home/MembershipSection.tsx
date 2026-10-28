@@ -1,14 +1,21 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { SectionHeading } from '../common/SectionHeading';
 import { Button } from '../common/Button';
-import { mockPlans } from '../../data/mockPlans';
+import { subscriptionService, SubscriptionPlan, PLAN_DISPLAY_INFO, localizePlanFeature } from '../../services/subscription.service';
 import { MarathaCrestIcon, VerifiedShieldIcon } from '../common/CulturalIcons';
 import styles from './MembershipSection.module.css';
 
 export const MembershipSection: React.FC = () => {
-  const { localize, language } = useLanguage();
-  const plans = mockPlans;
+  const { language } = useLanguage();
+  const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
+
+  // Same source as the Membership page: subscription_plans (with an identical offline fallback).
+  useEffect(() => {
+    let mounted = true;
+    subscriptionService.fetchPlans().then((p) => { if (mounted) setPlans(p); });
+    return () => { mounted = false; };
+  }, []);
 
   return (
     <section className={`section ${styles.membershipSection}`}>
@@ -23,34 +30,34 @@ export const MembershipSection: React.FC = () => {
           {plans.map((plan) => (
             <div
               key={plan.id}
-              className={`${styles.planCard} ${plan.popular ? styles.popularCard : ''}`}
+              className={`${styles.planCard} ${plan.slug === 'diamond' ? styles.popularCard : ''}`}
             >
-              {plan.popular && (
+              {plan.slug === 'diamond' && (
                 <div className={styles.popularBadge}>
                   <VerifiedShieldIcon size={13} color="var(--color-primary)" />
-                  <span>{localize(plan.badge) || (language === 'mr' ? 'सर्वाधिक लोकप्रिय' : 'Most Popular')}</span>
+                  <span>{language === 'mr' ? 'सर्वाधिक लोकप्रिय' : 'Most Popular'}</span>
                 </div>
               )}
 
               <div className={styles.planHeader}>
                 <div className={styles.planBadgeIcon}>
-                  <MarathaCrestIcon size={24} color={plan.popular ? 'var(--color-oxblood)' : 'var(--color-antique-gold)'} />
+                  <MarathaCrestIcon size={24} color={plan.slug === 'diamond' ? 'var(--color-oxblood)' : 'var(--color-antique-gold)'} />
                 </div>
-                <h3 className={styles.planName}>{localize(plan.name)}</h3>
+                <h3 className={styles.planName}>{language === 'mr' ? (PLAN_DISPLAY_INFO[plan.slug]?.label_mr || plan.name) : plan.name}</h3>
                 <div className={styles.priceWrap}>
-                  <span className={styles.price}>{localize(plan.price)}</span>
-                  {plan.originalPrice && (
-                    <span className={styles.originalPrice}>{localize(plan.originalPrice)}</span>
+                  <span className={styles.price}>₹{(plan.discounted_price ?? plan.price).toLocaleString('en-IN')}</span>
+                  {plan.discounted_price && (
+                    <span className={styles.originalPrice}>₹{plan.price.toLocaleString('en-IN')}</span>
                   )}
                 </div>
-                <span className={styles.duration}>{localize(plan.duration)}</span>
+                <span className={styles.duration}>{language === 'mr' ? `${Math.round(plan.duration_days / 30)} महिने वैधता` : `${Math.round(plan.duration_days / 30)} Months Validity`}</span>
               </div>
 
               <div className={styles.featuresList}>
                 {plan.features.map((feat, fIdx) => (
                   <div key={fIdx} className={styles.featureItem}>
                     <span className={styles.featureBullet}>•</span>
-                    <span>{localize(feat)}</span>
+                    <span>{localizePlanFeature(feat, language)}</span>
                   </div>
                 ))}
               </div>
@@ -58,10 +65,10 @@ export const MembershipSection: React.FC = () => {
               <div className={styles.cardFooter}>
                 <Button
                   to="/membership"
-                  variant={plan.popular ? 'primary' : 'outline-gold'}
+                  variant={plan.slug === 'diamond' ? 'primary' : 'outline-gold'}
                   fullWidth
                 >
-                  {localize(plan.buttonText)}
+                  {language === 'mr' ? 'योजना निवडा' : 'Choose Plan'}
                 </Button>
               </div>
             </div>

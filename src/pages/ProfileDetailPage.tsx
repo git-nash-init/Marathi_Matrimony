@@ -7,7 +7,8 @@ import { discoveryService } from '../services/discovery.service';
 import { shortlistService } from '../services/shortlist.service';
 import { subscriptionService } from '../services/subscription.service';
 import { InterestButton } from '../components/common/InterestButton';
-import { ContactSection } from '../components/premium/ContactSection';
+import { ContactSection, UnlockedContact } from '../components/premium/ContactSection';
+import { ProfilePdfButton } from '../components/premium/ProfilePdfButton';
 import { ReportProfileModal } from '../components/common/ReportProfileModal';
 import { BlockProfileModal } from '../components/common/BlockProfileModal';
 import { SectionCard } from '../components/common/SectionCard';
@@ -44,6 +45,7 @@ export const ProfileDetailPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isShortlisted, setIsShortlisted] = useState<boolean>(false);
   const [isShortlistBusy, setIsShortlistBusy] = useState<boolean>(false);
+  const [unlockedContact, setUnlockedContact] = useState<UnlockedContact | null>(null);
 
   // Modals
   const [isReportOpen, setIsReportOpen] = useState<boolean>(false);
@@ -302,6 +304,7 @@ export const ProfileDetailPage: React.FC = () => {
                   : (t.shortlist?.btnShortlist || (language === 'mr' ? 'शॉर्टलिस्ट करा' : 'Add to Shortlist'))}
               </span>
             </button>
+            <ProfilePdfButton profile={profile} contact={unlockedContact} />
           </div>
 
           {/* Auxiliary Actions: Report & Block */}
@@ -558,7 +561,7 @@ export const ProfileDetailPage: React.FC = () => {
           subtitle={language === 'mr' ? 'आडनाव, ईमेल, फोन, पत्ता — सदस्यत्व आवश्यक' : 'Surname, Email, Phone & Address — Subscription Required'}
           icon={<Phone size={20} />}
         >
-          <ContactSection profileId={profile.id} isOwnProfile={profile.id === authProfile?.id} />
+          <ContactSection profileId={profile.id} isOwnProfile={profile.id === authProfile?.id} onContactChange={setUnlockedContact} />
         </SectionCard>
 
         {/* Privacy Notice */}

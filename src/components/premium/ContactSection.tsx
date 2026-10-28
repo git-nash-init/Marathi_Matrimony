@@ -37,7 +37,7 @@ const DOC_LABELS: Record<string, { en: string; mr: string }> = {
 
 /** Contact details + documents. Values never reach the DOM until the database returns them. */
 export const ContactSection: React.FC<ContactSectionProps> = ({ profileId, isOwnProfile, onContactChange }) => {
-  const { language } = useLanguage();
+  const { language, t } = useLanguage();
   const toast = useToast();
   const mr = language === 'mr';
   const sub = useSubscription();
@@ -77,7 +77,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ profileId, isOwn
 
   const handleUnlock = async () => {
     if (!sub.has('unlock_contact')) {
-      setGateReason(mr ? 'संपर्क तपशील पाहण्यासाठी सिल्व्हर किंवा त्यावरील प्लॅन आवश्यक आहे.' : 'A Silver or higher plan is required to unlock contact details.');
+      setGateReason(t.premium.needSilver);
       setGateOpen(true);
       return;
     }
@@ -87,20 +87,20 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ profileId, isOwn
     const d = data as any;
     if (error || !d?.success) {
       if (d?.code === 'LIMIT_REACHED') {
-        toast.error(mr ? 'आजची संपर्क अनलॉक मर्यादा संपली. प्लॅन अपग्रेड करा किंवा उद्या प्रयत्न करा.' : 'Daily unlock limit reached. Upgrade your plan or try again tomorrow.');
+        toast.error(t.premium.dailyLimit);
         setGateReason(d.error);
         setGateOpen(true);
       } else if (d?.code === 'UPGRADE_REQUIRED') {
         setGateReason(d.error);
         setGateOpen(true);
       } else {
-        toast.error(d?.error || error?.message || (mr ? 'अनलॉक करता आले नाही.' : 'Could not unlock contact.'));
+        toast.error(d?.error || error?.message || t.premium.unlockFailed);
       }
       return;
     }
     updateContact(d);
     void sub.refresh();
-    toast.success(mr ? 'संपर्क तपशील अनलॉक झाले.' : 'Contact details unlocked.');
+    toast.success(t.premium.unlockedToast);
   };
 
   const openDoc = async (doc: ProfileDocument) => {
@@ -127,11 +127,11 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ profileId, isOwn
       {!unlocked && !isOwnProfile && (
         <div style={{ marginTop: 16 }}>
           <Button variant="primary" size="md" onClick={handleUnlock} disabled={busy} icon={<Unlock size={16} />}>
-            {mr ? 'संपर्क अनलॉक करा' : 'Unlock contact'}
+            {t.premium.unlockContact}
             {sub.has('unlock_contact') && (
               remaining === null
-                ? (mr ? ' (अमर्यादित)' : ' (Unlimited)')
-                : (mr ? ` (आज ${remaining}/${sub.unlockLimit} शिल्लक)` : ` (${remaining} of ${sub.unlockLimit} left today)`)
+                ? ` (${t.premium.unlimited})`
+                : ` (${t.premium.unlocksLeft.replace('{left}', String(remaining)).replace('{limit}', String(sub.unlockLimit))})`
             )}
           </Button>
         </div>
@@ -148,7 +148,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ profileId, isOwn
           />
         ) : docs.length === 0 ? (
           <p style={{ margin: '8px 0 0', color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>
-            {mr ? 'कोणतेही कागदपत्र अपलोड केलेले नाही.' : 'No documents uploaded.'}
+            {t.premium.noDocuments}
           </p>
         ) : (
           <ul style={{ listStyle: 'none', padding: 0, margin: '8px 0 0', display: 'grid', gap: 8 }}>
@@ -156,7 +156,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ profileId, isOwn
               <li key={d.doc_type} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <FileText size={16} />
                 <span style={{ flex: 1 }}>{(DOC_LABELS[d.doc_type] || { en: d.doc_type, mr: d.doc_type })[mr ? 'mr' : 'en']}</span>
-                <Button variant="outline" size="sm" onClick={() => openDoc(d)}>{mr ? 'पहा' : 'View'}</Button>
+                <Button variant="outline" size="sm" onClick={() => openDoc(d)}>{t.premium.view}</Button>
               </li>
             ))}
           </ul>

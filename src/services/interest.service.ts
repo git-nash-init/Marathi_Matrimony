@@ -60,6 +60,7 @@ const notifyChanged = (receiverProfileId: string, status: InterestStatus) => {
 
 // Sent interests are cached for the card-level status lookups (one query for the whole page).
 let sentCache: { at: number; byReceiver: Map<string, InterestStatus> } | null = null;
+let sentInFlight: Promise<Map<string, InterestStatus>> | null = null;
 const CACHE_MS = 15_000;
 
 export const interestService = {
@@ -77,8 +78,14 @@ export const interestService = {
 
   async getInterestStatus(receiverProfileId: string): Promise<InterestStatus | null> {
     if (!sentCache || Date.now() - sentCache.at > CACHE_MS) {
-      const sent = await this.getSent();
-      sentCache = { at: Date.now(), byReceiver: new Map(sent.map((r) => [r.profileUuid, r.status])) };
+      // One request serves every card on the page.
+      sentInFlight ??= this.getSent().then((sent) => {
+        const byReceiver = new Map(sent.map((r) => [r.profileUuid, r.status] as [string, InterestStatus]));
+        sentCache = { at: Date.now(), byReceiver };
+        sentInFlight = null;
+        return byReceiver;
+      });
+      return (await sentInFlight).get(receiverProfileId) ?? null;
     }
     return sentCache.byReceiver.get(receiverProfileId) ?? null;
   },

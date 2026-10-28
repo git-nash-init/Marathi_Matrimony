@@ -82,6 +82,59 @@ export const storageService = {
   },
 
   /**
+   * Upload a biodata / horoscope / education document to the private 'profile-documents' bucket.
+   * Path is <profile uuid>/<type>-<timestamp>.<ext>; storage policies restrict writes to the owner
+   * and reads to the owner, admins and Diamond+ members (for approved profiles).
+   */
+  async uploadProfileDocument(
+    profileId: string,
+    docType: 'biodata' | 'horoscope' | 'education',
+    file: File
+  ): Promise<void> {
+    if (file.size > 5 * 1024 * 1024) throw new Error('Document size should be less than 5MB');
+    const valid = ['application/pdf', 'image/jpeg', 'image/png'];
+    if (!valid.includes(file.type.toLowerCase())) throw new Error('Only PDF, JPG or PNG files are supported');
+
+    const ext = file.name.split('.').pop()?.toLowerCase() || 'pdf';
+    const path = `${profileId}/${docType}-${Date.now()}.${ext}`;
+
+    const { data: existing } = await supabase
+      .from('profile_documents')
+      .select('storage_path')
+      .eq('profile_id', profileId)
+      .eq('doc_type', docType)
+      .maybeSingle();
+
+    const { error: upErr } = await supabase.storage
+      .from('profile-documents')
+      .upload(path, file, { contentType: file.type, upsert: false });
+    if (upErr) throw new Error(upErr.message);
+
+    const { error: rowErr } = await supabase.from('profile_documents').upsert(
+      { profile_id: profileId, doc_type: docType, storage_path: path, file_name: file.name, size_bytes: file.size },
+      { onConflict: 'profile_id,doc_type' }
+    );
+    if (rowErr) {
+      await supabase.storage.from('profile-documents').remove([path]);
+      throw new Error(rowErr.message);
+    }
+    if (existing?.storage_path) {
+      await supabase.storage.from('profile-documents').remove([existing.storage_path]);
+    }
+  },
+
+  async deleteProfileDocument(profileId: string, docType: 'biodata' | 'horoscope' | 'education'): Promise<void> {
+    const { data } = await supabase
+      .from('profile_documents')
+      .select('storage_path')
+      .eq('profile_id', profileId)
+      .eq('doc_type', docType)
+      .maybeSingle();
+    if (data?.storage_path) await supabase.storage.from('profile-documents').remove([data.storage_path]);
+    await supabase.from('profile_documents').delete().eq('profile_id', profileId).eq('doc_type', docType);
+  },
+
+  /**
    * Delete a photo from Supabase storage
    */
   async deletePhoto(storagePath: string): Promise<boolean> {

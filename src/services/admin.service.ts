@@ -20,9 +20,19 @@ export interface AdminProfileItem {
   updated_at: string;
 }
 
+export const PRIMARY_ADMIN_EMAIL = 'vaishalibagave8@gmail.com';
+
+export const isAdminEmail = (email?: string | null): boolean => {
+  if (!email) return false;
+  return email.toLowerCase().trim() === PRIMARY_ADMIN_EMAIL;
+};
+
 const STORAGE_AUTO_VERIFY_KEY = 'mm_admin_auto_verify_aadhaar';
 
 export const adminService = {
+  PRIMARY_ADMIN_EMAIL,
+  isAdminEmail,
+
   // Check if auto-verify for Aadhaar submissions is enabled (default: true for seamless onboarding)
   getAutoVerifySetting(): boolean {
     const saved = localStorage.getItem(STORAGE_AUTO_VERIFY_KEY);

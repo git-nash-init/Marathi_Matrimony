@@ -61,8 +61,16 @@ export const LoginPage: React.FC = () => {
       }
 
       if (data.user) {
-        // Successful login
-        navigate(from, { replace: true });
+        // Successful login - route designated admin to admin hub if default destination
+        const isAdminUser = email.trim().toLowerCase() === 'vaishalibagave8@gmail.com' || 
+          data.user?.app_metadata?.role === 'admin' || 
+          data.user?.user_metadata?.role === 'admin';
+
+        if (isAdminUser && (!location.state || from === '/dashboard')) {
+          navigate('/admin', { replace: true });
+        } else {
+          navigate(from, { replace: true });
+        }
       }
     } catch (err: unknown) {
       const errObj = err as Error;

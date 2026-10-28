@@ -248,3 +248,47 @@
 .viewDashboardLink:hover {
   text-decoration: underline;
 }
+
+@media (max-width: 768px) {
+  .bellBtn {
+    width: 34px;
+    height: 34px;
+    min-width: 34px;
+  }
+  .bellBtn svg {
+    width: 17px;
+    height: 17px;
+  }
+  .dropdown {
+    position: fixed;
+    top: 60px;
+    left: 10px;
+    right: 10px;
+    width: auto;
+    max-width: calc(100vw - 20px);
+  }
+}
+
+@media (max-width: 480px) {
+  .bellBtn {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+  }
+  .bellBtn svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+@media (max-width: 360px) {
+  .bellBtn {
+    width: 30px;
+    height: 30px;
+    min-width: 30px;
+  }
+  .bellBtn svg {
+    width: 15px;
+    height: 15px;
+  }
+}

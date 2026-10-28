@@ -381,6 +381,11 @@
   flex-shrink: 0;
 }
 
+.headerLangWrapper {
+  display: inline-flex;
+  align-items: center;
+}
+
 /* Shortlist Bookmark Icon Button */
 .shortlistBtn {
   position: relative;
@@ -741,82 +746,138 @@
 /* Breakpoints */
 @media (max-width: 992px) {
   .desktopNav {
-    display: none;
+    display: none !important;
   }
   .hamburgerBtn {
-    display: flex;
+    display: flex !important;
   }
   .authButtonsGroup {
-    display: none;
+    display: none !important;
   }
 }
 
 @media (max-width: 768px) {
-  .userProfileName {
+  /* Hide the 75px desktop language switcher from header navbar on mobile — it is already prominently featured at the top of the mobile drawer menu */
+  .headerLangWrapper {
     display: none !important;
   }
-  .userProfilePill {
+
+  .mainNav {
+    padding: 8px 0;
+  }
+
+  .navWrapper {
+    gap: 8px !important;
+    width: 100% !important;
+    justify-content: space-between !important;
+  }
+
+  /* Logo scaling */
+  .logo {
+    gap: 8px !important;
+    min-width: 0 !important;
+    flex-shrink: 1 !important;
+    overflow: hidden !important;
+  }
+
+  .logoIcon {
     width: 36px !important;
     height: 36px !important;
     min-width: 36px !important;
-    padding: 0 !important;
-    border-radius: 50% !important;
-    justify-content: center !important;
+    flex-shrink: 0 !important;
   }
-  .userAvatarImg,
-  .userAvatarFallback {
-    width: 30px !important;
-    height: 30px !important;
+
+  .logoTextGroup {
+    min-width: 0 !important;
+    overflow: hidden !important;
   }
+
+  .brandTitle {
+    font-size: 1.22rem !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  .brandSub {
+    display: none !important;
+  }
+
+  /* Right action icons cluster */
+  .rightActions {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    flex-shrink: 0 !important;
+    margin-left: auto !important;
+  }
+
+  .shortlistBtn {
+    width: 34px !important;
+    height: 34px !important;
+    min-width: 34px !important;
+    max-width: 34px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .userActionGroup {
+    display: flex !important;
+    align-items: center !important;
+    gap: 0 !important;
+    flex-shrink: 0 !important;
+  }
+
+  .userProfileName {
+    display: none !important;
+  }
+
   .logoutBtn {
     display: none !important;
   }
-  .userActionGroup {
-    gap: 0 !important;
-  }
-  .rightActions {
-    gap: 6px !important;
-  }
-  .shortlistBtn {
-    width: 36px !important;
-    height: 36px !important;
-  }
-  .hamburgerBtn {
-    width: 36px !important;
-    height: 36px !important;
-    padding: 6px !important;
-  }
-}
 
-@media (max-width: 600px) {
-  .logo {
-    gap: 8px;
+  /* Profile Avatar Pill - Perfect circular badge */
+  .userProfilePill {
+    width: 34px !important;
+    height: 34px !important;
+    min-width: 34px !important;
+    max-width: 34px !important;
+    padding: 0 !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-shrink: 0 !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
   }
-  .logoIcon {
-    width: 36px;
-    height: 36px;
+
+  .userAvatarImg,
+  .userAvatarFallback {
+    width: 28px !important;
+    height: 28px !important;
+    min-width: 28px !important;
+    min-height: 28px !important;
+    border-radius: 50% !important;
+    object-fit: cover !important;
+    display: block !important;
+    margin: 0 auto !important;
   }
-  .brandTitle {
-    font-size: 1.15rem;
-  }
-  .brandSub {
-    display: none;
-  }
-  .navWrapper {
-    gap: 8px;
-  }
-  .rightActions {
-    gap: 5px;
-  }
-  .shortlistBtn {
-    width: 34px;
-    height: 34px;
-  }
-  .topBadge span {
-    font-size: 0.74rem;
-  }
-  .supportLink span {
-    font-size: 0.76rem;
+
+  /* Mobile Hamburger Menu Button - Always visible and easily tappable */
+  .hamburgerBtn {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 36px !important;
+    height: 36px !important;
+    min-width: 36px !important;
+    max-width: 36px !important;
+    flex-shrink: 0 !important;
+    padding: 6px !important;
+    border-radius: 8px !important;
+    box-sizing: border-box !important;
+    margin: 0 !important;
+    cursor: pointer !important;
   }
 }
 
@@ -824,61 +885,100 @@
   .logo {
     gap: 6px !important;
   }
+
   .logoIcon {
+    width: 30px !important;
+    height: 30px !important;
+    min-width: 30px !important;
+  }
+
+  .brandTitle {
+    font-size: 1.05rem !important;
+    letter-spacing: 0.3px !important;
+  }
+
+  .rightActions {
+    gap: 5px !important;
+  }
+
+  .shortlistBtn {
     width: 32px !important;
     height: 32px !important;
+    min-width: 32px !important;
+    max-width: 32px !important;
   }
-  .brandTitle {
-    font-size: 1.1rem !important;
-  }
-  .navWrapper {
-    gap: 6px !important;
-  }
-  .rightActions {
-    gap: 4px !important;
-  }
-  .shortlistBtn {
-    width: 34px !important;
-    height: 34px !important;
-  }
+
   .userProfilePill {
-    width: 34px !important;
-    height: 34px !important;
-    min-width: 34px !important;
+    width: 32px !important;
+    height: 32px !important;
+    min-width: 32px !important;
+    max-width: 32px !important;
   }
+
   .userAvatarImg,
   .userAvatarFallback {
-    width: 28px !important;
-    height: 28px !important;
+    width: 26px !important;
+    height: 26px !important;
+    min-width: 26px !important;
+    min-height: 26px !important;
   }
+
   .hamburgerBtn {
     width: 34px !important;
     height: 34px !important;
+    min-width: 34px !important;
+    max-width: 34px !important;
     padding: 5px !important;
   }
 }
 
 @media (max-width: 360px) {
-  .brandTitle {
-    font-size: 0.98rem !important;
+  .logo {
+    gap: 4px !important;
   }
+
   .logoIcon {
-    width: 28px !important;
-    height: 28px !important;
+    width: 26px !important;
+    height: 26px !important;
+    min-width: 26px !important;
   }
+
+  .brandTitle {
+    font-size: 0.94rem !important;
+    letter-spacing: 0px !important;
+  }
+
   .rightActions {
     gap: 3px !important;
   }
-  .shortlistBtn,
-  .userProfilePill,
-  .hamburgerBtn {
+
+  .shortlistBtn {
     width: 30px !important;
     height: 30px !important;
     min-width: 30px !important;
+    max-width: 30px !important;
   }
+
+  .userProfilePill {
+    width: 30px !important;
+    height: 30px !important;
+    min-width: 30px !important;
+    max-width: 30px !important;
+  }
+
   .userAvatarImg,
   .userAvatarFallback {
-    width: 26px !important;
-    height: 26px !important;
+    width: 24px !important;
+    height: 24px !important;
+    min-width: 24px !important;
+    min-height: 24px !important;
+  }
+
+  .hamburgerBtn {
+    width: 32px !important;
+    height: 32px !important;
+    min-width: 32px !important;
+    max-width: 32px !important;
+    padding: 4px !important;
   }
 }

@@ -71,6 +71,10 @@ export const Header: React.FC = () => {
     navigate('/', { replace: true });
   };
 
+  const isAdmin = user?.email?.toLowerCase() === 'vaishalibagave8@gmail.com' || 
+    (user as any)?.app_metadata?.role === 'admin' || 
+    (user as any)?.user_metadata?.role === 'admin';
+
   // Streamlined, uncluttered desktop navigation links
   const desktopNavLinks = [
     { to: '/search', label: language === 'mr' ? 'स्थळे शोधा' : 'Matches' },
@@ -78,6 +82,7 @@ export const Header: React.FC = () => {
     { to: '/membership', label: language === 'mr' ? 'योजना' : 'Plans' },
     { to: '/wedding-services', label: language === 'mr' ? 'लग्न सेवा' : 'Services' },
     { to: '/contact', label: language === 'mr' ? 'संपर्क' : 'Contact' },
+    ...(isAdmin ? [{ to: '/admin', label: language === 'mr' ? 'प्रशासन' : 'Admin' }] : []),
   ];
 
   // Full navigation links for the mobile drawer
@@ -163,8 +168,10 @@ export const Header: React.FC = () => {
               {/* Notification Bell with unread counter & real-time popup */}
               <NotificationBell isTransparent={isTransparent} />
 
-              {/* Compact 'आ / A' Glass Language Switcher */}
-              <LanguageSwitcher variant="header" isGlass={isTransparent} />
+              {/* Compact 'आ / A' Glass Language Switcher - hidden on mobile top navbar */}
+              <div className={styles.headerLangWrapper}>
+                <LanguageSwitcher variant="header" isGlass={isTransparent} />
+              </div>
               
               {isAuthenticated ? (
                 <div className={styles.userActionGroup}>

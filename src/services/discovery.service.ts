@@ -49,9 +49,9 @@ function mapDbProfileToProfile(row: any): Profile {
     if (gallery.length === 0) {
       gallery = row.profile_photos.map((p: any) => p.storage_path).filter(Boolean);
     }
-  } else if (photoUrl && gallery.length === 0) {
-    gallery = [photoUrl];
   }
+  // `photos` holds only the extra photos; the profile picture always leads the gallery.
+  if (photoUrl) gallery = [photoUrl, ...gallery.filter((url) => url !== photoUrl)];
   const photosHidden = Boolean(row.photos_hidden);
 
   const rawIncome = row.income || row.annual_income;

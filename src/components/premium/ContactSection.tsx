@@ -114,14 +114,18 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ profileId, isOwn
 
   const unlocked = Boolean(contact);
   const remaining = sub.unlockLimit === null ? null : Math.max(sub.unlockLimit - sub.unlocksToday, 0);
+  // Paid members are told to unlock (or upgrade), not to subscribe.
+  const isPaid = sub.plan !== 'none';
+  const contactMode = sub.has('unlock_contact') ? 'unlock' : isPaid ? 'upgrade' : 'subscribe';
+  const lockProps = { isUnlocked: unlocked, mode: contactMode, onUnlock: busy ? undefined : handleUnlock } as const;
 
   return (
     <>
       <div className={styles.infoGrid}>
-        <LockedField label={mr ? 'आडनाव' : 'Surname'} value={contact?.last_name || undefined} isUnlocked={unlocked} featureLabel="Surname" />
-        <LockedField label={mr ? 'ईमेल' : 'Email ID'} value={contact?.email || undefined} isUnlocked={unlocked} featureLabel="Email ID" />
-        <LockedField label={mr ? 'फोन नंबर' : 'Phone Number'} value={contact?.phone_number || undefined} isUnlocked={unlocked} featureLabel="Contact Number" />
-        <LockedField label={mr ? 'पत्ता' : 'Address'} value={contact?.address_line || undefined} isUnlocked={unlocked} featureLabel="Address" />
+        <LockedField label={mr ? 'आडनाव' : 'Surname'} value={contact?.last_name || undefined} featureLabel="Surname" {...lockProps} />
+        <LockedField label={mr ? 'ईमेल' : 'Email ID'} value={contact?.email || undefined} featureLabel="Email ID" {...lockProps} />
+        <LockedField label={mr ? 'फोन नंबर' : 'Phone Number'} value={contact?.phone_number || undefined} featureLabel="Contact Number" {...lockProps} />
+        <LockedField label={mr ? 'पत्ता' : 'Address'} value={contact?.address_line || undefined} featureLabel="Address" {...lockProps} />
       </div>
 
       {!unlocked && !isOwnProfile && (
@@ -143,6 +147,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ profileId, isOwn
           <LockedField
             label={mr ? 'कागदपत्रे' : 'Documents'}
             isUnlocked={false}
+            mode={isPaid ? 'upgrade' : 'subscribe'}
             featureLabel="Documents"
             reason="Documents require a Diamond or Platinum plan."
           />

@@ -13,6 +13,7 @@ import { ReportProfileModal } from '../components/common/ReportProfileModal';
 import { BlockProfileModal } from '../components/common/BlockProfileModal';
 import { SectionCard } from '../components/common/SectionCard';
 import { useAuth } from '../context/AuthContext';
+import { useSubscription } from '../context/SubscriptionContext';
 import {
   ArrowLeft,
   Heart,
@@ -38,6 +39,7 @@ export const ProfileDetailPage: React.FC = () => {
   const { language, localize, t } = useLanguage();
   const { success, error } = useToast();
   const { user, profile: authProfile } = useAuth();
+  const canUnlockContact = useSubscription().has('unlock_contact');
   const currentUserId = authProfile?.id || user?.id;
 
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -558,7 +560,9 @@ export const ProfileDetailPage: React.FC = () => {
         {/* 8. Contact Details — Subscription Locked */}
         <SectionCard
           title={language === 'mr' ? '८. संपर्क माहिती' : '8. Contact Details'}
-          subtitle={language === 'mr' ? 'आडनाव, ईमेल, फोन, पत्ता — सदस्यत्व आवश्यक' : 'Surname, Email, Phone & Address — Subscription Required'}
+          subtitle={canUnlockContact
+            ? (language === 'mr' ? 'आडनाव, ईमेल, फोन, पत्ता — आपल्या प्लॅनमध्ये अनलॉक करा' : 'Surname, Email, Phone & Address — unlock with your plan')
+            : (language === 'mr' ? 'आडनाव, ईमेल, फोन, पत्ता — सदस्यत्व आवश्यक' : 'Surname, Email, Phone & Address — Subscription Required')}
           icon={<Phone size={20} />}
         >
           <ContactSection profileId={profile.id} isOwnProfile={profile.id === authProfile?.id} onContactChange={setUnlockedContact} />
@@ -574,9 +578,13 @@ export const ProfileDetailPage: React.FC = () => {
               {language === 'mr' ? 'सुरक्षित संपर्क व गोपनीयता धोरण' : 'Matrimonial Privacy & Contact Protection'}
             </h4>
             <p className={styles.privacyText}>
-              {language === 'mr'
-                ? 'या प्रोफाइलचा फोन नंबर आणि ईमेल गोपनीय आहे. सदस्यत्व घेतल्यानंतरच संपर्क तपशील उपलब्ध होतात.'
-                : 'Phone, email and address are protected. Subscribe to a Silver or higher plan to unlock contact details.'}
+              {canUnlockContact
+                ? (language === 'mr'
+                  ? 'या प्रोफाइलचा फोन नंबर आणि ईमेल गोपनीय आहे. आपल्या प्लॅनमधून अनलॉक केल्यावरच संपर्क तपशील दिसतात आणि प्रत्येक अनलॉकची नोंद ठेवली जाते.'
+                  : 'Phone, email and address are protected. They are shown only after you unlock them with your plan, and every unlock is recorded.')
+                : (language === 'mr'
+                  ? 'या प्रोफाइलचा फोन नंबर आणि ईमेल गोपनीय आहे. सदस्यत्व घेतल्यानंतरच संपर्क तपशील उपलब्ध होतात.'
+                  : 'Phone, email and address are protected. Subscribe to a Silver or higher plan to unlock contact details.')}
             </p>
           </div>
         </div>

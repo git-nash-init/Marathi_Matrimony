@@ -17,7 +17,19 @@ interface LockedFieldProps {
   isUnlocked?: boolean;
   /** Optional className */
   className?: string;
+  /**
+   * subscribe: free member (opens the plans gate) · upgrade: paid, but the plan is too low ·
+   * unlock: the plan covers it, clicking calls onUnlock instead of the gate.
+   */
+  mode?: 'subscribe' | 'upgrade' | 'unlock';
+  onUnlock?: () => void;
 }
+
+const BADGE_TEXT = {
+  subscribe: { mr: 'पाहण्यासाठी सदस्य व्हा', en: 'Subscribe to View' },
+  upgrade: { mr: 'पाहण्यासाठी अपग्रेड करा', en: 'Upgrade to View' },
+  unlock: { mr: 'पाहण्यासाठी अनलॉक करा', en: 'Unlock to View' },
+};
 
 export const LockedField: React.FC<LockedFieldProps> = ({
   label,
@@ -26,9 +38,12 @@ export const LockedField: React.FC<LockedFieldProps> = ({
   reason,
   isUnlocked = false,
   className,
+  mode = 'subscribe',
+  onUnlock,
 }) => {
   const { language } = useLanguage();
   const [gateOpen, setGateOpen] = useState(false);
+  const activate = () => (mode === 'unlock' && onUnlock ? onUnlock() : setGateOpen(true));
 
   if (isUnlocked) {
     return (
@@ -43,18 +58,18 @@ export const LockedField: React.FC<LockedFieldProps> = ({
     <>
       <div
         className={`${styles.field} ${styles.locked} ${className || ''}`}
-        onClick={() => setGateOpen(true)}
+        onClick={activate}
         role="button"
         tabIndex={0}
-        onKeyDown={(e) => e.key === 'Enter' && setGateOpen(true)}
-        aria-label={`${label} — ${language === 'mr' ? 'सुरक्षित. पाहण्यासाठी सदस्य व्हा.' : 'locked. Click to unlock.'}`}
+        onKeyDown={(e) => e.key === 'Enter' && activate()}
+        aria-label={`${label} — ${language === 'mr' ? `सुरक्षित. ${BADGE_TEXT[mode].mr}.` : `locked. ${BADGE_TEXT[mode].en}.`}`}
       >
         <span className={styles.label}>{label}</span>
         <div className={styles.lockedRow}>
           <span className={styles.blurredValue} aria-hidden="true">•••••••••••</span>
           <div className={styles.lockBadge}>
             <Lock size={12} />
-            <span>{language === 'mr' ? 'पाहण्यासाठी सदस्य व्हा' : 'Subscribe to View'}</span>
+            <span>{BADGE_TEXT[mode][language === 'mr' ? 'mr' : 'en']}</span>
           </div>
         </div>
       </div>

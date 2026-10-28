@@ -167,28 +167,20 @@ export const Header: React.FC = () => {
               <LanguageSwitcher variant="header" isGlass={isTransparent} />
               
               {isAuthenticated ? (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <Link to="/dashboard" className={styles.userProfilePill}>
+                <div className={styles.userActionGroup}>
+                  <Link to="/dashboard" className={styles.userProfilePill} title={displayName}>
                     {avatarUrl ? (
                       <img
                         src={avatarUrl}
                         alt={displayName}
-                        style={{
-                          width: '24px',
-                          height: '24px',
-                          borderRadius: '50%',
-                          objectFit: 'cover',
-                          border: '1.5px solid var(--color-gold, #C59A45)',
-                          flexShrink: 0
-                        }}
+                        className={styles.userAvatarImg}
                       />
                     ) : (
-                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                        <circle cx="12" cy="7" r="4"></circle>
-                      </svg>
+                      <div className={styles.userAvatarFallback}>
+                        {displayName.charAt(0).toUpperCase()}
+                      </div>
                     )}
-                    <span>{displayName}</span>
+                    <span className={styles.userProfileName}>{displayName}</span>
                   </Link>
                   <button
                     type="button"

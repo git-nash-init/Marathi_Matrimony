@@ -125,6 +125,49 @@
   background: rgba(255, 255, 255, 0.28);
 }
 
+.header.transparentMode .userProfilePill {
+  color: #FFFFFF !important;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1.5px solid rgba(255, 255, 255, 0.35);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+}
+
+.header.transparentMode .userProfilePill span {
+  color: #FFFFFF !important;
+  transition: color 0.22s ease;
+}
+
+.header.transparentMode .userProfilePill:hover {
+  background: rgba(255, 255, 255, 0.95) !important;
+  border-color: var(--color-gold, #C59A45) !important;
+  color: var(--color-oxblood, #7B191E) !important;
+  text-shadow: none !important;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25), 0 0 14px rgba(223, 193, 123, 0.4);
+  transform: translateY(-2px);
+}
+
+.header.transparentMode .userProfilePill:hover span {
+  color: var(--color-oxblood, #7B191E) !important;
+}
+
+.header.transparentMode .logoutBtn {
+  color: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.header.transparentMode .logoutBtn:hover {
+  color: #DFC17B;
+  background: rgba(255, 255, 255, 0.25);
+  border-color: #DFC17B;
+  transform: translateY(-2px);
+}
+
+
 /* 2. Solid / Scrolled Frosted Mode */
 .header.solidMode,
 .header.scrolled {

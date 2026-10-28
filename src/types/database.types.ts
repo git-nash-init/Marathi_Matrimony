@@ -86,6 +86,7 @@ export type Database = {
           message: string
           name: string
           phone: string | null
+          priority: boolean
           status: string
           subject: string
           updated_at: string
@@ -98,6 +99,7 @@ export type Database = {
           message: string
           name: string
           phone?: string | null
+          priority?: boolean
           status?: string
           subject: string
           updated_at?: string
@@ -110,6 +112,7 @@ export type Database = {
           message?: string
           name?: string
           phone?: string | null
+          priority?: boolean
           status?: string
           subject?: string
           updated_at?: string
@@ -301,6 +304,7 @@ export type Database = {
           id: string
           receiver_profile_id: string
           sender_profile_id: string
+          sent_at: string
           status: Database["public"]["Enums"]["interest_status_type"]
           updated_at: string
         }
@@ -310,6 +314,7 @@ export type Database = {
           id?: string
           receiver_profile_id: string
           sender_profile_id: string
+          sent_at?: string
           status?: Database["public"]["Enums"]["interest_status_type"]
           updated_at?: string
         }
@@ -319,6 +324,7 @@ export type Database = {
           id?: string
           receiver_profile_id?: string
           sender_profile_id?: string
+          sent_at?: string
           status?: Database["public"]["Enums"]["interest_status_type"]
           updated_at?: string
         }
@@ -729,6 +735,44 @@ export type Database = {
           },
         ]
       }
+      profile_documents: {
+        Row: {
+          created_at: string
+          doc_type: string
+          file_name: string
+          id: string
+          profile_id: string
+          size_bytes: number
+          storage_path: string
+        }
+        Insert: {
+          created_at?: string
+          doc_type: string
+          file_name: string
+          id?: string
+          profile_id: string
+          size_bytes: number
+          storage_path: string
+        }
+        Update: {
+          created_at?: string
+          doc_type?: string
+          file_name?: string
+          id?: string
+          profile_id?: string
+          size_bytes?: number
+          storage_path?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profile_documents_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profile_photos: {
         Row: {
           approval_status: Database["public"]["Enums"]["photo_approval_type"]
@@ -814,9 +858,12 @@ export type Database = {
       }
       profiles: {
         Row: {
+          aadhaar_number: string | null
           about_me: string | null
           additional_qualifications: string | null
           age: number | null
+          approved_at: string | null
+          avatar_url: string | null
           brothers_count: number | null
           city: string | null
           college: string | null
@@ -849,12 +896,15 @@ export type Database = {
           languages_spoken: string[] | null
           last_name: string
           lifestyle_interests: string[] | null
+          listing_priority: number
           marital_status: Database["public"]["Enums"]["marital_status_type"]
           married_brothers_count: number | null
           married_sisters_count: number | null
           mother_occupation: string | null
           mother_tongue: string
           occupation: string | null
+          photos: string[] | null
+          photos_hidden: boolean | null
           profile_id: string
           profile_status: Database["public"]["Enums"]["profile_status_type"]
           profile_visibility: Database["public"]["Enums"]["profile_visibility_type"]
@@ -870,9 +920,12 @@ export type Database = {
           work_location: string | null
         }
         Insert: {
+          aadhaar_number?: string | null
           about_me?: string | null
           additional_qualifications?: string | null
           age?: number | null
+          approved_at?: string | null
+          avatar_url?: string | null
           brothers_count?: number | null
           city?: string | null
           college?: string | null
@@ -905,12 +958,15 @@ export type Database = {
           languages_spoken?: string[] | null
           last_name: string
           lifestyle_interests?: string[] | null
+          listing_priority?: number
           marital_status?: Database["public"]["Enums"]["marital_status_type"]
           married_brothers_count?: number | null
           married_sisters_count?: number | null
           mother_occupation?: string | null
           mother_tongue?: string
           occupation?: string | null
+          photos?: string[] | null
+          photos_hidden?: boolean | null
           profile_id?: string
           profile_status?: Database["public"]["Enums"]["profile_status_type"]
           profile_visibility?: Database["public"]["Enums"]["profile_visibility_type"]
@@ -926,9 +982,12 @@ export type Database = {
           work_location?: string | null
         }
         Update: {
+          aadhaar_number?: string | null
           about_me?: string | null
           additional_qualifications?: string | null
           age?: number | null
+          approved_at?: string | null
+          avatar_url?: string | null
           brothers_count?: number | null
           city?: string | null
           college?: string | null
@@ -961,12 +1020,15 @@ export type Database = {
           languages_spoken?: string[] | null
           last_name?: string
           lifestyle_interests?: string[] | null
+          listing_priority?: number
           marital_status?: Database["public"]["Enums"]["marital_status_type"]
           married_brothers_count?: number | null
           married_sisters_count?: number | null
           mother_occupation?: string | null
           mother_tongue?: string
           occupation?: string | null
+          photos?: string[] | null
+          photos_hidden?: boolean | null
           profile_id?: string
           profile_status?: Database["public"]["Enums"]["profile_status_type"]
           profile_visibility?: Database["public"]["Enums"]["profile_visibility_type"]
@@ -1189,6 +1251,60 @@ export type Database = {
           },
         ]
       }
+      user_subscriptions: {
+        Row: {
+          amount_paid: number
+          created_at: string
+          end_date: string
+          id: string
+          payment_id: string | null
+          plan_id: string
+          start_date: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount_paid: number
+          created_at?: string
+          end_date: string
+          id?: string
+          payment_id?: string | null
+          plan_id: string
+          start_date?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount_paid?: number
+          created_at?: string
+          end_date?: string
+          id?: string
+          payment_id?: string | null
+          plan_id?: string
+          start_date?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_subscriptions_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_subscriptions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       verifications: {
         Row: {
           document_paths: string[]
@@ -1266,6 +1382,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      activate_dummy_subscription: {
+        Args: { p_payment_method?: string; p_plan_slug: string }
+        Returns: Json
+      }
       activate_user_subscription: {
         Args: { p_payment_id?: string; p_plan_id: string; p_user_id: string }
         Returns: string
@@ -1318,26 +1438,66 @@ export type Database = {
         Args: { p_feature_key: string; p_user_id: string }
         Returns: Json
       }
+      expire_subscriptions: { Args: never; Returns: number }
+      feature_min_rank: { Args: { p_feature: string }; Returns: number }
       generate_public_profile_id: { Args: never; Returns: string }
+      get_contact_if_unlocked: { Args: { p_target: string }; Returns: Json }
+      get_my_contact_unlocks: { Args: never; Returns: Json }
+      get_my_contact_viewers: { Args: never; Returns: Json }
+      get_my_entitlements: { Args: never; Returns: Json }
+      get_my_interests: { Args: { p_direction: string }; Returns: Json }
       get_my_profile_id: { Args: never; Returns: string }
+      get_my_profile_visitors: { Args: never; Returns: Json }
+      get_my_viewed_profiles: { Args: never; Returns: Json }
+      get_new_profiles: { Args: never; Returns: Json }
       get_or_create_conversation: {
         Args: { p_caller_user_id: string; p_target_profile_id: string }
         Returns: string
       }
+      get_profile_documents: { Args: { p_target: string }; Returns: Json }
+      get_recommendations: {
+        Args: { p_limit?: number; p_offset?: number }
+        Returns: Json
+      }
+      has_feature: { Args: { p_feature: string }; Returns: boolean }
       is_admin: { Args: { p_user_id?: string }; Returns: boolean }
       is_profile_complete: { Args: { p_user_id: string }; Returns: boolean }
-      record_profile_view: {
-        Args: { p_viewed_profile_id: string; p_viewer_profile_id: string }
-        Returns: boolean
+      ist_day_start: { Args: never; Returns: string }
+      ist_month_start: { Args: never; Returns: string }
+      log_pdf_download: { Args: { p_target: string }; Returns: boolean }
+      my_plan: { Args: never; Returns: string }
+      plan_rank: { Args: { p_slug: string }; Returns: number }
+      pref_score: {
+        Args: {
+          pp: Database["public"]["Tables"]["partner_preferences"]["Row"]
+          t: Database["public"]["Tables"]["profiles"]["Row"]
+        }
+        Returns: number
+      }
+      profile_card_json: {
+        Args: { p: Database["public"]["Tables"]["profiles"]["Row"] }
+        Returns: Json
+      }
+      record_profile_view: { Args: { p_viewed: string }; Returns: boolean }
+      respond_to_interest: {
+        Args: { p_accept: boolean; p_interest_id: string }
+        Returns: Json
+      }
+      send_interest: {
+        Args: { p_message?: string; p_receiver: string }
+        Returns: Json
       }
       submit_profile_for_approval: {
         Args: { p_user_id: string }
         Returns: Json
       }
+      sync_listing_priority: { Args: { p_user: string }; Returns: undefined }
+      unlock_daily_limit: { Args: never; Returns: number }
       unlock_profile_contact: {
         Args: { p_target_profile_id: string }
         Returns: Json
       }
+      withdraw_interest: { Args: { p_receiver: string }; Returns: Json }
     }
     Enums: {
       admin_role_type: "super_admin" | "admin" | "moderator" | "support"

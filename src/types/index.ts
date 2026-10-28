@@ -41,6 +41,9 @@ export interface Profile {
   photoUrl: string;
   gallery: string[];
   photosHidden?: boolean;
+  /** 3 = Platinum, 2 = Diamond, 0 = none (set by the database from the active subscription) */
+  listingPriority?: number;
+  isHighlighted?: boolean;
   isVerified: boolean;
   isPremium: boolean;
   lastActive: LocalizedString;

@@ -30,7 +30,8 @@ function mapDbProfileToProfile(row: any): Profile {
   const feet = Math.floor(heightInches / 12);
   const inches = heightInches % 12;
 
-  const displayName = row.display_name || `${row.first_name || ''} ${row.last_name || ''}`.trim() || 'Marathi Member';
+  // Surname is a Silver+ unlock (served by unlock_profile_contact), so listings show the first name only.
+  const displayName = row.display_name || `${row.first_name || ''}`.trim() || 'Marathi Member';
 
   // Photo resolution: primary avatar_url from profile or joined photos
   let photoUrl = row.avatar_url || row.profile_photo_url || '';
@@ -119,6 +120,8 @@ function mapDbProfileToProfile(row: any): Profile {
     photoUrl: photoUrl,
     gallery: gallery,
     photosHidden: photosHidden,
+    listingPriority: Number(row.listing_priority) || 0,
+    isHighlighted: Number(row.listing_priority) >= 3,
     isVerified: row.verification_status === 'verified',
     isPremium: false,
     lastActive: {
@@ -343,6 +346,10 @@ export const discoveryService = {
       filtered.sort((a, b) => b.age - a.age);
     } else if (params.sortBy === 'incomeDesc') {
       filtered.sort((a, b) => b.annualIncomeValue - a.annualIncomeValue);
+    } else {
+      // Relevance / newest: Platinum (3) and Diamond (2) listings first. Array.sort is stable,
+      // so the existing order is kept within each priority tier.
+      filtered.sort((a, b) => (b.listingPriority ?? 0) - (a.listingPriority ?? 0));
     }
 
     const totalCount = filtered.length;

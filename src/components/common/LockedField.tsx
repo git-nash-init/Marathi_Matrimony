@@ -1,21 +1,19 @@
 import React, { useState } from 'react';
 import { Lock } from 'lucide-react';
 import { useLanguage } from '../../i18n/LanguageContext';
-import { useAuth } from '../../context/AuthContext';
-import { isAdminEmail } from '../../services/admin.service';
 import { SubscriptionGate } from './SubscriptionGate';
 import styles from './LockedField.module.css';
 
 interface LockedFieldProps {
   /** Visible label */
   label: string;
-  /** The actual value — shown blurred/hidden */
+  /** Real value — only pass it once the database has released it. Never rendered while locked. */
   value?: string;
   /** Feature name shown in gate modal */
   featureLabel?: string;
   /** Custom reason text */
   reason?: string;
-  /** Whether the field IS unlocked (user has subscription) */
+  /** Whether the field IS unlocked (server returned the value) */
   isUnlocked?: boolean;
   /** Optional className */
   className?: string;
@@ -30,17 +28,13 @@ export const LockedField: React.FC<LockedFieldProps> = ({
   className,
 }) => {
   const { language } = useLanguage();
-  const { user } = useAuth();
   const [gateOpen, setGateOpen] = useState(false);
 
-  const isAdmin = Boolean(user?.email && isAdminEmail(user.email));
-  const isFieldUnlocked = isUnlocked || isAdmin;
-
-  if (isFieldUnlocked && value) {
+  if (isUnlocked) {
     return (
       <div className={`${styles.field} ${className || ''}`}>
         <span className={styles.label}>{label}</span>
-        <span className={styles.value}>{value}</span>
+        <span className={styles.value}>{value || '—'}</span>
       </div>
     );
   }
@@ -57,9 +51,7 @@ export const LockedField: React.FC<LockedFieldProps> = ({
       >
         <span className={styles.label}>{label}</span>
         <div className={styles.lockedRow}>
-          <span className={styles.blurredValue}>
-            {value ? value : '•••••••••••'}
-          </span>
+          <span className={styles.blurredValue} aria-hidden="true">•••••••••••</span>
           <div className={styles.lockBadge}>
             <Lock size={12} />
             <span>{language === 'mr' ? 'पाहण्यासाठी सदस्य व्हा' : 'Subscribe to View'}</span>

@@ -7,7 +7,7 @@ import {
   PLAN_DISPLAY_INFO,
   localizePlanFeature,
 } from '../../services/subscription.service';
-import { isAdminEmail } from '../../services/admin.service';
+import { useSubscription } from '../../context/SubscriptionContext';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../i18n/LanguageContext';
 import styles from './SubscriptionGate.module.css';
@@ -35,7 +35,7 @@ export const SubscriptionGate: React.FC<SubscriptionGateProps> = ({
   const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const isAdmin = Boolean(user?.email && isAdminEmail(user.email));
+  const { isAdmin } = useSubscription();
 
   const loadPlans = useCallback(async () => {
     setLoading(true);

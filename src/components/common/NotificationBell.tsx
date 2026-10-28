@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { Bell, Heart, Check, Clock, ExternalLink } from 'lucide-react';
+import { Bell, Heart, Check, Clock, ExternalLink, Undo2 } from 'lucide-react';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
@@ -155,8 +155,10 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({ isTransparen
                   onClick={() => handleItemClick(notif)}
                 >
                   <div className={styles.itemIcon}>
-                    {notif.type === 'interest_received' ? (
+                    {notif.type === 'interest_received' || notif.type === 'interest_accepted' ? (
                       <Heart size={16} fill="#E11D48" color="#E11D48" />
+                    ) : notif.type === 'interest_withdrawn' || notif.type === 'interest_declined' ? (
+                      <Undo2 size={16} color="#6B7280" />
                     ) : (
                       <Bell size={16} color="var(--color-primary, #7B191E)" />
                     )}

@@ -39,11 +39,13 @@ export const PaymentSuccessPage: React.FC = () => {
 
   const info = PLAN_DISPLAY_INFO[plan.slug] || PLAN_DISPLAY_INFO['silver'];
   const months = Math.round(plan.duration_days / 30);
-  const startDate = new Date();
-  const endDate = new Date(startDate.getTime() + plan.duration_days * 86400000);
+  // Dates and transaction id come from the subscription/payment rows created by the database.
+  const receipt = location.state?.receipt as { transaction_id: string; start_date: string; end_date: string } | undefined;
+  const startDate = receipt ? new Date(receipt.start_date) : new Date();
+  const endDate = receipt ? new Date(receipt.end_date) : new Date(startDate.getTime() + plan.duration_days * 86400000);
   const planName = language === 'mr' ? (info.label_mr || plan.name) : plan.name;
 
-  const txnId = `TXN${Date.now().toString().slice(-10)}`;
+  const txnId = receipt?.transaction_id || '—';
 
   const formatDate = (d: Date) =>
     d.toLocaleDateString(language === 'mr' ? 'mr-IN' : 'en-IN', {

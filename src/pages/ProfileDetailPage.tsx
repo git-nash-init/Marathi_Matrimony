@@ -5,15 +5,13 @@ import { useToast } from '../context/ToastContext';
 import { Profile } from '../types';
 import { discoveryService } from '../services/discovery.service';
 import { shortlistService } from '../services/shortlist.service';
-import { interestService, InterestStatus } from '../services/interest.service';
 import { subscriptionService } from '../services/subscription.service';
-import { ExpressInterestModal } from '../components/common/ExpressInterestModal';
+import { InterestButton } from '../components/common/InterestButton';
+import { ContactSection } from '../components/premium/ContactSection';
 import { ReportProfileModal } from '../components/common/ReportProfileModal';
 import { BlockProfileModal } from '../components/common/BlockProfileModal';
 import { SectionCard } from '../components/common/SectionCard';
-import { LockedField } from '../components/common/LockedField';
 import { useAuth } from '../context/AuthContext';
-import { isAdminEmail } from '../services/admin.service';
 import {
   ArrowLeft,
   Heart,
@@ -26,7 +24,6 @@ import {
   User,
   Flag,
   Ban,
-  Sparkles,
   Lock,
   ChevronRight,
   Moon,
@@ -47,14 +44,8 @@ export const ProfileDetailPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isShortlisted, setIsShortlisted] = useState<boolean>(false);
   const [isShortlistBusy, setIsShortlistBusy] = useState<boolean>(false);
-  const [interestStatus, setInterestStatus] = useState<InterestStatus | null>(null);
-
-  // Subscription state
-  const [canUnlockContact, setCanUnlockContact] = useState<boolean>(false);
-  const [canUnlockDocuments, setCanUnlockDocuments] = useState<boolean>(false);
 
   // Modals
-  const [isInterestOpen, setIsInterestOpen] = useState<boolean>(false);
   const [isReportOpen, setIsReportOpen] = useState<boolean>(false);
   const [isBlockOpen, setIsBlockOpen] = useState<boolean>(false);
 
@@ -82,30 +73,10 @@ export const ProfileDetailPage: React.FC = () => {
       shortlistService.isShortlisted(id, currentUserId).then((val: boolean) => {
         if (isMounted) setIsShortlisted(val);
       });
-      interestService.getInterestStatus(id, currentUserId).then((status: InterestStatus | null) => {
-        if (isMounted) setInterestStatus(status);
-      });
     }
 
-    // Check subscription access for contact unlock
-    if (user?.id) {
-      const isAdmin = Boolean(user.email && isAdminEmail(user.email));
-      if (isAdmin) {
-        if (isMounted) {
-          setCanUnlockContact(true);
-          setCanUnlockDocuments(true);
-        }
-      } else {
-        subscriptionService.hasFeature(user.id, 'unlock_phone').then((val) => {
-          if (isMounted) setCanUnlockContact(val);
-        });
-        subscriptionService.hasFeature(user.id, 'unlock_documents').then((val) => {
-          if (isMounted) setCanUnlockDocuments(val);
-        });
-      }
-      // Track profile view
-      if (id) subscriptionService.trackProfileView(user.id, id);
-    }
+    // Record the visit (viewer is resolved server-side; one row per viewer per day)
+    if (user?.id && id) subscriptionService.trackProfileView(id);
 
     // Subscribe to shortlist updates
     const unsubscribe = shortlistService.subscribe((updatedId, nextState) => {
@@ -314,24 +285,7 @@ export const ProfileDetailPage: React.FC = () => {
 
           {/* Main Action Buttons */}
           <div className={styles.heroActions}>
-            <button
-              type="button"
-              className={`${styles.primaryInterestBtn} ${interestStatus === 'pending' || interestStatus === 'accepted' ? styles.interestSent : ''}`}
-              onClick={() => setIsInterestOpen(true)}
-              disabled={interestStatus === 'pending' || interestStatus === 'accepted'}
-            >
-              {interestStatus === 'pending' || interestStatus === 'accepted' ? (
-                <>
-                  <CheckCircle2 size={18} />
-                  <span>{language === 'mr' ? '✓ पसंती पाठवली' : '✓ Interest Sent'}</span>
-                </>
-              ) : (
-                <>
-                  <Sparkles size={18} />
-                  <span>{language === 'mr' ? 'पसंती व्यक्त करा' : 'Express Interest'}</span>
-                </>
-              )}
-            </button>
+            <InterestButton profile={profile} className={styles.primaryInterestBtn} sentClassName={styles.interestSent} />
 
             <button
               type="button"
@@ -604,47 +558,7 @@ export const ProfileDetailPage: React.FC = () => {
           subtitle={language === 'mr' ? 'आडनाव, ईमेल, फोन, पत्ता — सदस्यत्व आवश्यक' : 'Surname, Email, Phone & Address — Subscription Required'}
           icon={<Phone size={20} />}
         >
-          <div className={styles.infoGrid}>
-            <LockedField
-              label={language === 'mr' ? 'आडनाव' : 'Surname'}
-              value={(() => {
-                const nameStr = profile?.name ? (profile.name[language] || profile.name.en || '') : '';
-                const parts = nameStr.trim().split(' ');
-                return parts.length > 1 ? parts[parts.length - 1] : (language === 'mr' ? 'मराठा' : 'Maratha');
-              })()}
-              featureLabel="Surname"
-              isUnlocked={canUnlockContact}
-            />
-            <LockedField
-              label={language === 'mr' ? 'ईमेल' : 'Email ID'}
-              value={(() => {
-                const nameStr = profile?.name ? (profile.name.en || profile.name[language] || '') : 'candidate';
-                const first = nameStr.trim().split(' ')[0] || 'candidate';
-                return `${first.toLowerCase()}@sanaibandh.com`;
-              })()}
-              featureLabel="Email ID"
-              isUnlocked={canUnlockContact}
-            />
-            <LockedField
-              label={language === 'mr' ? 'फोन नंबर' : 'Phone Number'}
-              value="+91 98234 56789"
-              featureLabel="Contact Number"
-              isUnlocked={canUnlockContact}
-            />
-            <LockedField
-              label={language === 'mr' ? 'पत्ता' : 'Address'}
-              value={`${profile?.city ? (profile.city[language] || profile.city.en) : 'Pune'}, Maharashtra, India`}
-              featureLabel="Address"
-              isUnlocked={canUnlockContact}
-            />
-            <LockedField
-              label={language === 'mr' ? 'कागदपत्रे' : 'Documents'}
-              value={language === 'mr' ? 'आधार कार्ड, पदवी प्रमाणपत्र (पडताळणी झालेले)' : 'Aadhaar Card, Degree Certificate (Verified)'}
-              featureLabel="Documents"
-              isUnlocked={canUnlockDocuments}
-              reason="Documents require a Diamond or Platinum plan."
-            />
-          </div>
+          <ContactSection profileId={profile.id} isOwnProfile={profile.id === authProfile?.id} />
         </SectionCard>
 
         {/* Privacy Notice */}
@@ -666,13 +580,6 @@ export const ProfileDetailPage: React.FC = () => {
       </div>
 
       {/* Modals */}
-      <ExpressInterestModal
-        isOpen={isInterestOpen}
-        onClose={() => setIsInterestOpen(false)}
-        profile={profile}
-        onInterestSent={() => setInterestStatus('pending')}
-      />
-
       <ReportProfileModal
         isOpen={isReportOpen}
         onClose={() => setIsReportOpen(false)}

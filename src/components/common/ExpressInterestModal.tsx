@@ -5,8 +5,9 @@ import { interestService } from '../../services/interest.service';
 import { Heart, CheckCircle2, X, Sparkles, AlertCircle } from 'lucide-react';
 import { Button } from './Button';
 
-import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
+import { useSubscription } from '../../context/SubscriptionContext';
+import { SubscriptionGate } from './SubscriptionGate';
 
 interface ExpressInterestModalProps {
   isOpen: boolean;
@@ -22,11 +23,12 @@ export const ExpressInterestModal: React.FC<ExpressInterestModalProps> = ({
   onInterestSent,
 }) => {
   const { language, localize } = useLanguage();
-  const { user, profile: userProfile } = useAuth();
   const toast = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [gateOpen, setGateOpen] = useState(false);
+  const { interestLimit, interestsThisMonth } = useSubscription();
 
   if (!isOpen || !profile) return null;
 
@@ -36,18 +38,12 @@ export const ExpressInterestModal: React.FC<ExpressInterestModalProps> = ({
     setIsSubmitting(true);
     setError(null);
     try {
-      const senderName = userProfile
-        ? `${userProfile.first_name} ${userProfile.last_name || ''}`.trim()
-        : (user?.user_metadata?.full_name || 'Member');
+      const res = await interestService.sendInterest(profile.id);
 
-      const senderId = userProfile?.id || user?.id;
-      const senderPhoto = (userProfile as any)?.avatar_url || (user?.user_metadata as any)?.avatar_url;
-
-      const res = await interestService.sendInterest(profile.id, senderId, {
-        senderName,
-        senderPhoto,
-        senderCity: userProfile?.city || undefined,
-      });
+      if (!res.success && res.code === 'LIMIT_REACHED') {
+        setGateOpen(true);
+        return;
+      }
 
       if (res.success) {
         setIsSuccess(true);
@@ -123,6 +119,14 @@ export const ExpressInterestModal: React.FC<ExpressInterestModalProps> = ({
           <X size={20} />
         </button>
 
+        <SubscriptionGate
+          isOpen={gateOpen}
+          onClose={() => setGateOpen(false)}
+          featureLabel={language === 'mr' ? 'अमर्यादित पसंती' : 'Unlimited interests'}
+          reason={language === 'mr'
+            ? 'या महिन्याच्या ५ मोफत पसंती संपल्या आहेत. अमर्यादित पसंतीसाठी प्लॅन निवडा.'
+            : 'You have used all 5 free interests this month. Upgrade for unlimited interests.'}
+        />
         {isSuccess ? (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '14px', padding: '20px 0' }}>
             <div
@@ -177,6 +181,13 @@ export const ExpressInterestModal: React.FC<ExpressInterestModalProps> = ({
                   ? `तुम्हाला ${profileName} यांच्या प्रोफाइलमध्ये स्वारस्य व्यक्त करायचे आहे का?`
                   : `Would you like to express interest in ${profileName}'s profile?`}
               </p>
+              {interestLimit !== null && (
+                <p style={{ color: '#7A1F3D', fontSize: '0.82rem', fontWeight: 600, margin: '8px 0 0' }}>
+                  {language === 'mr'
+                    ? `या महिन्यात ${Math.max(interestLimit - interestsThisMonth, 0)} / ${interestLimit} पसंती शिल्लक`
+                    : `${Math.max(interestLimit - interestsThisMonth, 0)} of ${interestLimit} interests left this month`}
+                </p>
+              )}
             </div>
 
             {/* Profile Micro Card */}

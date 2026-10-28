@@ -43,6 +43,17 @@ export const ADMIN_VIP_SUBSCRIPTION: ActiveSubscription = {
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
+export interface ActivationReceipt {
+  subscription_id: string;
+  payment_id: string;
+  transaction_id: string;
+  plan_slug: string;
+  plan_name: string;
+  amount: number;
+  start_date: string;
+  end_date: string;
+}
+
 export interface SubscriptionPlan {
   id: string;
   name: string;
@@ -375,7 +386,7 @@ export const subscriptionService = {
     amount: number;
     paymentMethod: string;
     durationDays: number;
-  }): Promise<{ success: boolean; subscriptionId?: string; error?: string }> {
+  }): Promise<{ success: boolean; subscriptionId?: string; receipt?: ActivationReceipt; error?: string }> {
     const { userId, planId, planSlug, amount, paymentMethod, durationDays } = params;
 
     if (!isSupabaseConfigured()) {
@@ -405,67 +416,29 @@ export const subscriptionService = {
     }
 
     try {
-      // 1. Insert payment record
-      const fakeTransactionId = `TXN${Date.now()}${Math.floor(Math.random() * 10000)}`;
-      const { data: payment, error: payErr } = await supabase
-        .from('payments')
-        .insert({
-          user_id: userId,
-          plan_id: planId,
-          gateway: 'dummy',
-          gateway_payment_id: fakeTransactionId,
-          amount,
-          currency: 'INR',
-          status: 'completed',
-          payment_method: paymentMethod,
-          paid_at: new Date().toISOString(),
-          raw_response: { transaction_id: fakeTransactionId, mode: 'dummy' },
-        } as any)
-        .select()
-        .single();
-
-      if (payErr || !payment) {
-        return { success: false, error: payErr?.message || 'Payment insert failed' };
+      // Price and duration come from subscription_plans on the server; the client values are ignored.
+      // Swapping in a real gateway later only replaces this RPC.
+      const { data, error } = await supabase.rpc('activate_dummy_subscription', {
+        p_plan_slug: planSlug,
+        p_payment_method: paymentMethod,
+      });
+      if (error || !data) {
+        return { success: false, error: error?.message || 'Payment failed' };
       }
-
-      // 2. Insert subscription
-      const startDate = new Date();
-      const endDate = new Date(startDate.getTime() + durationDays * 86400000);
-
-      const { data: sub, error: subErr } = await supabase
-        .from('subscriptions')
-        .insert({
-          user_id: userId,
-          plan_id: planId,
-          payment_id: payment.id,
-          status: 'active',
-          start_date: startDate.toISOString(),
-          end_date: endDate.toISOString(),
-        } as any)
-        .select()
-        .single();
-
-      if (subErr || !sub) {
-        return { success: false, error: subErr?.message || 'Subscription creation failed' };
-      }
-
       this.invalidateCache();
-      return { success: true, subscriptionId: (sub as any).id };
+      return { success: true, subscriptionId: (data as any).subscription_id, receipt: data as unknown as ActivationReceipt };
     } catch (err: any) {
       return { success: false, error: err?.message || 'Unknown error' };
     }
   },
 
   // Track a profile view
-  async trackProfileView(viewerProfileId: string, viewedProfileId: string): Promise<void> {
-    if (!isSupabaseConfigured() || !viewerProfileId || !viewedProfileId) return;
-    if (viewerProfileId === viewedProfileId) return;
+  async trackProfileView(viewedProfileId: string): Promise<void> {
+    if (!isSupabaseConfigured() || !viewedProfileId) return;
 
     try {
-      await supabase.from('profile_views').insert({
-        viewer_profile_id: viewerProfileId,
-        viewed_profile_id: viewedProfileId,
-      } as any);
+      // Viewer is resolved from the session server-side; dedupes to one row per viewer per day.
+      await supabase.rpc('record_profile_view', { p_viewed: viewedProfileId });
     } catch (err) {
       // silent fail — tracking is non-critical
     }
@@ -537,11 +510,12 @@ function getMockPlans(): SubscriptionPlan[] {
       price: 1000,
       duration_days: 90,
       features: [
-        'Unlock Surname, Email, Phone & Address',
-        'View who visited your profile (30 days)',
+        'Unlock Surname, Email, Phone & Address of profiles (10 per day)',
+        'View who visited your profile (last 30 days)',
         'Send unlimited interests',
         'View contact numbers unlocked by you',
         'Recommendation profiles',
+        'Matchmaking',
       ],
       is_active: true,
       sort_order: 1,
@@ -555,11 +529,13 @@ function getMockPlans(): SubscriptionPlan[] {
       duration_days: 365,
       features: [
         'Everything in Silver',
+        '25 contact unlocks per day',
         'Unlock Documents section',
         'See who viewed your contact number',
         'Priority placement in search results',
         'Advanced matchmaking algorithm',
         'Unlimited profile view history',
+        'Download profile PDF',
       ],
       is_active: true,
       sort_order: 2,

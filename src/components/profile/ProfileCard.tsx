@@ -5,8 +5,7 @@ import { useLanguage } from '../../i18n/LanguageContext';
 import { useToast } from '../../context/ToastContext';
 import { useAuth } from '../../context/AuthContext';
 import { shortlistService } from '../../services/shortlist.service';
-import { interestService, InterestStatus } from '../../services/interest.service';
-import { ExpressInterestModal } from '../common/ExpressInterestModal';
+import { InterestButton } from '../common/InterestButton';
 import { ReportProfileModal } from '../common/ReportProfileModal';
 import { BlockProfileModal } from '../common/BlockProfileModal';
 import {
@@ -20,7 +19,6 @@ import {
   Flag,
   Ban,
   Eye,
-  Sparkles,
   Lock,
 } from 'lucide-react';
 import styles from './ProfileCard.module.css';
@@ -39,9 +37,7 @@ export const ProfileCard: React.FC<ProfileCardProps> = ({ profile, onBlock, onSh
 
   const [isShortlisted, setIsShortlisted] = useState(false);
   const [isShortlistBusy, setIsShortlistBusy] = useState(false);
-  const [interestStatus, setInterestStatus] = useState<InterestStatus | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isInterestModalOpen, setIsInterestModalOpen] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [isBlockModalOpen, setIsBlockModalOpen] = useState(false);
 
@@ -49,9 +45,6 @@ export const ProfileCard: React.FC<ProfileCardProps> = ({ profile, onBlock, onSh
     let isMounted = true;
     shortlistService.isShortlisted(profile.id, currentUserId).then((val) => {
       if (isMounted) setIsShortlisted(val);
-    });
-    interestService.getInterestStatus(profile.id, currentUserId).then((status) => {
-      if (isMounted) setInterestStatus(status);
     });
 
     // Subscribe to shortlist updates from any component
@@ -95,11 +88,6 @@ export const ProfileCard: React.FC<ProfileCardProps> = ({ profile, onBlock, onSh
     }
   };
 
-  const handleOpenInterest = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsInterestModalOpen(true);
-  };
 
   const profileName = localize(profile.name);
   const city = localize(profile.city);
@@ -113,7 +101,15 @@ export const ProfileCard: React.FC<ProfileCardProps> = ({ profile, onBlock, onSh
 
   return (
     <>
-      <div className={styles.card}>
+      <div
+        className={styles.card}
+        style={profile.isHighlighted ? { border: '2px solid #C9A227', boxShadow: '0 0 0 3px rgba(201,162,39,0.2)', position: 'relative' } : undefined}
+      >
+        {profile.isHighlighted && (
+          <span style={{ position: 'absolute', top: 10, left: 10, zIndex: 2, background: '#C9A227', color: '#fff', fontSize: '0.7rem', fontWeight: 700, padding: '3px 10px', borderRadius: 12 }}>
+            ★ Platinum
+          </span>
+        )}
         {/* Top Media / Photo Section */}
         <div className={styles.mediaContainer}>
           <Link to={`/profile/${profile.id}`} className={styles.photoLink}>
@@ -265,36 +261,12 @@ export const ProfileCard: React.FC<ProfileCardProps> = ({ profile, onBlock, onSh
               <span>{language === 'mr' ? 'प्रोफाइल पहा' : 'View Profile'}</span>
             </Link>
 
-            <button
-              type="button"
-              className={`${styles.interestBtn} ${interestStatus === 'pending' || interestStatus === 'accepted' ? styles.interestSent : ''}`}
-              onClick={handleOpenInterest}
-              disabled={interestStatus === 'pending' || interestStatus === 'accepted'}
-            >
-              {interestStatus === 'pending' || interestStatus === 'accepted' ? (
-                <>
-                  <CheckCircle2 size={15} />
-                  <span>{language === 'mr' ? 'पसंती पाठवली' : 'Interest Sent'}</span>
-                </>
-              ) : (
-                <>
-                  <Sparkles size={15} />
-                  <span>{language === 'mr' ? 'पसंती कळवा' : 'Express Interest'}</span>
-                </>
-              )}
-            </button>
+            <InterestButton profile={profile} className={styles.interestBtn} sentClassName={styles.interestSent} />
           </div>
         </div>
       </div>
 
       {/* Modals */}
-      <ExpressInterestModal
-        isOpen={isInterestModalOpen}
-        onClose={() => setIsInterestModalOpen(false)}
-        profile={profile}
-        onInterestSent={() => setInterestStatus('pending')}
-      />
-
       <ReportProfileModal
         isOpen={isReportModalOpen}
         onClose={() => setIsReportModalOpen(false)}

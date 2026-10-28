@@ -3,7 +3,7 @@ import { supabase, isSupabaseConfigured } from '../lib/supabase';
 export interface AppNotification {
   id: string;
   user_id?: string;
-  type: 'interest_received' | 'interest_accepted' | 'profile_view' | 'system';
+  type: 'interest_received' | 'interest_accepted' | 'interest_declined' | 'interest_withdrawn' | 'profile_view' | 'system';
   title: string;
   message: string;
   action_url?: string;

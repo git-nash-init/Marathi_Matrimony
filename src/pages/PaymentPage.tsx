@@ -15,6 +15,7 @@ import {
   EyeOff,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useSubscription } from '../context/SubscriptionContext';
 import { useLanguage } from '../i18n/LanguageContext';
 import {
   subscriptionService,
@@ -34,6 +35,7 @@ export const PaymentPage: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { refresh: refreshEntitlements } = useSubscription();
   const { language } = useLanguage();
 
   const [plan, setPlan] = useState<SubscriptionPlan | null>(location.state?.plan || null);
@@ -103,11 +105,13 @@ export const PaymentPage: React.FC = () => {
     setProcessing(false);
 
     if (result.success) {
+      await refreshEntitlements();
       navigate('/payment/success', {
         replace: true,
         state: {
           plan,
           subscriptionId: result.subscriptionId,
+          receipt: result.receipt,
           method,
         },
       });

@@ -4,6 +4,7 @@ import { ErrorBoundary } from './components/common/ErrorBoundary';
 import { LanguageProvider } from './i18n/LanguageContext';
 import { AuthProvider } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
+import { SubscriptionProvider } from './context/SubscriptionContext';
 import { MainLayout } from './layouts/MainLayout';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 
@@ -39,6 +40,7 @@ export const App: React.FC = () => {
     <ErrorBoundary>
       <LanguageProvider>
         <AuthProvider>
+          <SubscriptionProvider>
           <ToastProvider>
             <BrowserRouter>
               <Routes>
@@ -184,6 +186,7 @@ export const App: React.FC = () => {
             </Routes>
           </BrowserRouter>
         </ToastProvider>
+          </SubscriptionProvider>
         </AuthProvider>
       </LanguageProvider>
     </ErrorBoundary>

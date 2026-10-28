@@ -505,9 +505,11 @@ export type Database = {
           max_height: number
           min_age: number
           min_height: number
+          min_income: string | null
           other_preferences: string | null
           preferred_cities: string[] | null
           preferred_community: string[] | null
+          preferred_diet: string[]
           preferred_education: string[] | null
           preferred_marital_status:
             | Database["public"]["Enums"]["marital_status_type"][]
@@ -525,9 +527,11 @@ export type Database = {
           max_height?: number
           min_age?: number
           min_height?: number
+          min_income?: string | null
           other_preferences?: string | null
           preferred_cities?: string[] | null
           preferred_community?: string[] | null
+          preferred_diet?: string[]
           preferred_education?: string[] | null
           preferred_marital_status?:
             | Database["public"]["Enums"]["marital_status_type"][]
@@ -545,9 +549,11 @@ export type Database = {
           max_height?: number
           min_age?: number
           min_height?: number
+          min_income?: string | null
           other_preferences?: string | null
           preferred_cities?: string[] | null
           preferred_community?: string[] | null
+          preferred_diet?: string[]
           preferred_education?: string[] | null
           preferred_marital_status?:
             | Database["public"]["Enums"]["marital_status_type"][]
@@ -1382,6 +1388,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      aadhaar_auto_approval_enabled: { Args: never; Returns: boolean }
       activate_dummy_subscription: {
         Args: { p_payment_method?: string; p_plan_slug: string }
         Returns: Json
@@ -1391,34 +1398,22 @@ export type Database = {
         Returns: string
       }
       admin_approve_profile: {
-        Args: {
-          p_admin_user_id: string
-          p_notes?: string
-          p_profile_id: string
-        }
+        Args: { p_notes?: string; p_profile_id: string }
         Returns: boolean
       }
+      admin_batch_approve_pending: { Args: never; Returns: number }
+      admin_list_profiles: { Args: never; Returns: Json }
       admin_moderate_photo: {
-        Args: {
-          p_admin_user_id: string
-          p_notes?: string
-          p_photo_id: string
-          p_status: string
-        }
+        Args: { p_notes?: string; p_photo_id: string; p_status: string }
         Returns: boolean
       }
       admin_reject_profile: {
-        Args: {
-          p_admin_user_id: string
-          p_profile_id: string
-          p_reason: string
-        }
+        Args: { p_profile_id: string; p_reason?: string }
         Returns: boolean
       }
       admin_resolve_report: {
         Args: {
           p_action_taken?: string
-          p_admin_user_id: string
           p_notes?: string
           p_report_id: string
           p_status: string
@@ -1426,12 +1421,7 @@ export type Database = {
         Returns: boolean
       }
       admin_toggle_user_suspension: {
-        Args: {
-          p_admin_user_id: string
-          p_profile_id: string
-          p_reason?: string
-          p_suspend: boolean
-        }
+        Args: { p_profile_id: string; p_reason?: string; p_suspend: boolean }
         Returns: boolean
       }
       check_user_entitlement: {
@@ -1446,12 +1436,13 @@ export type Database = {
       get_my_contact_viewers: { Args: never; Returns: Json }
       get_my_entitlements: { Args: never; Returns: Json }
       get_my_interests: { Args: { p_direction: string }; Returns: Json }
+      get_my_private_profile: { Args: never; Returns: Json }
       get_my_profile_id: { Args: never; Returns: string }
       get_my_profile_visitors: { Args: never; Returns: Json }
       get_my_viewed_profiles: { Args: never; Returns: Json }
       get_new_profiles: { Args: never; Returns: Json }
       get_or_create_conversation: {
-        Args: { p_caller_user_id: string; p_target_profile_id: string }
+        Args: { p_target_profile_id: string }
         Returns: string
       }
       get_profile_documents: { Args: { p_target: string }; Returns: Json }
@@ -1460,6 +1451,7 @@ export type Database = {
         Returns: Json
       }
       has_feature: { Args: { p_feature: string }; Returns: boolean }
+      income_lakhs: { Args: { p: string }; Returns: number }
       is_admin: { Args: { p_user_id?: string }; Returns: boolean }
       is_profile_complete: { Args: { p_user_id: string }; Returns: boolean }
       ist_day_start: { Args: never; Returns: string }
@@ -1479,6 +1471,7 @@ export type Database = {
         Returns: Json
       }
       record_profile_view: { Args: { p_viewed: string }; Returns: boolean }
+      require_admin: { Args: never; Returns: string }
       respond_to_interest: {
         Args: { p_accept: boolean; p_interest_id: string }
         Returns: Json

@@ -248,7 +248,7 @@ export const DashboardPage: React.FC = () => {
         </div>
 
         {ent.plan === 'platinum' && !ent.isAdmin && (
-          <div style={{ marginBottom: 16 }}><ConciergeCard language={language} profileCode={profile?.profile_id} /></div>
+          <div style={{ marginBottom: 16 }}><ConciergeCard profileCode={profile?.profile_id} /></div>
         )}
 
         {/* ── Activity Panel ─────────────────────────────── */}

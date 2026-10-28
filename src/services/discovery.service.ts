@@ -1,4 +1,5 @@
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import { PROFILE_COLUMNS } from '../lib/profileColumns';
 import { Profile, SearchFiltersState } from '../types';
 import { mockProfiles } from '../data/mockProfiles';
 import { interactionService } from './interaction.service';
@@ -10,7 +11,11 @@ export interface DiscoveryQueryParams extends Partial<SearchFiltersState> {
   page?: number;
   pageSize?: number;
   userProfileId?: string;
+  /** Platinum early access: include profiles approved in the last 72 hours. */
+  earlyAccess?: boolean;
 }
+
+const EARLY_ACCESS_MS = 72 * 60 * 60 * 1000;
 
 export interface DiscoveryResponse {
   profiles: Profile[];
@@ -198,8 +203,14 @@ export const discoveryService = {
         // Build Supabase SQL Query for approved profiles
         let query = supabase
           .from('profiles')
-          .select('*, profile_photos(storage_path, is_primary, approval_status)')
+          .select(`${PROFILE_COLUMNS}, profile_photos(storage_path, is_primary, approval_status)`)
           .eq('profile_status', 'approved');
+
+        // Newly approved profiles reach non-Platinum members after the early-access window.
+        if (!params.earlyAccess) {
+          const cutoff = new Date(Date.now() - EARLY_ACCESS_MS).toISOString();
+          query = query.or(`approved_at.is.null,approved_at.lte.${cutoff}`);
+        }
 
         // Gender filter
         if (params.gender && params.gender !== 'all') {
@@ -371,7 +382,7 @@ export const discoveryService = {
     if (isSupabaseConfigured()) {
       try {
         const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
-        const query = (supabase.from('profiles') as any).select('*');
+        const query = (supabase.from('profiles') as any).select(PROFILE_COLUMNS);
         const { data, error } = isUuid
           ? await query.eq('id', id).maybeSingle()
           : await query.eq('profile_id', id).maybeSingle();

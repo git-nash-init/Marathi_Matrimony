@@ -24,7 +24,7 @@ import {
   AlertCircle,
   Loader2,
 } from 'lucide-react';
-import { adminService } from '../../services/admin.service';
+import { PROFILE_COLUMNS, fetchMyPrivateFields } from '../../lib/profileColumns';
 
 interface ProfileBuilderProps {
   mode?: 'create' | 'edit';
@@ -60,14 +60,17 @@ export const ProfileBuilderContainer: React.FC<ProfileBuilderProps> = ({ mode: _
       try {
         setIsLoading(true);
         // Load profile
-        const { data: profile, error: profileErr } = await (supabase.from('profiles') as any)
-          .select('*')
+        const { data: profileRow, error: profileErr } = await (supabase.from('profiles') as any)
+          .select(PROFILE_COLUMNS)
           .eq('user_id', user.id)
           .maybeSingle();
 
         if (profileErr && profileErr.code !== 'PGRST116') {
           console.error('Error fetching profile:', profileErr);
         }
+
+        // Surname and Aadhaar are not selectable directly; the owner reads them via RPC.
+        const profile = profileRow ? { ...profileRow, ...(await fetchMyPrivateFields()) } : null;
 
         if (profile && isMounted) {
           setProfileId(profile.id);
@@ -77,6 +80,10 @@ export const ProfileBuilderContainer: React.FC<ProfileBuilderProps> = ({ mode: _
             .select('*')
             .eq('profile_id', profile.id)
             .maybeSingle();
+
+          // Column names follow the save payload below (e.g. height, education, income, city).
+          const prefList = (v: unknown, fallback: string[]) =>
+            Array.isArray(v) && v.length ? (v as string[]) : fallback;
 
           setFormData({
             // Basic
@@ -91,7 +98,7 @@ export const ProfileBuilderContainer: React.FC<ProfileBuilderProps> = ({ mode: _
             profile_for: profile.profile_for || 'self',
             gender: profile.gender || 'male',
             date_of_birth: profile.date_of_birth || '',
-            height_cm: profile.height_cm || 165,
+            height_cm: profile.height || 165,
             marital_status: profile.marital_status || 'never_married',
             mother_tongue: profile.mother_tongue || 'Marathi',
             religion: profile.religion || 'Hindu',
@@ -102,14 +109,14 @@ export const ProfileBuilderContainer: React.FC<ProfileBuilderProps> = ({ mode: _
             horoscope_match_required: profile.horoscope_match_required ?? true,
 
             // Education & Career
-            highest_education: profile.highest_education || '',
+            highest_education: profile.education || '',
             education_detail: profile.education_detail || '',
-            college_institution: profile.college_institution || '',
+            college_institution: profile.college || '',
             occupation: profile.occupation || '',
             occupation_detail: profile.occupation_detail || '',
             employed_in: profile.employed_in || '',
-            organization_name: profile.organization_name || '',
-            annual_income: profile.annual_income || '',
+            organization_name: profile.company || '',
+            annual_income: profile.income || '',
             work_location: (profile as any).work_location || '',
 
             // Family
@@ -119,9 +126,9 @@ export const ProfileBuilderContainer: React.FC<ProfileBuilderProps> = ({ mode: _
             family_values: profile.family_values || 'traditional',
             family_status: profile.family_status || 'middle_class',
             brothers_count: (profile as any).brothers_count ?? 0,
-            brothers_married: profile.brothers_married ?? 0,
+            brothers_married: profile.married_brothers_count ?? 0,
             sisters_count: (profile as any).sisters_count ?? 0,
-            sisters_married: profile.sisters_married ?? 0,
+            sisters_married: profile.married_sisters_count ?? 0,
 
             // Lifestyle & Location
             diet: profile.diet || 'vegetarian',
@@ -129,10 +136,10 @@ export const ProfileBuilderContainer: React.FC<ProfileBuilderProps> = ({ mode: _
             drinking: profile.drinking || 'no',
             hobbies: (profile as any).hobbies || [],
             personality: (profile as any).personality || '',
-            current_city: profile.current_city || '',
+            current_city: profile.city || '',
             current_district: profile.current_district || '',
-            current_state: profile.current_state || 'Maharashtra',
-            current_country: profile.current_country || 'India',
+            current_state: profile.state || 'Maharashtra',
+            current_country: profile.country || 'India',
             citizenship: profile.citizenship || 'Indian',
             native_place: (profile as any).native_place || '',
             native_district: (profile as any).native_district || '',
@@ -143,18 +150,18 @@ export const ProfileBuilderContainer: React.FC<ProfileBuilderProps> = ({ mode: _
             // Partner Preferences
             partner_min_age: prefData?.min_age || 21,
             partner_max_age: prefData?.max_age || 32,
-            partner_min_height: prefData?.min_height_cm || 150,
-            partner_max_height: prefData?.max_height_cm || 185,
-            partner_marital_status: prefData?.marital_status || ['any'],
-            partner_religion: prefData?.religion || ['Hindu'],
-            partner_communities: prefData?.communities || ['any'],
+            partner_min_height: prefData?.min_height || 150,
+            partner_max_height: prefData?.max_height || 185,
+            partner_marital_status: prefList(prefData?.preferred_marital_status, ['any']),
+            partner_religion: prefList(prefData?.preferred_religion, ['Hindu']),
+            partner_communities: prefList(prefData?.preferred_community, ['any']),
             partner_manglik: prefData?.manglik || 'does_not_matter',
-            partner_education: prefData?.education_levels || ['any'],
-            partner_occupation: prefData?.occupations || ['any'],
+            partner_education: prefList(prefData?.preferred_education, ['any']),
+            partner_occupation: prefList(prefData?.preferred_occupation, ['any']),
             partner_min_income: prefData?.min_income || 'any',
-            partner_diet: prefData?.diet || ['any'],
+            partner_diet: prefList(prefData?.preferred_diet, ['any']),
             partner_location: prefData?.preferred_cities?.join(', ') || '',
-            partner_notes: prefData?.notes || '',
+            partner_notes: prefData?.other_preferences || '',
           });
         } else if (isMounted) {
           try {
@@ -238,10 +245,11 @@ export const ProfileBuilderContainer: React.FC<ProfileBuilderProps> = ({ mode: _
       setIsSaving(true);
       setSaveErrorMessage(null);
 
-      // Systematic verification & approval logic
-      const isAutoVerify = adminService.getAutoVerifySetting();
-      const hasAadhaar = Boolean(formData.id_number && formData.id_number.trim().length >= 12);
-      const isAutoApproved = status === 'pending_review' && hasAadhaar && isAutoVerify;
+      // Requested status only: the profiles trigger decides the final status. It approves an
+      // Aadhaar submission only while the admin's auto-approval setting is on, and keeps an
+      // approved profile live while it is edited.
+      const hasAadhaar = Boolean(formData.id_number && formData.id_number.replace(/\s/g, '').length === 12);
+      const isAutoApproved = status === 'pending_review' && hasAadhaar;
 
       const profileStatusEnum = isAutoApproved
         ? 'approved'
@@ -376,6 +384,10 @@ export const ProfileBuilderContainer: React.FC<ProfileBuilderProps> = ({ mode: _
           ? formData.partner_marital_status.filter((m) => m && m !== 'any')
           : ['never_married'];
 
+        const prefDiet = Array.isArray(formData.partner_diet)
+          ? formData.partner_diet.filter((d) => d && d !== 'any')
+          : [];
+
         const prefPayload: Record<string, any> = {
           profile_id: savedProfileId,
           min_age: Number(formData.partner_min_age) || 18,
@@ -389,6 +401,8 @@ export const ProfileBuilderContainer: React.FC<ProfileBuilderProps> = ({ mode: _
           preferred_religion: prefRel,
           preferred_community: prefComm,
           preferred_marital_status: prefMarital.length ? prefMarital : ['never_married'],
+          preferred_diet: prefDiet,
+          min_income: formData.partner_min_income && formData.partner_min_income !== 'any' ? formData.partner_min_income : null,
           other_preferences: formData.partner_notes || null,
           updated_at: new Date().toISOString()
         };

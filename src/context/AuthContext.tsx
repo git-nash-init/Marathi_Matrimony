@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { User, Session, AuthError } from '@supabase/supabase-js';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import { PROFILE_COLUMNS, fetchMyPrivateFields } from '../lib/profileColumns';
 import { Database } from '../types/database.types';
 
 type ProfileRow = Database['public']['Tables']['profiles']['Row'];
@@ -34,9 +35,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const fetchProfileForUser = useCallback(async (userId: string): Promise<ProfileRow | null> => {
     if (!isConfigured) return null;
     try {
-      const { data, error } = await supabase
+      const { data: row, error } = await supabase
         .from('profiles')
-        .select('*')
+        .select(PROFILE_COLUMNS)
         .eq('user_id', userId)
         .maybeSingle();
 
@@ -44,6 +45,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.warn('Could not fetch user profile:', error.message);
         return null;
       }
+      const data = row ? ({ ...(row as object), ...(await fetchMyPrivateFields()) } as ProfileRow) : null;
       setProfile(data);
       return data;
     } catch (err) {

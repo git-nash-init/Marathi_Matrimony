@@ -3,6 +3,7 @@ import { useSearchParams, useParams } from 'react-router-dom';
 import { useLanguage } from '../i18n/LanguageContext';
 import { SearchFiltersState, Profile } from '../types';
 import { useAuth } from '../context/AuthContext';
+import { useSubscription } from '../context/SubscriptionContext';
 import { discoveryService } from '../services/discovery.service';
 import { ProfileCard, ProfileCardSkeleton } from '../components/profile/ProfileCard';
 import { SearchFilters } from '../components/search/SearchFilters';
@@ -41,6 +42,7 @@ const DEFAULT_FILTERS: SearchFiltersState = {
 export const SearchPage: React.FC = () => {
   const { language } = useLanguage();
   const { user, profile } = useAuth();
+  const earlyAccess = useSubscription().has('early_access');
   const [searchParams, setSearchParams] = useSearchParams();
   const routeParams = useParams<{ category?: string; location?: string }>();
   const [, startTransition] = useTransition();
@@ -150,6 +152,7 @@ export const SearchPage: React.FC = () => {
           sortBy,
           page: currentPage,
           pageSize: 12,
+          earlyAccess,
         });
 
         if (append) {
@@ -167,7 +170,7 @@ export const SearchPage: React.FC = () => {
         setIsLoadingMore(false);
       }
     },
-    [debouncedSearch, filters, sortBy, language]
+    [debouncedSearch, filters, sortBy, language, earlyAccess]
   );
 
   // Trigger search on filter / query / sort change

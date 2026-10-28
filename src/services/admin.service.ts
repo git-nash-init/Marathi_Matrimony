@@ -27,24 +27,30 @@ export const isAdminEmail = (email?: string | null): boolean => {
   return email.toLowerCase().trim() === PRIMARY_ADMIN_EMAIL;
 };
 
-const STORAGE_AUTO_VERIFY_KEY = 'mm_admin_auto_verify_aadhaar';
+const AUTO_APPROVAL_KEY = 'aadhaar_auto_approval';
 
 export const adminService = {
   PRIMARY_ADMIN_EMAIL,
   isAdminEmail,
 
-  // Check if auto-verify for Aadhaar submissions is enabled (default: true for seamless onboarding)
-  getAutoVerifySetting(): boolean {
-    const saved = localStorage.getItem(STORAGE_AUTO_VERIFY_KEY);
-    if (saved === null) return true; // Default to true so users don't get stuck in pending
-    return saved === 'true';
+  // Aadhaar auto-approval is a platform setting enforced by the profiles trigger (migration 011).
+  async getAutoVerifySetting(): Promise<boolean> {
+    const { data } = await (supabase.from('platform_settings') as any)
+      .select('value')
+      .eq('key', AUTO_APPROVAL_KEY)
+      .maybeSingle();
+    return data ? data.value === true : true;
   },
 
-  setAutoVerifySetting(enabled: boolean): void {
-    localStorage.setItem(STORAGE_AUTO_VERIFY_KEY, enabled ? 'true' : 'false');
+  async setAutoVerifySetting(enabled: boolean): Promise<boolean> {
+    const { error } = await (supabase.from('platform_settings') as any)
+      .update({ value: enabled, updated_at: new Date().toISOString() })
+      .eq('key', AUTO_APPROVAL_KEY);
+    if (error) console.error('Auto-approval setting error:', error);
+    return !error;
   },
 
-  // Fetch all profiles for administrative review
+  // Fetch all profiles (including surname/Aadhaar) for administrative review
   async fetchProfiles(params?: {
     status?: 'all' | 'pending' | 'verified' | 'rejected' | 'draft';
     search?: string;
@@ -54,29 +60,21 @@ export const adminService = {
     }
 
     try {
-      let query = (supabase.from('profiles') as any)
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (params?.status && params.status !== 'all') {
-        if (params.status === 'pending') {
-          query = query.or('verification_status.eq.pending,profile_status.eq.pending_approval');
-        } else if (params.status === 'verified') {
-          query = query.eq('verification_status', 'verified');
-        } else if (params.status === 'rejected') {
-          query = query.or('verification_status.eq.rejected,profile_status.eq.rejected');
-        } else if (params.status === 'draft') {
-          query = query.eq('profile_status', 'draft');
-        }
-      }
-
-      const { data, error } = await query;
+      const { data, error } = await supabase.rpc('admin_list_profiles');
       if (error) {
         console.error('Error fetching admin profiles:', error);
         return [];
       }
 
-      let results: AdminProfileItem[] = data || [];
+      let results = ((data as unknown as AdminProfileItem[]) || []).filter((p) => {
+        switch (params?.status) {
+          case 'pending': return p.verification_status === 'pending' || p.profile_status === 'pending_approval';
+          case 'verified': return p.verification_status === 'verified';
+          case 'rejected': return p.verification_status === 'rejected' || p.profile_status === 'rejected';
+          case 'draft': return p.profile_status === 'draft';
+          default: return true;
+        }
+      });
 
       if (params?.search && params.search.trim()) {
         const q = params.search.trim().toLowerCase();
@@ -106,14 +104,7 @@ export const adminService = {
     if (!isSupabaseConfigured()) return { success: false, error: 'Supabase not configured' };
 
     try {
-      const { error } = await (supabase.from('profiles') as any)
-        .update({
-          profile_status: 'approved',
-          verification_status: 'verified',
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', profileId);
-
+      const { error } = await supabase.rpc('admin_approve_profile', { p_profile_id: profileId });
       if (error) throw error;
       return { success: true };
     } catch (err: any) {
@@ -127,15 +118,10 @@ export const adminService = {
     if (!isSupabaseConfigured()) return { success: false, error: 'Supabase not configured' };
 
     try {
-      const { error } = await (supabase.from('profiles') as any)
-        .update({
-          profile_status: 'rejected',
-          verification_status: 'rejected',
-          admin_notes: reason || 'Rejected by moderator',
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', profileId);
-
+      const { error } = await supabase.rpc('admin_reject_profile', {
+        p_profile_id: profileId,
+        ...(reason ? { p_reason: reason } : {}),
+      });
       if (error) throw error;
       return { success: true };
     } catch (err: any) {
@@ -149,17 +135,9 @@ export const adminService = {
     if (!isSupabaseConfigured()) return { count: 0, success: false };
 
     try {
-      const { data, error } = await (supabase.from('profiles') as any)
-        .update({
-          profile_status: 'approved',
-          verification_status: 'verified',
-          updated_at: new Date().toISOString(),
-        })
-        .or('verification_status.eq.pending,profile_status.eq.pending_approval')
-        .select('id');
-
+      const { data, error } = await supabase.rpc('admin_batch_approve_pending');
       if (error) throw error;
-      return { count: data?.length || 0, success: true };
+      return { count: Number(data) || 0, success: true };
     } catch (err) {
       console.error('Batch approve error:', err);
       return { count: 0, success: false };

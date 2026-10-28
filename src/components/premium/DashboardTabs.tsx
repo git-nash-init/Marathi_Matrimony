@@ -368,8 +368,8 @@ export const InterestsTab: React.FC<Lang> = ({ language: lang }) => {
 };
 
 /** Platinum-only: shared support WhatsApp (relationship manager, priority support, WhatsApp help). */
-export const ConciergeCard: React.FC<{ language: string; profileCode?: string | null }> = ({ language: lang, profileCode }) => {
-  const mr = lang === 'mr';
+export const ConciergeCard: React.FC<{ profileCode?: string | null }> = ({ profileCode }) => {
+  const { t } = useLanguage();
   const text = encodeURIComponent(`Platinum member ${profileCode ?? ''}`.trim());
   const waBase = BRAND_CONFIG.social.whatsapp;
   const phone = BRAND_CONFIG.phone.replace(/\s+/g, '');
@@ -377,13 +377,11 @@ export const ConciergeCard: React.FC<{ language: string; profileCode?: string | 
     <div style={{ border: '2px solid #C9A227', borderRadius: 14, padding: 18, background: 'linear-gradient(135deg,#FFFBEB,#FEF3C7)', display: 'flex', flexWrap: 'wrap', gap: 14, alignItems: 'center' }}>
       <Crown size={28} color="#B7791F" />
       <div style={{ flex: '1 1 240px' }}>
-        <strong>{mr ? 'प्लॅटिनम कन्सीयर्ज' : 'Platinum Concierge'}</strong>
-        <p style={{ margin: '4px 0 0', fontSize: '0.88rem', color: '#78350F' }}>
-          {mr ? 'समर्पित रिलेशनशिप सहाय्य, प्राधान्य सपोर्ट आणि व्हॉट्सअ‍ॅप मदत.' : 'Dedicated relationship help, priority support and WhatsApp assistance.'}
-        </p>
+        <strong>{t.premium.conciergeTitle}</strong>
+        <p style={{ margin: '4px 0 0', fontSize: '0.88rem', color: '#78350F' }}>{t.premium.conciergeDesc}</p>
       </div>
       <a href={`${waBase}?text=${text}`} target="_blank" rel="noopener noreferrer" className="btn btn-primary btn-sm">WhatsApp</a>
-      <a href={`tel:${phone}`} className="btn btn-outline btn-sm">{mr ? 'कॉल करा' : 'Call'}</a>
+      <a href={`tel:${phone}`} className="btn btn-outline btn-sm">{t.premium.call}</a>
     </div>
   );
 };

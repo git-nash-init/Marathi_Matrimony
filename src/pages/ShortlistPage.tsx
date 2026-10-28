@@ -23,7 +23,7 @@ export const ShortlistPage: React.FC = () => {
       setIsLoading(true);
       try {
         const shortIds = await shortlistService.getShortlistedIds(userProfileId);
-        const res = await discoveryService.fetchProfiles({ pageSize: 100 });
+        const res = await discoveryService.fetchProfiles({ pageSize: 100, earlyAccess: true });
         const filtered = res.profiles.filter((p: Profile) => shortIds.includes(p.id) || shortIds.includes(p.profileId));
         if (isMounted) setProfiles(filtered);
       } catch (err) {

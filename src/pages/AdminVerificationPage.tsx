@@ -27,7 +27,7 @@ export const AdminVerificationPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [activeTab, setActiveTab] = useState<'all' | 'pending' | 'verified' | 'draft' | 'rejected'>('all');
-  const [autoVerify, setAutoVerify] = useState<boolean>(adminService.getAutoVerifySetting());
+  const [autoVerify, setAutoVerify] = useState<boolean>(true);
   const [actionInProgress, setActionInProgress] = useState<string | null>(null);
 
   // Load profiles
@@ -49,13 +49,18 @@ export const AdminVerificationPage: React.FC = () => {
 
   useEffect(() => {
     loadData();
+    adminService.getAutoVerifySetting().then(setAutoVerify);
   }, [loadData]);
 
-  // Handle auto-verify setting toggle
-  const handleToggleAutoVerify = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Handle auto-verify setting toggle (platform-wide, enforced in the database)
+  const handleToggleAutoVerify = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.checked;
     setAutoVerify(val);
-    adminService.setAutoVerifySetting(val);
+    if (!(await adminService.setAutoVerifySetting(val))) {
+      setAutoVerify(!val);
+      showToast(language === 'mr' ? 'सेटिंग जतन करता आली नाही.' : 'Could not save the setting.', 'error');
+      return;
+    }
     showToast(
       val
         ? (language === 'mr' ? 'आधार स्वयंचलित मंजुरी सुरू केली.' : 'Auto-verify on Aadhaar enabled.')

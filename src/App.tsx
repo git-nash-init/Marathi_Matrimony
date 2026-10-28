@@ -31,6 +31,7 @@ import { ProfileCreatePage } from './pages/ProfileCreatePage';
 import { ProfileEditPage } from './pages/ProfileEditPage';
 import { PaymentPage } from './pages/PaymentPage';
 import { PaymentSuccessPage } from './pages/PaymentSuccessPage';
+import { AdminVerificationPage } from './pages/AdminVerificationPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 
 export const App: React.FC = () => {
@@ -157,6 +158,22 @@ export const App: React.FC = () => {
                   element={
                     <ProtectedRoute>
                       <PaymentSuccessPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="admin"
+                  element={
+                    <ProtectedRoute>
+                      <AdminVerificationPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="admin/verifications"
+                  element={
+                    <ProtectedRoute>
+                      <AdminVerificationPage />
                     </ProtectedRoute>
                   }
                 />

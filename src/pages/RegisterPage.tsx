@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Lock, Mail, User, Phone, Calendar, AlertCircle } from 'lucide-react';
+import { Lock, Mail, User, Phone, Calendar, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { useLanguage } from '../i18n/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 import { Button } from '../components/common/Button';
@@ -17,6 +17,8 @@ export const RegisterPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [mobile, setMobile] = useState('');
   const [dob, setDob] = useState('1998-05-15');
   const [agree, setAgree] = useState(true);
@@ -276,13 +278,22 @@ export const RegisterPage: React.FC = () => {
                     <Lock size={19} />
                   </div>
                   <input
-                    type="password"
+                    type={showPassword ? 'text' : 'password'}
                     required
-                    className="form-input"
+                    className="form-input has-toggle"
                     placeholder={t.auth.passwordPlaceholder}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    className="password-toggle-btn"
+                    title={showPassword ? (language === 'mr' ? 'पासवर्ड लपवा' : 'Hide password') : (language === 'mr' ? 'पासवर्ड दाखवा' : 'Show password')}
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
                 </div>
               </div>
 
@@ -296,13 +307,22 @@ export const RegisterPage: React.FC = () => {
                     <Lock size={19} />
                   </div>
                   <input
-                    type="password"
+                    type={showConfirmPassword ? 'text' : 'password'}
                     required
-                    className="form-input"
+                    className="form-input has-toggle"
                     placeholder={t.auth.confirmPasswordPlaceholder}
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword((prev) => !prev)}
+                    className="password-toggle-btn"
+                    title={showConfirmPassword ? (language === 'mr' ? 'पासवर्ड लपवा' : 'Hide password') : (language === 'mr' ? 'पासवर्ड दाखवा' : 'Show password')}
+                    aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
                 </div>
               </div>
             </div>

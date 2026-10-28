@@ -11,6 +11,8 @@ import {
   CheckCircle2,
   ArrowLeft,
   Info,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../i18n/LanguageContext';
@@ -44,6 +46,7 @@ export const PaymentPage: React.FC = () => {
   const [cardName, setCardName] = useState('');
   const [cardExpiry, setCardExpiry] = useState('');
   const [cardCvv, setCardCvv] = useState('');
+  const [showCvv, setShowCvv] = useState(false);
 
   // UPI field
   const [upiId, setUpiId] = useState('');
@@ -238,15 +241,39 @@ export const PaymentPage: React.FC = () => {
                     </div>
                     <div className={styles.formGroup}>
                       <label className={styles.formLabel}>CVV</label>
-                      <input
-                        className={styles.formInput}
-                        type="password"
-                        placeholder="•••"
-                        value={cardCvv}
-                        onChange={(e) => setCardCvv(e.target.value.replace(/\D/g, '').slice(0, 4))}
-                        maxLength={4}
-                        inputMode="numeric"
-                      />
+                      <div style={{ position: 'relative', width: '100%', display: 'flex', alignItems: 'center' }}>
+                        <input
+                          className={styles.formInput}
+                          type={showCvv ? 'text' : 'password'}
+                          placeholder="•••"
+                          value={cardCvv}
+                          onChange={(e) => setCardCvv(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                          maxLength={4}
+                          inputMode="numeric"
+                          style={{ paddingRight: '40px' }}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowCvv((prev) => !prev)}
+                          style={{
+                            position: 'absolute',
+                            right: '10px',
+                            top: '50%',
+                            transform: 'translateY(-50%)',
+                            background: 'transparent',
+                            border: 'none',
+                            cursor: 'pointer',
+                            color: '#8E7E76',
+                            padding: '4px',
+                            display: 'flex',
+                            alignItems: 'center',
+                          }}
+                          title={showCvv ? (language === 'mr' ? 'लपवा' : 'Hide CVV') : (language === 'mr' ? 'दाखवा' : 'Show CVV')}
+                          aria-label={showCvv ? 'Hide CVV' : 'Show CVV'}
+                        >
+                          {showCvv ? <EyeOff size={16} /> : <Eye size={16} />}
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>

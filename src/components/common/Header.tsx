@@ -88,6 +88,7 @@ export const Header: React.FC = () => {
     { to: '/success-stories', label: t.nav.successStories },
     { to: '/membership', label: t.nav.membership },
     { to: '/wedding-services', label: language === 'mr' ? 'लग्न सेवा' : 'Wedding Services' },
+    { to: '/admin', label: language === 'mr' ? 'प्रशासन (Admin)' : 'Admin Portal' },
     { to: '/how-it-works', label: t.nav.howItWorks },
     { to: '/about', label: t.nav.aboutUs },
     { to: '/contact', label: t.nav.contact }

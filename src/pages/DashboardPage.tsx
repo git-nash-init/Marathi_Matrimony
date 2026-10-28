@@ -32,6 +32,7 @@ import {
 import { mockProfiles } from '../data/mockProfiles';
 import { Profile } from '../types';
 import { interestService } from '../services/interest.service';
+import { discoveryService } from '../services/discovery.service';
 import dashStyles from './DashboardPage.module.css';
 
 // ── Tab definitions ──────────────────────────────────────────────────────────
@@ -81,10 +82,32 @@ export const DashboardPage: React.FC = () => {
   const targetOppositeGender: 'male' | 'female' | undefined =
     userGender === 'male' ? 'female' : userGender === 'female' ? 'male' : undefined;
 
-  const oppositeProfiles = useMemo(() => {
+  const [oppositeProfiles, setOppositeProfiles] = useState<Profile[]>(() => {
     if (!targetOppositeGender) return mockProfiles;
     return mockProfiles.filter((p) => p.gender === targetOppositeGender);
-  }, [targetOppositeGender]);
+  });
+
+  useEffect(() => {
+    let isMounted = true;
+    discoveryService
+      .fetchProfiles({
+        gender: targetOppositeGender,
+        pageSize: 40,
+        userProfileId: profile?.id,
+      })
+      .then((res) => {
+        if (isMounted && res.profiles && res.profiles.length > 0) {
+          setOppositeProfiles(res.profiles);
+        }
+      })
+      .catch((err) => {
+        console.warn('Dashboard discovery fetch error:', err);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [targetOppositeGender, profile?.id]);
 
   const matchProfiles = useMemo(() => oppositeProfiles.slice(0, 6), [oppositeProfiles]);
   const recoProfiles = useMemo(() => oppositeProfiles.slice(1, 5), [oppositeProfiles]);
@@ -338,6 +361,16 @@ export const DashboardPage: React.FC = () => {
                   ? (language === 'mr' ? `${subscription.plan?.name} सक्रिय` : `${subscription.plan?.name} active`)
                   : (language === 'mr' ? 'सिल्व्हर, डायमंड, प्लॅटिनम' : 'Silver, Diamond, Platinum')}
               </span>
+            </div>
+            <ChevronRight size={18} className={dashStyles.actionArrow} />
+          </Link>
+          <Link to="/admin" className={dashStyles.actionCard}>
+            <div className={dashStyles.actionIcon} style={{ background: '#E0F2FE', color: '#0284C7' }}>
+              <ShieldCheck size={22} />
+            </div>
+            <div className={dashStyles.actionText}>
+              <strong>{language === 'mr' ? 'प्रशासन व पडताळणी' : 'Admin & Verifications'}</strong>
+              <span>{language === 'mr' ? 'सर्व प्रोफाइल्स, आधार पडताळणी व मंजुरी' : 'Review & approve all profiles'}</span>
             </div>
             <ChevronRight size={18} className={dashStyles.actionArrow} />
           </Link>

@@ -24,6 +24,7 @@ import {
   AlertCircle,
   Loader2,
 } from 'lucide-react';
+import { adminService } from '../../services/admin.service';
 
 interface ProfileBuilderProps {
   mode?: 'create' | 'edit';
@@ -237,9 +238,22 @@ export const ProfileBuilderContainer: React.FC<ProfileBuilderProps> = ({ mode: _
       setIsSaving(true);
       setSaveErrorMessage(null);
 
-      // Map profile_status enum safely
-      const profileStatusEnum = status === 'pending_review' ? 'pending_approval' : 'draft';
-      const verificationStatusEnum = formData.self_attested ? 'pending' : 'unverified';
+      // Systematic verification & approval logic
+      const isAutoVerify = adminService.getAutoVerifySetting();
+      const hasAadhaar = Boolean(formData.id_number && formData.id_number.trim().length >= 12);
+      const isAutoApproved = status === 'pending_review' && hasAadhaar && isAutoVerify;
+
+      const profileStatusEnum = isAutoApproved
+        ? 'approved'
+        : status === 'pending_review'
+        ? 'pending_approval'
+        : 'draft';
+
+      const verificationStatusEnum = isAutoApproved
+        ? 'verified'
+        : formData.self_attested
+        ? 'pending'
+        : 'unverified';
 
       // Parse height as integer
       const heightInt = Number(formData.height_cm) || 165;

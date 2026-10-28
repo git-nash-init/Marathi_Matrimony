@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Lock, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Lock, CheckCircle2, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { useLanguage } from '../i18n/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 import { Button } from '../components/common/Button';
@@ -13,6 +13,8 @@ export const ResetPasswordPage: React.FC = () => {
 
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -117,16 +119,27 @@ export const ResetPasswordPage: React.FC = () => {
                   {t.auth.resetPasswordPage.newPasswordLabel} <span className="required-star">*</span>
                 </label>
                 <div className="input-wrapper">
-                  <Lock className="input-icon" size={18} />
+                  <div className="input-icon">
+                    <Lock size={18} />
+                  </div>
                   <input
                     id="reset-new-password"
-                    type="password"
+                    type={showPassword ? 'text' : 'password'}
                     required
-                    className="form-input"
+                    className="form-input has-toggle"
                     placeholder={t.auth.passwordPlaceholder}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    className="password-toggle-btn"
+                    title={showPassword ? (language === 'mr' ? 'पासवर्ड लपवा' : 'Hide password') : (language === 'mr' ? 'पासवर्ड दाखवा' : 'Show password')}
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
                 </div>
               </div>
 
@@ -135,16 +148,27 @@ export const ResetPasswordPage: React.FC = () => {
                   {t.auth.resetPasswordPage.confirmPasswordLabel} <span className="required-star">*</span>
                 </label>
                 <div className="input-wrapper">
-                  <Lock className="input-icon" size={18} />
+                  <div className="input-icon">
+                    <Lock size={18} />
+                  </div>
                   <input
                     id="reset-confirm-password"
-                    type="password"
+                    type={showConfirmPassword ? 'text' : 'password'}
                     required
-                    className="form-input"
+                    className="form-input has-toggle"
                     placeholder={t.auth.confirmPasswordPlaceholder}
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword((prev) => !prev)}
+                    className="password-toggle-btn"
+                    title={showConfirmPassword ? (language === 'mr' ? 'पासवर्ड लपवा' : 'Hide password') : (language === 'mr' ? 'पासवर्ड दाखवा' : 'Show password')}
+                    aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
                 </div>
               </div>
 

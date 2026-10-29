@@ -1051,6 +1051,39 @@ export type Database = {
         }
         Relationships: []
       }
+      push_subscriptions: {
+        Row: {
+          auth: string
+          created_at: string
+          endpoint: string
+          id: string
+          last_used_at: string | null
+          p256dh: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          auth: string
+          created_at?: string
+          endpoint: string
+          id?: string
+          last_used_at?: string | null
+          p256dh: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          auth?: string
+          created_at?: string
+          endpoint?: string
+          id?: string
+          last_used_at?: string | null
+          p256dh?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       reports: {
         Row: {
           admin_notes: string | null
@@ -1428,6 +1461,10 @@ export type Database = {
         Args: { p_feature_key: string; p_user_id: string }
         Returns: Json
       }
+      delete_push_subscription: {
+        Args: { p_endpoint: string }
+        Returns: boolean
+      }
       expire_subscriptions: { Args: never; Returns: number }
       feature_min_rank: { Args: { p_feature: string }; Returns: number }
       generate_public_profile_id: { Args: never; Returns: string }
@@ -1450,6 +1487,7 @@ export type Database = {
         Args: { p_limit?: number; p_offset?: number }
         Returns: Json
       }
+      get_vapid_public_key: { Args: never; Returns: string }
       has_feature: { Args: { p_feature: string }; Returns: boolean }
       income_lakhs: { Args: { p: string }; Returns: number }
       is_admin: { Args: { p_user_id?: string }; Returns: boolean }
@@ -1470,15 +1508,29 @@ export type Database = {
         Args: { p: Database["public"]["Tables"]["profiles"]["Row"] }
         Returns: Json
       }
+      push_service_config: { Args: never; Returns: Json }
       record_profile_view: { Args: { p_viewed: string }; Returns: boolean }
       require_admin: { Args: never; Returns: string }
       respond_to_interest: {
         Args: { p_accept: boolean; p_interest_id: string }
         Returns: Json
       }
+      save_push_subscription: {
+        Args: {
+          p_auth: string
+          p_endpoint: string
+          p_p256dh: string
+          p_user_agent?: string
+        }
+        Returns: boolean
+      }
       send_interest: {
         Args: { p_message?: string; p_receiver: string }
         Returns: Json
+      }
+      store_push_vapid_keys: {
+        Args: { p_private: string; p_public: string }
+        Returns: undefined
       }
       submit_profile_for_approval: {
         Args: { p_user_id: string }

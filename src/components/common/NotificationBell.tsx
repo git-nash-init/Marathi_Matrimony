@@ -10,6 +10,7 @@ import {
   AppNotification,
   BrowserPermission,
 } from '../../services/notification.service';
+import { pushService } from '../../services/push.service';
 import { NotificationPermissionPrompt } from './NotificationPermissionPrompt';
 import styles from './NotificationBell.module.css';
 
@@ -43,15 +44,22 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({ isTransparen
     return notificationService.subscribe(user.id, (notif) => {
       setNotifications((prev) => (prev.some((n) => n.id === notif.id) ? prev : [notif, ...prev]));
       toast.info(`${notif.title} — ${notif.message}`, 6000);
-      // OS notification too, so it is seen when the tab is in the background.
-      if (document.hidden) browserNotifications.show(notif, (url) => navigate(url));
+      // Background tab: the service worker shows Web Push; fall back to a page notification
+      // only where push isn't available.
+      if (document.hidden && !pushService.isActive()) browserNotifications.show(notif, (url) => navigate(url));
     });
   }, [user?.id, toast, navigate]);
+
+  // Keep this browser's push subscription attached to whoever is signed in.
+  useEffect(() => {
+    if (user?.id && permission === 'granted') void pushService.enable();
+  }, [user?.id, permission]);
 
   const handleEnableNotifications = async () => {
     const result = await browserNotifications.request();
     setPermission(result);
     if (result === 'granted') {
+      await pushService.enable();
       toast.success(language === 'mr' ? 'सूचना सुरू झाल्या.' : 'Notifications enabled.');
     } else if (result === 'denied') {
       toast.error(language === 'mr'
@@ -133,7 +141,7 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({ isTransparen
                 <small>
                   {language === 'mr'
                     ? 'नवीन पसंती व उत्तरे साइट बंद असतानाही कळतील.'
-                    : 'Get alerted about new interests and replies even when this tab is in the background.'}
+                    : 'Get alerted about new interests and replies, even when the site is closed.'}
                 </small>
               </span>
             </button>

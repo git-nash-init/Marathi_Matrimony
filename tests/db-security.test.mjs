@@ -65,3 +65,13 @@ test('match scoring weights still add up to 100 with diet and income', () => {
   assert.match(score, /preferred_diet/);
   assert.match(score, /income_lakhs\(pp\.min_income\)/);
 });
+
+test('web push secrets stay server-side (Vault + service_role only)', () => {
+  const push = readFileSync(new URL('../supabase/migrations/012_web_push.sql', import.meta.url), 'utf8');
+  const fn = readFileSync(new URL('../supabase/functions/send-push/index.ts', import.meta.url), 'utf8');
+  assert.match(push, /REVOKE EXECUTE ON FUNCTION[\s\S]*public\.push_service_config\(\)[\s\S]*FROM PUBLIC, anon, authenticated;/);
+  assert.match(push, /GRANT EXECUTE ON FUNCTION public\.push_service_config\(\), public\.store_push_vapid_keys\(text, text\) TO service_role;/);
+  assert.match(push, /REVOKE INSERT, UPDATE, DELETE ON public\.push_subscriptions FROM anon, authenticated;/);
+  assert.match(fn, /req\.headers\.get\('x-push-secret'\) !== cfg\.webhook_secret/, 'send action requires the shared secret');
+  assert.doesNotMatch(fn, /private_key[^\n]*json\(/, 'private key is never returned');
+});

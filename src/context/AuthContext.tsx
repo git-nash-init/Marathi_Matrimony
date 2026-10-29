@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState, useCallback } fr
 import { User, Session, AuthError } from '@supabase/supabase-js';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { PROFILE_COLUMNS, fetchMyPrivateFields } from '../lib/profileColumns';
+import { pushService } from '../services/push.service';
 import { Database } from '../types/database.types';
 
 type ProfileRow = Database['public']['Tables']['profiles']['Row'];
@@ -147,6 +148,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!isConfigured) {
       return { error: null };
     }
+    // Stop pushes to this device for the departing account (needs the session, so first).
+    await pushService.disable();
     const result = await supabase.auth.signOut();
     setUser(null);
     setSession(null);

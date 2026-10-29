@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { BellRing, X } from 'lucide-react';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { browserNotifications } from '../../services/notification.service';
@@ -31,7 +32,9 @@ export const NotificationPermissionPrompt: React.FC<NotificationPermissionPrompt
     setVisible(false);
   };
 
-  return (
+  // Portal to <body>: the header's backdrop-filter/transform would otherwise become the
+  // containing block for position:fixed and pin this card inside the header.
+  return createPortal(
     <div className={styles.permissionPrompt} role="dialog" aria-live="polite" aria-label={mr ? 'सूचना परवानगी' : 'Notification permission'}>
       <BellRing size={22} className={styles.permissionPromptIcon} />
       <div className={styles.permissionPromptBody}>
@@ -53,6 +56,7 @@ export const NotificationPermissionPrompt: React.FC<NotificationPermissionPrompt
       <button type="button" className={styles.permissionPromptClose} onClick={dismiss} aria-label={mr ? 'बंद करा' : 'Close'}>
         <X size={16} />
       </button>
-    </div>
+    </div>,
+    document.body
   );
 };

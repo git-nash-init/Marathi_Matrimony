@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Lock, Mail, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { useLanguage } from '../i18n/LanguageContext';
 import { useAuth } from '../context/AuthContext';
+import { supabase } from '../lib/supabase';
 import { Button } from '../components/common/Button';
 import { BrandLogo } from '../components/common/BrandLogo';
 
@@ -61,10 +62,9 @@ export const LoginPage: React.FC = () => {
       }
 
       if (data.user) {
-        // Successful login - route designated admin to admin hub if default destination
-        const isAdminUser = email.trim().toLowerCase() === 'vaishalibagave8@gmail.com' || 
-          data.user?.app_metadata?.role === 'admin' || 
-          data.user?.user_metadata?.role === 'admin';
+        // The database decides who is an admin. A failed check just means the normal destination.
+        const { data: adminContext } = await supabase.rpc('get_admin_context');
+        const isAdminUser = Boolean((adminContext as { is_admin?: boolean } | null)?.is_admin);
 
         if (isAdminUser && (!location.state || from === '/dashboard')) {
           navigate('/admin', { replace: true });

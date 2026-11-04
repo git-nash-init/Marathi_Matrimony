@@ -50,8 +50,10 @@ test("no client code selects '*' from profiles (it fails under the column grant)
 });
 
 test('profile status is server-owned: members cannot self-approve or self-verify', () => {
-  const guard = sql.match(/FUNCTION public\.guard_profile_system_columns\(\)[\s\S]*?\$\$;/)[0];
-  assert.match(guard, /aadhaar_auto_approval_enabled\(\)/);
+  const latest = readFileSync(new URL('../supabase/migrations/013_phase1_foundation.sql', import.meta.url), 'utf8');
+  const guard = latest.match(/FUNCTION public\.guard_profile_system_columns\(\)[\s\S]*?\$\$;/)[0];
+  assert.doesNotMatch(guard, /auto_approval/);
+  assert.match(guard, /NEW\.aadhaar_number := NULL/);
   assert.match(guard, /NEW\.profile_status := 'pending_approval'/);
   assert.match(guard, /NEW\.verification_status := 'pending'/);
   assert.match(guard, /OLD\.profile_status = 'suspended' THEN\s+NEW\.profile_status := 'suspended'/);
@@ -72,6 +74,36 @@ test('web push secrets stay server-side (Vault + service_role only)', () => {
   assert.match(push, /REVOKE EXECUTE ON FUNCTION[\s\S]*public\.push_service_config\(\)[\s\S]*FROM PUBLIC, anon, authenticated;/);
   assert.match(push, /GRANT EXECUTE ON FUNCTION public\.push_service_config\(\), public\.store_push_vapid_keys\(text, text\) TO service_role;/);
   assert.match(push, /REVOKE INSERT, UPDATE, DELETE ON public\.push_subscriptions FROM anon, authenticated;/);
-  assert.match(fn, /req\.headers\.get\('x-push-secret'\) !== cfg\.webhook_secret/, 'send action requires the shared secret');
+  assert.match(fn, /sameSecret\(req\.headers\.get\('x-push-secret'\)/, 'send action requires the shared secret');
+  assert.match(fn, /timingSafeEqual/, 'secret comparison is constant-time');
+  assert.match(fn, /action === 'init'\) \{\s+if \(!\(await isSignedIn\(req\)\)\)/, 'init requires a signed-in member');
+  assert.match(fn, /isPushEndpoint\(s\.endpoint\)/, 'only real push services are called');
+  assert.doesNotMatch(fn, /'Access-Control-Allow-Origin': '\*'/, 'CORS is not open to every site');
   assert.doesNotMatch(fn, /private_key[^\n]*json\(/, 'private key is never returned');
+});
+
+test('production build settings keep secrets and source out of the bundle', () => {
+  const vite = readFileSync(new URL('../vite.config.ts', import.meta.url), 'utf8');
+  assert.match(vite, /envPrefix: \['VITE_'\]/);
+  assert.match(vite, /sourcemap: false/);
+  assert.doesNotMatch(vite, /host: true/);
+});
+
+test('live host sends the security headers', () => {
+  const htaccess = readFileSync(new URL('../public/.htaccess', import.meta.url), 'utf8');
+  for (const h of ['Strict-Transport-Security', 'Content-Security-Policy', 'Permissions-Policy', 'X-Content-Type-Options']) {
+    assert.ok(htaccess.includes(h), h);
+  }
+  assert.doesNotMatch(htaccess, /Access-Control-Allow-Origin/);
+  assert.match(htaccess, /^\s*RewriteRule \^\(\.\*\)\$ https:/m, 'HTTPS redirect is on');
+});
+
+test('no client code sends or shows a full Aadhaar number, or hardcodes who is an admin', () => {
+  for (const file of src) {
+    const code = readFileSync(file, 'utf8');
+    if (file.includes('database.types')) continue;
+    assert.doesNotMatch(code, /aadhaar_number/, file);
+    assert.doesNotMatch(code, /user_metadata\??\.role/, file);
+    assert.doesNotMatch(code, /@gmail\.com'/, file);
+  }
 });

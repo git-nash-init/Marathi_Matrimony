@@ -7,9 +7,10 @@
   RewriteEngine On
   RewriteBase /
   
-  # Ensure HTTPS in production if proxy/server provides it
-  # RewriteCond %{HTTPS} off
-  # RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+  # Force HTTPS (also behind Hostinger's proxy/CDN, which reports the scheme in X-Forwarded-Proto)
+  RewriteCond %{HTTPS} !=on
+  RewriteCond %{HTTP:X-Forwarded-Proto} !https
+  RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
   # Don't rewrite if file, directory, or symlink actually exists
   RewriteCond %{REQUEST_FILENAME} -f [OR]
@@ -26,11 +27,12 @@ Options -Indexes
 
 # 3. Security Headers
 <IfModule mod_headers.c>
+  Header always set Strict-Transport-Security "max-age=31536000"
   Header always set X-Content-Type-Options "nosniff"
-  Header always set X-Frame-Options "SAMEORIGIN"
-  Header always set X-XSS-Protection "1; mode=block"
+  Header always set X-Frame-Options "DENY"
   Header always set Referrer-Policy "strict-origin-when-cross-origin"
-  Header set Access-Control-Allow-Origin "*"
+  Header always set Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=()"
+  Header always set Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://hgucqabzlaxelkfiavvm.supabase.co; connect-src 'self' https://hgucqabzlaxelkfiavvm.supabase.co wss://hgucqabzlaxelkfiavvm.supabase.co; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests"
 </IfModule>
 
 # 4. Correct MIME Types

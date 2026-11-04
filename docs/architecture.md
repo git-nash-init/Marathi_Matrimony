@@ -2,8 +2,8 @@
 
 ## 1. Technical Stack Overview
 - **Frontend Framework:** React 18 with TypeScript 5.5
-- **Build Tool:** Vite 5.4 with code-splitting and chunk optimization
-- **Routing:** React Router v6 (Nested routes, lazy loading, scroll restoration)
+- **Build Tool:** Vite 7 with code-splitting and chunk optimization
+- **Routing:** React Router v7 (Nested routes, lazy-loaded admin portal, scroll restoration)
 - **State Management & Contexts:**
   - `AuthContext`: Supabase session, profile cache, auth state lifecycle
   - `LanguageContext`: Marathi (`mr`) & English (`en`) dual-mode internationalization with Devanagari digit conversion
@@ -57,11 +57,11 @@
 /dashboard/settings                 -> Privacy, Password, Account Deletion Request
 
 # Protected Administration
-/admin                              -> Admin Console (Restricted to 'admin' / 'super_admin' roles)
-/admin/profiles                     -> Profile Moderation Queue (Approve / Reject / Request Correction)
-/admin/photos                       -> Photo Approval Grid
-/admin/inquiries                    -> Customer Contact Inquiries
-/admin/audit-logs                   -> System Event Audit Log
+/admin                              -> Admin portal (src/admin): own layout, lazy loaded, role checked by the database
+/admin/approvals                    -> Profile Approval
+/admin/complaints                   -> Complaints & Support
+/admin/settings                     -> Settings (2-step verification)
+/admin/users, plans, payments, verification, stories, notifications, reports -> being built
 ```
 
 ---
@@ -86,5 +86,6 @@ Supabase database consists of 26 core tables, with Row Level Security (RLS) acti
 ## 4. Session & Authentication Architecture
 - Authentication is governed by Supabase Auth (`gotrue-js`).
 - Session tokens are stored securely in browser storage via Supabase client, with automatic token refresh on expiry.
-- Administrative operations are protected both at the UI layer (`ProtectedRoute` with role check) and at the PostgreSQL layer (`is_admin()` SQL security definer function).
+- Administrative operations are enforced in PostgreSQL (`is_admin()`, `require_admin_role()`, RLS). `AdminGuard` only decides what the interface shows, using `get_admin_context()`.
+- Migrations 001-012 do not rebuild the live database. `supabase/baseline/` holds the real schema for reference.
 - Password policies require minimum 8 characters with alphanumeric complexity. Plaintext passwords never touch application tables.

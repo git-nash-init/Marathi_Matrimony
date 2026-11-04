@@ -14,7 +14,7 @@ export interface VerificationCardProps {
   onIdTypeChange?: (val: string) => void;
   onIdNumberChange?: (val: string) => void;
   isVerified?: boolean;
-  onVerificationSuccess?: (maskedId: string) => void;
+  onAttestationChange?: (attested: boolean) => void;
   error?: string;
 }
 
@@ -24,50 +24,36 @@ export const VerificationCard: React.FC<VerificationCardProps> = ({
   onIdTypeChange,
   onIdNumberChange,
   isVerified = false,
-  onVerificationSuccess,
+  onAttestationChange,
   error,
 }) => {
   const { language } = useLanguage();
-  const [consentGiven, setConsentGiven] = useState<boolean>(true);
-  const [inputVal, setInputVal] = useState<string>(() => {
-    const raw = (idNumber || '').replace(/\D/g, '');
-    return raw.replace(/(\d{4})(?=\d)/g, '$1 ').trim();
-  });
+  const [consentGiven, setConsentGiven] = useState<boolean>(isVerified);
+  const [inputVal, setInputVal] = useState<string>(() => (idNumber || '').replace(/\D/g, '').slice(-4));
 
   useEffect(() => {
-    if (idNumber) {
-      const raw = idNumber.replace(/\D/g, '');
-      setInputVal(raw.replace(/(\d{4})(?=\d)/g, '$1 ').trim());
-    }
+    if (idNumber) setInputVal(idNumber.replace(/\D/g, '').slice(-4));
   }, [idNumber]);
 
+  const report = (digits: string, consent: boolean) => {
+    onAttestationChange?.(digits.length === 4 && consent);
+  };
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const raw = e.target.value.replace(/\D/g, '').slice(0, 12);
-    const formatted = raw.replace(/(\d{4})(?=\d)/g, '$1 ').trim();
-    setInputVal(formatted);
-
-    if (onIdNumberChange) {
-      onIdNumberChange(raw);
-    }
-
-    if (raw.length === 12 && consentGiven) {
-      if (onVerificationSuccess) {
-        onVerificationSuccess(raw);
-      }
-    }
+    const raw = e.target.value.replace(/\D/g, '').slice(0, 4);
+    setInputVal(raw);
+    onIdNumberChange?.(raw);
+    report(raw, consentGiven);
   };
 
   const handleConsentToggle = (checked: boolean) => {
     setConsentGiven(checked);
-    const raw = inputVal.replace(/\D/g, '');
-    if (raw.length === 12 && checked && onVerificationSuccess) {
-      onVerificationSuccess(raw);
-    }
+    report(inputVal, checked);
   };
 
-  const rawDigits = inputVal.replace(/\D/g, '');
-  const isValidAadhaar = rawDigits.length === 12;
-  const isRegistered = (isValidAadhaar && consentGiven) || isVerified;
+  const isValidAadhaar = inputVal.length === 4;
+  const showIncomplete = inputVal.length > 0 && !isValidAadhaar;
+  const isRegistered = isValidAadhaar && consentGiven;
 
   return (
     <div
@@ -121,7 +107,7 @@ export const VerificationCard: React.FC<VerificationCardProps> = ({
                 margin: 0,
               }}
             >
-              {language === 'mr' ? 'आधार ओळख नोंदणी' : 'Aadhaar Identity Registration'}
+              {language === 'mr' ? 'ओळखपत्र नोंदणी' : 'ID Registration'}
             </h3>
             <p
               style={{
@@ -131,8 +117,8 @@ export const VerificationCard: React.FC<VerificationCardProps> = ({
               }}
             >
               {language === 'mr'
-                ? 'प्रशासकीय पडताळणीसाठी आपला १२ अंकी आधार क्रमांक प्रविष्ट करा (OTP ची आवश्यकता नाही)'
-                : 'Enter your 12-digit Aadhaar number for administrative review (No OTP required)'}
+                ? 'प्रशासकीय तपासणीसाठी ओळखपत्राचे फक्त शेवटचे ४ अंक द्या'
+                : 'Give only the last 4 digits of your ID for admin review'}
             </p>
           </div>
         </div>
@@ -155,8 +141,8 @@ export const VerificationCard: React.FC<VerificationCardProps> = ({
           {isRegistered ? <CheckCircle2 size={16} /> : <FileText size={16} />}
           <span>
             {isRegistered
-              ? (language === 'mr' ? '✓ आधार क्रमांक नोंदवला गेला' : '✓ Aadhaar Registered')
-              : (language === 'mr' ? 'नोंदणी बाकी (१२ अंक आवश्यक)' : 'Pending Entry (12 digits)')}
+              ? (language === 'mr' ? '✓ तपासणीसाठी नोंदवले' : '✓ Submitted for review')
+              : (language === 'mr' ? 'बाकी (४ अंक आवश्यक)' : 'Pending (4 digits needed)')}
           </span>
         </div>
       </div>
@@ -207,7 +193,7 @@ export const VerificationCard: React.FC<VerificationCardProps> = ({
                 marginBottom: '8px',
               }}
             >
-              {language === 'mr' ? '१२ अंकी आधार क्रमांक' : '12-digit Aadhaar Number'}{' '}
+              {language === 'mr' ? 'ओळखपत्राचे शेवटचे ४ अंक' : 'Last 4 digits of your ID'}{' '}
               <span style={{ color: '#E11D48' }}>*</span>
             </label>
             <div style={{ position: 'relative' }}>
@@ -215,8 +201,11 @@ export const VerificationCard: React.FC<VerificationCardProps> = ({
                 type="text"
                 value={inputVal}
                 onChange={handleInputChange}
-                placeholder="XXXX XXXX XXXX"
-                maxLength={14}
+                inputMode="numeric"
+                autoComplete="off"
+                placeholder="XXXX"
+                maxLength={4}
+                aria-invalid={error || showIncomplete ? true : undefined}
                 style={{
                   width: '100%',
                   padding: '12px 14px 12px 40px',
@@ -242,15 +231,15 @@ export const VerificationCard: React.FC<VerificationCardProps> = ({
                 />
               )}
             </div>
-            {error && (
-              <span style={{ fontSize: '0.78rem', color: '#E11D48', marginTop: '4px', display: 'block' }}>
-                {error}
+            {(error || showIncomplete) && (
+              <span role="alert" style={{ fontSize: '0.78rem', color: '#E11D48', marginTop: '4px', display: 'block' }}>
+                {error || (language === 'mr' ? 'कृपया ४ अंक प्रविष्ट करा.' : 'Please enter all 4 digits.')}
               </span>
             )}
             <span style={{ fontSize: '0.76rem', color: '#64748B', marginTop: '4px', display: 'block' }}>
               {language === 'mr'
-                ? 'सुरक्षित व एन्क्रिप्टेड — आपला आधार क्रमांक कोणालाही सार्वजनिकरित्या दिसणार नाही.'
-                : 'Encrypted & secure — your full Aadhaar number is never visible publicly.'}
+                ? 'आम्ही पूर्ण क्रमांक घेत नाही आणि जतनही करत नाही. हे ४ अंक फक्त प्रशासकांना दिसतात.'
+                : 'We never ask for or store your full number. These 4 digits are visible only to admins.'}
             </span>
           </div>
         </div>
@@ -276,8 +265,8 @@ export const VerificationCard: React.FC<VerificationCardProps> = ({
           />
           <label htmlFor="aadhaar_consent" style={{ fontSize: '0.84rem', color: '#334155', cursor: 'pointer', lineHeight: '1.5' }}>
             {language === 'mr'
-              ? 'मी याद्वारे प्रमाणित करतो/करते की हा आधार क्रमांक माझा स्वतःचा असून सनईबंध पडताळणी पथकाद्वारे (Admin Moderation) प्रोफाइल पडताळणीसाठी मी संमती देत आहे.'
-              : 'I hereby certify that this Aadhaar number belongs to me and grant consent for administrative profile verification and KYC review by the Sanaibandh moderation team.'}
+              ? 'हे ओळखपत्र माझे स्वतःचे असल्याचे मी प्रमाणित करतो/करते आणि सनईबंध पथकाद्वारे तपासणीस संमती देतो/देते.'
+              : 'I certify that this ID is my own and consent to review by the Sanaibandh team.'}
           </label>
         </div>
 
@@ -297,11 +286,11 @@ export const VerificationCard: React.FC<VerificationCardProps> = ({
           <p style={{ margin: 0, fontSize: '0.84rem', color: isRegistered ? '#166534' : '#854D0E', lineHeight: '1.4' }}>
             {isRegistered
               ? (language === 'mr'
-                  ? 'आपला आधार तपशील जतन केला आहे. प्रोफाइल सबमिट केल्यावर प्रशासकीय पथक १२-२४ तासांत तपासणी करून आपले प्रोफाइल "पडताळणी झालेले (Verified)" म्हणून चिन्हांकित करेल.'
-                  : 'Your Aadhaar is recorded. After submitting your profile, the moderation team will review it within 12-24 hours and award the Verified badge.')
+                  ? 'आपला तपशील नोंदवला आहे. प्रोफाइल सादर केल्यावर आमचे पथक तपासणी करेल आणि त्यानंतरच Verified बॅज मिळेल.'
+                  : 'Your details are recorded. After you submit your profile, our team reviews it, and only then is the Verified badge awarded.')
               : (language === 'mr'
-                  ? 'कृपया आपला १२ अंकी आधार क्रमांक प्रविष्ट करा. ओटीपीची कोणतीही गरज नाही.'
-                  : 'Please enter your complete 12-digit Aadhaar number. No OTP verification is needed.')}
+                  ? 'कृपया शेवटचे ४ अंक द्या आणि संमती तपासा.'
+                  : 'Please enter the last 4 digits and tick the consent box.')}
           </p>
         </div>
       </div>

@@ -43,6 +43,8 @@ export const FormNumberInput: React.FC<FormNumberInputProps> = ({
       <div style={{ position: 'relative', width: '100%', display: 'flex', alignItems: 'center' }}>
         <input
           id={numberId}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={error && numberId ? `${numberId}-error` : undefined}
           type="number"
           min={min}
           max={max}

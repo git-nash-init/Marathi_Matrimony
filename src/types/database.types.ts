@@ -864,6 +864,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          aadhaar_last4: string | null
           aadhaar_number: string | null
           about_me: string | null
           additional_qualifications: string | null
@@ -926,6 +927,7 @@ export type Database = {
           work_location: string | null
         }
         Insert: {
+          aadhaar_last4?: string | null
           aadhaar_number?: string | null
           about_me?: string | null
           additional_qualifications?: string | null
@@ -988,6 +990,7 @@ export type Database = {
           work_location?: string | null
         }
         Update: {
+          aadhaar_last4?: string | null
           aadhaar_number?: string | null
           about_me?: string | null
           additional_qualifications?: string | null
@@ -1421,7 +1424,8 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      aadhaar_auto_approval_enabled: { Args: never; Returns: boolean }
+      admin_set_mfa_required: { Args: { p_required: boolean }; Returns: boolean }
+      get_admin_context: { Args: never; Returns: Json }
       activate_dummy_subscription: {
         Args: { p_payment_method?: string; p_plan_slug: string }
         Returns: Json

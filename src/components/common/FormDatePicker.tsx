@@ -36,6 +36,8 @@ export const FormDatePicker: React.FC<FormDatePickerProps> = ({
       <div style={{ position: 'relative', width: '100%', display: 'flex', alignItems: 'center' }}>
         <input
           id={datePickerId}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={error && datePickerId ? `${datePickerId}-error` : undefined}
           type="date"
           disabled={disabled}
           style={{

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import React, { createContext, useContext, useEffect, useRef, useState, useCallback } from 'react';
 import { User, Session, AuthError } from '@supabase/supabase-js';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { PROFILE_COLUMNS, fetchMyPrivateFields } from '../lib/profileColumns';
@@ -15,6 +15,9 @@ interface AuthContextType {
   isAuthenticated: boolean;
   hasProfile: boolean;
   isConfigured: boolean;
+  /** The session ended on its own (not a sign-out the user asked for). */
+  sessionExpired: boolean;
+  clearSessionExpired: () => void;
   signUp: (email: string, password: string, metadata?: Record<string, unknown>) => Promise<{ data: { user: User | null; session: Session | null }; error: AuthError | null }>;
   signIn: (email: string, password: string) => Promise<{ data: { user: User | null; session: Session | null }; error: AuthError | null }>;
   signOut: () => Promise<{ error: AuthError | null }>;
@@ -31,6 +34,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<ProfileRow | null>(null);
   const [loading, setLoading] = useState(true);
+  const [sessionExpired, setSessionExpired] = useState(false);
+  const hadSession = useRef(false);
+  const signingOut = useRef(false);
+  const clearSessionExpired = useCallback(() => setSessionExpired(false), []);
   const isConfigured = isSupabaseConfigured();
 
   const fetchProfileForUser = useCallback(async (userId: string): Promise<ProfileRow | null> => {
@@ -85,6 +92,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
+      hadSession.current = Boolean(session);
       if (session?.user?.id) {
         fetchProfileForUser(session.user.id).finally(() => {
           setLoading(false);
@@ -98,15 +106,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
 
     // Auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, newSession) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, newSession) => {
+      if (event === 'SIGNED_OUT' && hadSession.current && !signingOut.current) {
+        setSessionExpired(true);
+      }
+      hadSession.current = Boolean(newSession);
       setSession(newSession);
       setUser(newSession?.user ?? null);
       if (newSession?.user?.id) {
-        await fetchProfileForUser(newSession.user.id);
+        // Deferred: calling Supabase inside this callback can deadlock the auth lock
+        // (for example while a 2-step verification code is being checked).
+        const userId = newSession.user.id;
+        setTimeout(() => {
+          fetchProfileForUser(userId).finally(() => setLoading(false));
+        }, 0);
       } else {
         setProfile(null);
+        setLoading(false);
       }
-      setLoading(false);
     });
 
     return () => {
@@ -149,8 +166,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return { error: null };
     }
     // Stop pushes to this device for the departing account (needs the session, so first).
+    signingOut.current = true;
     await pushService.disable();
     const result = await supabase.auth.signOut();
+    signingOut.current = false;
     setUser(null);
     setSession(null);
     setProfile(null);
@@ -198,6 +217,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     isAuthenticated: Boolean(user && session),
     hasProfile: Boolean(profile),
     isConfigured,
+    sessionExpired,
+    clearSessionExpired,
     signUp,
     signIn,
     signOut,

@@ -1,0 +1,145 @@
+.panel {
+  background: var(--color-surface-pure);
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  padding: 36px 24px;
+  text-align: center;
+  max-width: 560px;
+  margin: 24px auto;
+}
+
+.panelError { border-color: #F3C6C2; }
+.panelSuccess { border-color: #C9D8B6; }
+
+.icon {
+  display: inline-flex;
+  color: var(--color-ink-light);
+  margin-bottom: 12px;
+}
+.panelError .icon { color: var(--color-danger); }
+.panelSuccess .icon { color: var(--color-success); }
+
+.title {
+  margin: 0 0 8px;
+  font-size: 1.1rem;
+  color: var(--color-ink);
+}
+
+.text {
+  margin: 0 0 6px;
+  color: var(--color-ink-muted);
+  font-size: 0.92rem;
+  line-height: 1.55;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+
+.linkPrimary,
+.linkOutline {
+  display: inline-flex;
+  align-items: center;
+  padding: 9px 18px;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+.linkPrimary { background: var(--color-primary); color: #fff; }
+.linkPrimary:hover { background: var(--color-primary-hover); }
+.linkOutline { border: 1px solid var(--color-primary); color: var(--color-primary); }
+
+.inlineLink {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--color-primary);
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+  font: inherit;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 12px;
+}
+.chip {
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-alt);
+  border-radius: 999px;
+  padding: 5px 13px;
+  font-size: 0.84rem;
+  cursor: pointer;
+  color: var(--color-ink);
+}
+.chip:hover { border-color: var(--color-primary); }
+
+.nextSteps {
+  text-align: left;
+  background: var(--color-success-bg);
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin-top: 14px;
+  font-size: 0.9rem;
+}
+.nextSteps ol { margin: 6px 0 0; padding-left: 20px; }
+
+.progressWrap { width: 100%; }
+.progressLabel {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.82rem;
+  color: var(--color-ink-muted);
+  margin-bottom: 4px;
+}
+.progressTrack {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--color-border-light);
+  overflow: hidden;
+}
+.progressBar {
+  height: 100%;
+  background: var(--color-primary);
+  transition: width 0.2s ease;
+}
+
+.banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  background: var(--color-gold-light);
+  color: var(--color-ink);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 0.86rem;
+  margin-bottom: 12px;
+}
+
+.offline {
+  position: fixed;
+  left: 50%;
+  bottom: 16px;
+  transform: translateX(-50%);
+  z-index: 3000;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: calc(100vw - 24px);
+  background: var(--color-ink);
+  color: #fff;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 0.86rem;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+}

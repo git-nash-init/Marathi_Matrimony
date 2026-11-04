@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { describeError, ErrorDetails } from '../components/states/UiStates';
 import { Phone, Mail, MapPin, Send, CheckCircle2, User } from 'lucide-react';
 import { useLanguage } from '../i18n/LanguageContext';
 import { SectionHeading } from '../components/common/SectionHeading';
@@ -9,6 +10,7 @@ import { supabase, isSupabaseConfigured } from '../lib/supabase';
 export const ContactPage: React.FC = () => {
   const { t, brandName, localize, language } = useLanguage();
   const [formSubmitted, setFormSubmitted] = useState(false);
+  const [submitError, setSubmitError] = useState<ErrorDetails | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -29,8 +31,12 @@ export const ContactPage: React.FC = () => {
         message: formData.message.trim(),
         status: 'pending',
       });
-      if (error) console.warn('Contact inquiry insert notice:', error.message);
+      if (error) {
+        setSubmitError(describeError(error, language));
+        return;
+      }
     }
+    setSubmitError(null);
     setFormSubmitted(true);
   };
 
@@ -215,6 +221,11 @@ export const ContactPage: React.FC = () => {
                   />
                 </div>
 
+                {submitError && (
+                  <p role="alert" style={{ margin: 0, color: 'var(--color-danger)', fontSize: '0.9rem' }}>
+                    {submitError.what} {submitError.fix}
+                  </p>
+                )}
                 <Button type="submit" variant="primary" size="lg" icon={<Send size={18} />}>
                   {t.contactPage.submitBtn}
                 </Button>

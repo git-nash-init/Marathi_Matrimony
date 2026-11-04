@@ -7,6 +7,7 @@ import { LanguageSwitcher } from './LanguageSwitcher';
 import { NotificationBell } from './NotificationBell';
 import { shortlistService } from '../../services/shortlist.service';
 import { ShortlistBookmarkIcon } from './CulturalIcons';
+import { useAdminAccess } from '../../admin/adminAccess';
 import styles from './Header.module.css';
 
 export const Header: React.FC = () => {
@@ -71,9 +72,7 @@ export const Header: React.FC = () => {
     navigate('/', { replace: true });
   };
 
-  const isAdmin = user?.email?.toLowerCase() === 'vaishalibagave8@gmail.com' || 
-    (user as any)?.app_metadata?.role === 'admin' || 
-    (user as any)?.user_metadata?.role === 'admin';
+  const { isAdmin } = useAdminAccess();
 
   // Streamlined, uncluttered desktop navigation links
   const desktopNavLinks = [
@@ -93,7 +92,7 @@ export const Header: React.FC = () => {
     { to: '/success-stories', label: t.nav.successStories },
     { to: '/membership', label: t.nav.membership },
     { to: '/wedding-services', label: language === 'mr' ? 'लग्न सेवा' : 'Wedding Services' },
-    { to: '/admin', label: language === 'mr' ? 'प्रशासन (Admin)' : 'Admin Portal' },
+    ...(isAdmin ? [{ to: '/admin', label: language === 'mr' ? 'प्रशासन (Admin)' : 'Admin Portal' }] : []),
     { to: '/how-it-works', label: t.nav.howItWorks },
     { to: '/about', label: t.nav.aboutUs },
     { to: '/contact', label: t.nav.contact }

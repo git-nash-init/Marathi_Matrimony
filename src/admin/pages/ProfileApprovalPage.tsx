@@ -1,4 +1,3 @@
-import { AdminInquiries } from '../components/premium/AdminInquiries';
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import {
@@ -11,15 +10,17 @@ import {
   Users,
   Settings,
   ExternalLink,
-  ArrowLeft,
   Sparkles,
 } from 'lucide-react';
-import { useLanguage } from '../i18n/LanguageContext';
-import { useToast } from '../context/ToastContext';
-import { adminService, AdminProfileItem } from '../services/admin.service';
-import styles from './AdminVerificationPage.module.css';
+import { useLanguage } from '../../i18n/LanguageContext';
+import { useToast } from '../../context/ToastContext';
+import { adminService, AdminProfileItem } from '../../services/admin.service';
+import { ConfirmDialog } from '../../components/common/ConfirmDialog';
+import { Skeleton } from '../../components/common/Skeleton';
+import { EmptyState, ErrorState, NoResults } from '../../components/states/UiStates';
+import styles from './ProfileApprovalPage.module.css';
 
-export const AdminVerificationPage: React.FC = () => {
+export const ProfileApprovalPage: React.FC = () => {
   const { language } = useLanguage();
   const { showToast } = useToast();
 
@@ -27,47 +28,26 @@ export const AdminVerificationPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [activeTab, setActiveTab] = useState<'all' | 'pending' | 'verified' | 'draft' | 'rejected'>('all');
-  const [autoVerify, setAutoVerify] = useState<boolean>(true);
+  const [loadError, setLoadError] = useState<unknown>(null);
+  const [confirmBatch, setConfirmBatch] = useState(false);
   const [actionInProgress, setActionInProgress] = useState<string | null>(null);
 
   // Load profiles
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await adminService.fetchProfiles();
-      setProfiles(data);
+      setProfiles(await adminService.fetchProfiles());
+      setLoadError(null);
     } catch (err) {
-      console.error('Failed to load admin profiles:', err);
-      showToast(
-        language === 'mr' ? 'प्रोफाइल्स लोड करण्यात अडचण आली.' : 'Failed to load profiles.',
-        'error'
-      );
+      setLoadError(err);
     } finally {
       setLoading(false);
     }
-  }, [language, showToast]);
+  }, []);
 
   useEffect(() => {
     loadData();
-    adminService.getAutoVerifySetting().then(setAutoVerify);
   }, [loadData]);
-
-  // Handle auto-verify setting toggle (platform-wide, enforced in the database)
-  const handleToggleAutoVerify = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.checked;
-    setAutoVerify(val);
-    if (!(await adminService.setAutoVerifySetting(val))) {
-      setAutoVerify(!val);
-      showToast(language === 'mr' ? 'सेटिंग जतन करता आली नाही.' : 'Could not save the setting.', 'error');
-      return;
-    }
-    showToast(
-      val
-        ? (language === 'mr' ? 'आधार स्वयंचलित मंजुरी सुरू केली.' : 'Auto-verify on Aadhaar enabled.')
-        : (language === 'mr' ? 'आधार स्वयंचलित मंजुरी बंद केली (मॅन्युअल तपासणी सुरू).' : 'Manual verification queue enabled.'),
-      'info'
-    );
-  };
 
   // One-click approve and verify
   const handleApprove = async (p: AdminProfileItem) => {
@@ -107,9 +87,7 @@ export const AdminVerificationPage: React.FC = () => {
 
   // Batch approve all pending
   const handleBatchApprove = async () => {
-    if (!window.confirm(language === 'mr' ? 'सर्व प्रलंबित प्रोफाइल्स मंजूर करायच्या आहेत का?' : 'Approve all pending profiles?')) {
-      return;
-    }
+    setConfirmBatch(false);
     setLoading(true);
     const res = await adminService.batchApprovePending();
     setLoading(false);
@@ -157,9 +135,8 @@ export const AdminVerificationPage: React.FC = () => {
         const q = search.trim().toLowerCase();
         const fullName = `${p.first_name || ''} ${p.last_name || ''}`.toLowerCase();
         const profId = (p.profile_id || '').toLowerCase();
-        const aadhaar = (p.aadhaar_number || '').toLowerCase();
         const city = (p.city || '').toLowerCase();
-        return fullName.includes(q) || profId.includes(q) || aadhaar.includes(q) || city.includes(q);
+        return fullName.includes(q) || profId.includes(q) || city.includes(q);
       }
 
       return true;
@@ -178,22 +155,18 @@ export const AdminVerificationPage: React.FC = () => {
             </h1>
             <p>
               {language === 'mr'
-                ? 'सनईबंध सदस्य आधार पडताळणी, फोटो मंजुरी आणि प्रोफाइल स्थिती व्यवस्थापन.'
-                : 'Systematic member Aadhaar verification, photo moderation, and approval center.'}
+                ? 'सदस्यांची प्रोफाइल मंजुरी आणि ओळख तपासणी.'
+                : 'Review and approve member profiles.'}
             </p>
           </div>
 
           <div className={styles.headerRight}>
-            <Link to="/dashboard" className={styles.btnView}>
-              <ArrowLeft size={16} />
-              {language === 'mr' ? 'डॅशबोर्डवर परत जा' : 'Back to Dashboard'}
-            </Link>
             <button onClick={loadData} className={styles.btnView} title="Refresh list">
               <RefreshCw size={16} className={loading ? 'spin' : ''} />
               {language === 'mr' ? 'ताजे करा' : 'Refresh'}
             </button>
             {stats.pending > 0 && (
-              <button onClick={handleBatchApprove} className={styles.btnApprove}>
+              <button onClick={() => setConfirmBatch(true)} className={styles.btnApprove}>
                 <Sparkles size={16} />
                 {language === 'mr' ? `सर्व प्रलंबित मंजूर करा (${stats.pending})` : `Approve All Pending (${stats.pending})`}
               </button>
@@ -244,39 +217,6 @@ export const AdminVerificationPage: React.FC = () => {
           </div>
         </div>
 
-        {/* System Auto-Verify Policy Box */}
-        <div className={styles.settingsBox}>
-          <div className={styles.settingsContent}>
-            <h3>
-              <Settings size={20} color="var(--color-primary)" />
-              {language === 'mr'
-                ? 'आधार क्रमांकासह स्वयंचलित पडताळणी (Auto-Approve Policy)'
-                : 'Auto-Approve on Aadhaar Submission Policy'}
-            </h3>
-            <p>
-              {autoVerify
-                ? (language === 'mr'
-                    ? 'चालू: वापरकर्त्याने १२ अंकी आधार क्रमांक प्रविष्ट करताच प्रोफाइल तात्काळ "Verified" होते आणि विरुद्ध लिंगाच्या सदस्यांना दिसू लागते.'
-                    : 'Active: When members enter their 12-digit Aadhaar, their profile is instantly Confirmed & Verified, appearing to opposite gender matches immediately.')
-                : (language === 'mr'
-                    ? 'बंद: सर्व नवीन प्रोफाइल्स प्रशासकीय तपासणीसाठी (Under Review) थांबतील आणि तुम्ही स्वतः "मंजूर करा" बटण दाबल्यावरच सक्रिय होतील.'
-                    : 'Manual: New profiles stay in "Under Review" pending queue until administrator manually clicks Approve.')}
-            </p>
-          </div>
-
-          <div className={styles.switchWrapper}>
-            <span style={{ fontSize: '0.9rem', fontWeight: 700, color: autoVerify ? '#15803D' : '#64748B' }}>
-              {autoVerify
-                ? (language === 'mr' ? 'स्वयंचलित मंजुरी चालू' : 'Auto-Approve ON')
-                : (language === 'mr' ? 'मॅन्युअल तपासणी' : 'Manual Queue')}
-            </span>
-            <label className={styles.toggleSwitch}>
-              <input type="checkbox" checked={autoVerify} onChange={handleToggleAutoVerify} />
-              <span className={styles.slider}></span>
-            </label>
-          </div>
-        </div>
-
         {/* Toolbar & Tabs */}
         <div className={styles.toolbar}>
           <div className={styles.tabs}>
@@ -316,7 +256,7 @@ export const AdminVerificationPage: React.FC = () => {
             <Search size={18} className={styles.searchIcon} />
             <input
               type="text"
-              placeholder={language === 'mr' ? 'नाव, आयडी, आधार किंवा शहर शोधा...' : 'Search name, ID, Aadhaar, city...'}
+              placeholder={language === 'mr' ? 'नाव, आयडी किंवा शहर शोधा...' : 'Search name, ID, city...'}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className={styles.searchInput}
@@ -325,21 +265,28 @@ export const AdminVerificationPage: React.FC = () => {
         </div>
 
         {/* Profiles List */}
-        {loading ? (
-          <div className={styles.emptyState}>
-            <RefreshCw size={32} className="spin" style={{ margin: '0 auto 12px', display: 'block', color: 'var(--color-primary)' }} />
-            <p>{language === 'mr' ? 'प्रोफाइल्स लोड होत आहेत...' : 'Loading member profiles...'}</p>
+        {loadError && profiles.length === 0 ? (
+          <ErrorState error={loadError} onRetry={loadData} />
+        ) : loading && profiles.length === 0 ? (
+          <div className={styles.profileList} aria-label={language === 'mr' ? 'प्रोफाइल्स लोड होत आहेत' : 'Loading member profiles'}>
+            {[0, 1, 2, 3].map((i) => <Skeleton key={i} height={96} borderRadius={12} />)}
           </div>
+        ) : profiles.length === 0 ? (
+          <EmptyState
+            icon={<ShieldCheck size={30} />}
+            title={language === 'mr' ? 'अद्याप कोणतीही प्रोफाइल नाही' : 'No member profiles yet'}
+            description={language === 'mr' ? 'सदस्य नोंदणी करून प्रोफाइल बनवतील तेव्हा त्या येथे दिसतील.' : 'Profiles appear here as members register and create them.'}
+          />
         ) : filteredProfiles.length === 0 ? (
-          <div className={styles.emptyState}>
-            <ShieldCheck size={48} style={{ margin: '0 auto 12px', display: 'block', color: '#94A3B8' }} />
-            <h3>{language === 'mr' ? 'कोणतीही प्रोफाइल आढळली नाही' : 'No Profiles Found'}</h3>
-            <p>
-              {language === 'mr'
-                ? 'निवडलेल्या निकषांनुसार किंवा शोध परिणामांमध्ये कोणतीही प्रोफाइल उपलब्ध नाही.'
-                : 'No profiles match the selected filters or search terms.'}
-            </p>
-          </div>
+          search.trim() ? (
+            <NoResults query={search.trim()} onClear={() => setSearch('')} />
+          ) : (
+            <EmptyState
+              title={language === 'mr' ? 'या विभागात काही नाही' : 'Nothing in this tab'}
+              description={language === 'mr' ? 'या स्थितीची कोणतीही प्रोफाइल सध्या नाही.' : 'No profiles have this status right now.'}
+              action={{ label: language === 'mr' ? 'सर्व पहा' : 'View all', onClick: () => setActiveTab('all') }}
+            />
+          )
         ) : (
           <div className={styles.profileList}>
             {filteredProfiles.map((p) => {
@@ -385,14 +332,14 @@ export const AdminVerificationPage: React.FC = () => {
                         )}
                       </div>
 
-                      {p.aadhaar_number ? (
+                      {p.aadhaar_last4 ? (
                         <div className={styles.aadhaarRow}>
                           <ShieldCheck size={14} />
-                          <span>Aadhaar: {p.aadhaar_number}</span>
+                          <span>{language === 'mr' ? 'ओळखपत्र शेवटचे अंक' : 'ID ending'}: •••• {p.aadhaar_last4}</span>
                         </div>
                       ) : (
                         <span style={{ fontSize: '0.8rem', color: '#94A3B8' }}>
-                          {language === 'mr' ? 'आधार क्रमांक प्रविष्ट केलेला नाही' : 'No Aadhaar provided'}
+                          {language === 'mr' ? 'ओळखपत्र तपशील दिलेला नाही' : 'No ID details given'}
                         </span>
                       )}
                     </div>
@@ -470,7 +417,17 @@ export const AdminVerificationPage: React.FC = () => {
           </div>
         )}
 
-        <AdminInquiries language={language} />
+        <ConfirmDialog
+          isOpen={confirmBatch}
+          title={language === 'mr' ? 'सर्व प्रलंबित मंजूर करायच्या?' : 'Approve all pending profiles?'}
+          message={language === 'mr'
+            ? 'सादर केलेल्या सर्व प्रोफाइल्स मंजूर होतील आणि सदस्यांना दिसू लागतील.'
+            : 'Every submitted profile will be approved and become visible to members.'}
+          confirmLabel={language === 'mr' ? 'मंजूर करा' : 'Approve all'}
+          cancelLabel={language === 'mr' ? 'रद्द करा' : 'Cancel'}
+          onConfirm={handleBatchApprove}
+          onCancel={() => setConfirmBatch(false)}
+        />
       </div>
     </div>
   );

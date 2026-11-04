@@ -69,7 +69,7 @@ export const ProfileBuilderContainer: React.FC<ProfileBuilderProps> = ({ mode: _
           console.error('Error fetching profile:', profileErr);
         }
 
-        // Surname and Aadhaar are not selectable directly; the owner reads them via RPC.
+        // Surname and ID digits are not selectable directly; the owner reads them via RPC.
         const profile = profileRow ? { ...profileRow, ...(await fetchMyPrivateFields()) } : null;
 
         if (profile && isMounted) {
@@ -93,8 +93,8 @@ export const ProfileBuilderContainer: React.FC<ProfileBuilderProps> = ({ mode: _
             photos: profile.photos || [],
             photos_hidden: Boolean(profile.photos_hidden),
             id_type: 'aadhaar',
-            id_number: profile.aadhaar_number || '',
-            self_attested: Boolean(profile.aadhaar_number),
+            id_number: profile.aadhaar_last4 || '',
+            self_attested: Boolean(profile.aadhaar_last4),
             profile_for: profile.profile_for || 'self',
             gender: profile.gender || 'male',
             date_of_birth: profile.date_of_birth || '',
@@ -168,6 +168,11 @@ export const ProfileBuilderContainer: React.FC<ProfileBuilderProps> = ({ mode: _
             const savedDraft = localStorage.getItem(`profile_draft_${user.id}`);
             if (savedDraft) {
               const parsed = JSON.parse(savedDraft);
+              // Drafts saved by older versions could hold a full ID number: keep the last 4 only.
+              if (parsed.id_number) {
+                parsed.id_number = String(parsed.id_number).replace(/\D/g, '').slice(-4);
+                localStorage.setItem(`profile_draft_${user.id}`, JSON.stringify(parsed));
+              }
               setFormData((prev) => ({ ...prev, ...parsed }));
             }
           } catch (e) {
@@ -245,23 +250,11 @@ export const ProfileBuilderContainer: React.FC<ProfileBuilderProps> = ({ mode: _
       setIsSaving(true);
       setSaveErrorMessage(null);
 
-      // Requested status only: the profiles trigger decides the final status. It approves an
-      // Aadhaar submission only while the admin's auto-approval setting is on, and keeps an
-      // approved profile live while it is edited.
-      const hasAadhaar = Boolean(formData.id_number && formData.id_number.replace(/\s/g, '').length === 12);
-      const isAutoApproved = status === 'pending_review' && hasAadhaar;
-
-      const profileStatusEnum = isAutoApproved
-        ? 'approved'
-        : status === 'pending_review'
-        ? 'pending_approval'
-        : 'draft';
-
-      const verificationStatusEnum = isAutoApproved
-        ? 'verified'
-        : formData.self_attested
-        ? 'pending'
-        : 'unverified';
+      // Requested status only: the profiles trigger decides the final status. Every profile waits
+      // for an admin to approve it, and an approved profile stays live while it is edited.
+      const profileStatusEnum = status === 'pending_review' ? 'pending_approval' : 'draft';
+      const verificationStatusEnum = formData.self_attested ? 'pending' : 'unverified';
+      const idLast4 = (formData.id_number || '').replace(/\D/g, '').slice(-4);
 
       // Parse height as integer
       const heightInt = Number(formData.height_cm) || 165;
@@ -311,7 +304,7 @@ export const ProfileBuilderContainer: React.FC<ProfileBuilderProps> = ({ mode: _
         avatar_url: formData.avatar_url || null,
         photos: formData.photos || [],
         photos_hidden: Boolean(formData.photos_hidden),
-        aadhaar_number: formData.id_number || null,
+        aadhaar_last4: idLast4.length === 4 ? idLast4 : null,
         profile_status: profileStatusEnum,
         verification_status: verificationStatusEnum,
         profile_visibility: 'registered_only',

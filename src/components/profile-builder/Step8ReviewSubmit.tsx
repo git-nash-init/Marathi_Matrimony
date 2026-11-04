@@ -505,7 +505,7 @@ export const Step8ReviewSubmit: React.FC<Step8Props> = ({
             </span>
             <strong style={{ color: data.self_attested ? '#15803D' : 'var(--color-dark, #242124)' }}>
               {data.self_attested
-                ? (language === 'mr' ? '✓ आधार ओळख पडताळणी पूर्ण (Verified)' : '✓ Aadhaar Identity Verified')
+                ? (language === 'mr' ? '✓ ओळख तपशील सादर — तपासणी बाकी' : '✓ ID details submitted, awaiting review')
                 : (language === 'mr' ? 'पडताळणी बाकी (Not Verified)' : 'Not Verified')}
             </strong>
           </div>

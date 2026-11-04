@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { useLanguage } from '../i18n/LanguageContext';
 import { useAuth } from '../context/AuthContext';
+import { useAdminAccess } from '../admin/adminAccess';
 import { Button } from '../components/common/Button';
 import { SubscriptionGate } from '../components/common/SubscriptionGate';
 import { PLAN_DISPLAY_INFO } from '../services/subscription.service';
@@ -76,6 +77,7 @@ const TABS: Tab[] = [
 // ── Main Component ────────────────────────────────────────────────────────────
 
 export const DashboardPage: React.FC = () => {
+  const { isAdmin } = useAdminAccess();
   const { t, language } = useLanguage();
   const { user, profile, signOut } = useAuth();
   const navigate = useNavigate();
@@ -325,16 +327,18 @@ export const DashboardPage: React.FC = () => {
             </div>
             <ChevronRight size={18} className={dashStyles.actionArrow} />
           </Link>
-          <Link to="/admin" className={dashStyles.actionCard}>
-            <div className={dashStyles.actionIcon} style={{ background: '#E0F2FE', color: '#0284C7' }}>
-              <ShieldCheck size={22} />
-            </div>
-            <div className={dashStyles.actionText}>
-              <strong>{language === 'mr' ? 'प्रशासन व पडताळणी' : 'Admin & Verifications'}</strong>
-              <span>{language === 'mr' ? 'सर्व प्रोफाइल्स, आधार पडताळणी व मंजुरी' : 'Review & approve all profiles'}</span>
-            </div>
-            <ChevronRight size={18} className={dashStyles.actionArrow} />
-          </Link>
+          {isAdmin && (
+            <Link to="/admin" className={dashStyles.actionCard}>
+              <div className={dashStyles.actionIcon} style={{ background: '#E0F2FE', color: '#0284C7' }}>
+                <ShieldCheck size={22} />
+              </div>
+              <div className={dashStyles.actionText}>
+                <strong>{language === 'mr' ? 'प्रशासन व पडताळणी' : 'Admin & Verifications'}</strong>
+                <span>{language === 'mr' ? 'सर्व प्रोफाइल्स, ओळख पडताळणी व मंजुरी' : 'Review & approve all profiles'}</span>
+              </div>
+              <ChevronRight size={18} className={dashStyles.actionArrow} />
+            </Link>
+          )}
         </div>
       </div>
 

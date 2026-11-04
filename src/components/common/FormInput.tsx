@@ -55,6 +55,8 @@ export const FormInput: React.FC<FormInputProps> = ({
 
         <input
           id={inputId}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={error && inputId ? `${inputId}-error` : undefined}
           disabled={disabled}
           style={{
             width: '100%',

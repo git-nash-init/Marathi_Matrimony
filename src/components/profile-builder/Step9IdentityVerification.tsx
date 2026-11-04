@@ -40,8 +40,8 @@ export const Step9IdentityVerification: React.FC<Step9Props> = ({
         title={language === 'mr' ? 'सुरक्षित ओळख पडताळणी' : 'Secure Identity Verification'}
       >
         {language === 'mr'
-          ? 'ओळख पडताळणी यशस्वी झाल्यावर आपले प्रोफाइल अधिकृतपणे पडताळलेले प्रोफाइल (Verified Profile) म्हणून चिन्हांकित केले जाईल.'
-          : 'Upon successful identity verification, your profile will be designated as a Verified Profile.'}
+          ? 'आमचे पथक तपासणी केल्यानंतरच आपले प्रोफाइल पडताळलेले प्रोफाइल (Verified Profile) म्हणून चिन्हांकित केले जाईल.'
+          : 'Your profile is marked as a Verified Profile only after our team has reviewed your details.'}
       </InfoCard>
 
       {/* Interactive Verification Card */}
@@ -51,10 +51,7 @@ export const Step9IdentityVerification: React.FC<Step9Props> = ({
         onIdTypeChange={(val) => onChange('id_type', val)}
         onIdNumberChange={(val) => onChange('id_number', val)}
         isVerified={data.self_attested === true}
-        onVerificationSuccess={(maskedId) => {
-          onChange('self_attested', true);
-          if (maskedId) onChange('id_number', maskedId);
-        }}
+        onAttestationChange={(attested) => onChange('self_attested', attested)}
         error={errors.id_number}
       />
     </div>

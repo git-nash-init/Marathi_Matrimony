@@ -53,6 +53,8 @@ export const FormTextarea: React.FC<FormTextareaProps> = ({
     >
       <textarea
         id={textareaId}
+        aria-invalid={error ? true : undefined}
+        aria-describedby={error && textareaId ? `${textareaId}-error` : undefined}
         disabled={disabled}
         style={{
           width: '100%',

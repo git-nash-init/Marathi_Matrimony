@@ -29,7 +29,7 @@ export const storageService = {
       throw new Error('Only JPEG, PNG, and WebP images are supported');
     }
 
-    const fileExt = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+    const fileExt = ({ 'image/jpeg': 'jpg', 'image/jpg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' } as Record<string, string>)[file.type.toLowerCase()];
     const fileName = `${slot}_${Date.now()}.${fileExt}`;
     const filePath = `${userId}/${fileName}`;
 
@@ -43,42 +43,23 @@ export const storageService = {
       });
     }
 
-    try {
-      const { data, error } = await supabase.storage
-        .from('profile-photos')
-        .upload(filePath, file, {
-          cacheControl: '3600',
-          upsert: true,
-          contentType: file.type,
-        });
-
-      if (error) {
-        console.warn('Supabase storage upload error:', error.message);
-        // Fallback to Data URL if upload policy or network blocks
-        return new Promise((resolve) => {
-          const reader = new FileReader();
-          reader.onload = () => resolve(reader.result as string);
-          reader.onerror = () => resolve('');
-          reader.readAsDataURL(file);
-        });
-      }
-
-      // Get public URL
-      const { data: publicUrlData } = supabase.storage
-        .from('profile-photos')
-        .getPublicUrl(data.path);
-
-      return publicUrlData.publicUrl;
-    } catch (err) {
-      console.error('Failed to upload image:', err);
-      // Fallback to Data URL
-      return new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result as string);
-        reader.onerror = () => resolve('');
-        reader.readAsDataURL(file);
+    const { data, error } = await supabase.storage
+      .from('profile-photos')
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: true,
+        contentType: file.type,
       });
+
+    if (error) {
+      throw new Error('Your photo could not be uploaded. Please check your connection and try again.');
     }
+
+    const { data: publicUrlData } = supabase.storage
+      .from('profile-photos')
+      .getPublicUrl(data.path);
+
+    return publicUrlData.publicUrl;
   },
 
   /**

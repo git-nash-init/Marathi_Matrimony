@@ -9,7 +9,7 @@ export interface AdminProfileItem {
   gender: 'male' | 'female';
   profile_status: 'draft' | 'pending_approval' | 'approved' | 'rejected' | 'suspended';
   verification_status: 'unverified' | 'pending' | 'verified' | 'rejected';
-  aadhaar_number: string | null;
+  aadhaar_last4: string | null;
   city: string | null;
   state: string | null;
   occupation: string | null;
@@ -20,83 +20,20 @@ export interface AdminProfileItem {
   updated_at: string;
 }
 
-export const PRIMARY_ADMIN_EMAIL = 'vaishalibagave8@gmail.com';
-
-export const isAdminEmail = (email?: string | null): boolean => {
-  if (!email) return false;
-  return email.toLowerCase().trim() === PRIMARY_ADMIN_EMAIL;
-};
-
-const AUTO_APPROVAL_KEY = 'aadhaar_auto_approval';
-
 export const adminService = {
-  PRIMARY_ADMIN_EMAIL,
-  isAdminEmail,
-
-  // Aadhaar auto-approval is a platform setting enforced by the profiles trigger (migration 011).
-  async getAutoVerifySetting(): Promise<boolean> {
-    const { data } = await (supabase.from('platform_settings') as any)
-      .select('value')
-      .eq('key', AUTO_APPROVAL_KEY)
-      .maybeSingle();
-    return data ? data.value === true : true;
+  // Fetch all profiles (including surname and last 4 ID digits) for administrative review.
+  // Throws on failure, so the page can show an error rather than an empty list.
+  async fetchProfiles(): Promise<AdminProfileItem[]> {
+    if (!isSupabaseConfigured()) return [];
+    const { data, error } = await supabase.rpc('admin_list_profiles');
+    if (error) throw error;
+    return (data as unknown as AdminProfileItem[]) || [];
   },
 
-  async setAutoVerifySetting(enabled: boolean): Promise<boolean> {
-    const { error } = await (supabase.from('platform_settings') as any)
-      .update({ value: enabled, updated_at: new Date().toISOString() })
-      .eq('key', AUTO_APPROVAL_KEY);
-    if (error) console.error('Auto-approval setting error:', error);
-    return !error;
-  },
-
-  // Fetch all profiles (including surname/Aadhaar) for administrative review
-  async fetchProfiles(params?: {
-    status?: 'all' | 'pending' | 'verified' | 'rejected' | 'draft';
-    search?: string;
-  }): Promise<AdminProfileItem[]> {
-    if (!isSupabaseConfigured()) {
-      return [];
-    }
-
-    try {
-      const { data, error } = await supabase.rpc('admin_list_profiles');
-      if (error) {
-        console.error('Error fetching admin profiles:', error);
-        return [];
-      }
-
-      let results = ((data as unknown as AdminProfileItem[]) || []).filter((p) => {
-        switch (params?.status) {
-          case 'pending': return p.verification_status === 'pending' || p.profile_status === 'pending_approval';
-          case 'verified': return p.verification_status === 'verified';
-          case 'rejected': return p.verification_status === 'rejected' || p.profile_status === 'rejected';
-          case 'draft': return p.profile_status === 'draft';
-          default: return true;
-        }
-      });
-
-      if (params?.search && params.search.trim()) {
-        const q = params.search.trim().toLowerCase();
-        results = results.filter((p) => {
-          const fullName = `${p.first_name || ''} ${p.last_name || ''}`.toLowerCase();
-          const profId = (p.profile_id || '').toLowerCase();
-          const aadhaar = (p.aadhaar_number || '').toLowerCase();
-          const city = (p.city || '').toLowerCase();
-          return (
-            fullName.includes(q) ||
-            profId.includes(q) ||
-            aadhaar.includes(q) ||
-            city.includes(q)
-          );
-        });
-      }
-
-      return results;
-    } catch (err) {
-      console.error('Failed to query admin profiles:', err);
-      return [];
-    }
+  // Requires a super admin who has completed 2-step verification in this session.
+  async setMfaRequired(required: boolean): Promise<void> {
+    const { error } = await supabase.rpc('admin_set_mfa_required', { p_required: required });
+    if (error) throw error;
   },
 
   // Approve and verify a profile

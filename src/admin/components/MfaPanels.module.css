@@ -1,0 +1,31 @@
+.card {
+  background: var(--color-surface-pure);
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  padding: 24px;
+  color: var(--color-ink);
+}
+.card p { margin: 0 0 12px; color: var(--color-ink-muted); font-size: 0.92rem; line-height: 1.5; }
+
+.head { display: flex; align-items: center; gap: 10px; color: var(--color-primary); margin-bottom: 10px; }
+.head h2 { margin: 0; font-size: 1.15rem; }
+
+.steps { margin: 0 0 14px; padding-left: 20px; font-size: 0.9rem; line-height: 1.6; color: var(--color-ink-muted); }
+
+.qr { display: block; width: 200px; height: 200px; margin: 0 auto 12px; background: #fff; }
+
+.manual { font-size: 0.84rem; margin-bottom: 14px; color: var(--color-ink-muted); }
+.manual code { display: block; margin-top: 6px; word-break: break-all; font-size: 0.82rem; }
+
+.form { display: grid; gap: 12px; }
+
+.linkButton {
+  display: block;
+  margin: 14px auto 0;
+  background: none;
+  border: none;
+  color: var(--color-ink-muted);
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: 0.86rem;
+}

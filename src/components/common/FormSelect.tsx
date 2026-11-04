@@ -64,6 +64,8 @@ export const FormSelect: React.FC<FormSelectProps> = ({
 
         <select
           id={selectId}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={error && selectId ? `${selectId}-error` : undefined}
           disabled={disabled}
           style={{
             width: '100%',

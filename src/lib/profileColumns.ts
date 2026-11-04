@@ -1,7 +1,7 @@
 import { supabase } from './supabase';
 
 /**
- * Every profiles column clients may SELECT. last_name and aadhaar_number are excluded by a
+ * Every profiles column clients may SELECT. last_name and aadhaar_last4 are excluded by a
  * column-level grant (migration 011), so `select('*')` on profiles fails — use this list.
  * Keep in sync with the GRANT SELECT (...) in 011_security_hardening.sql.
  */
@@ -19,12 +19,12 @@ export const PROFILE_COLUMNS = [
 
 export interface PrivateProfileFields {
   last_name: string | null;
-  aadhaar_number: string | null;
+  aadhaar_last4: string | null;
 }
 
-/** The signed-in member's own surname and Aadhaar (owner-only RPC). */
+/** The signed-in member's own surname and last 4 ID digits (owner-only RPC). */
 export async function fetchMyPrivateFields(): Promise<PrivateProfileFields> {
   const { data } = await supabase.rpc('get_my_private_profile');
   const d = (data ?? {}) as Partial<PrivateProfileFields>;
-  return { last_name: d.last_name ?? null, aadhaar_number: d.aadhaar_number ?? null };
+  return { last_name: d.last_name ?? null, aadhaar_last4: d.aadhaar_last4 ?? null };
 }

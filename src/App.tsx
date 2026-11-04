@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
 import { LanguageProvider } from './i18n/LanguageContext';
@@ -32,8 +32,11 @@ import { ProfileCreatePage } from './pages/ProfileCreatePage';
 import { ProfileEditPage } from './pages/ProfileEditPage';
 import { PaymentPage } from './pages/PaymentPage';
 import { PaymentSuccessPage } from './pages/PaymentSuccessPage';
-import { AdminVerificationPage } from './pages/AdminVerificationPage';
 import { NotFoundPage } from './pages/NotFoundPage';
+import { Skeleton } from './components/common/Skeleton';
+import { OfflineBanner, SessionExpiredDialog } from './components/states/UiStates';
+
+const AdminRoutes = lazy(() => import('./admin/AdminRoutes'));
 
 export const App: React.FC = () => {
   return (
@@ -163,27 +166,23 @@ export const App: React.FC = () => {
                     </ProtectedRoute>
                   }
                 />
-                <Route
-                  path="admin"
-                  element={
-                    <ProtectedRoute>
-                      <AdminVerificationPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="admin/verifications"
-                  element={
-                    <ProtectedRoute>
-                      <AdminVerificationPage />
-                    </ProtectedRoute>
-                  }
-                />
 
                 {/* 404 Catch-all */}
                 <Route path="*" element={<NotFoundPage />} />
               </Route>
+
+                {/* Admin portal: its own layout, loaded only when opened */}
+                <Route
+                  path="admin/*"
+                  element={
+                    <Suspense fallback={<div style={{ padding: 24 }}><Skeleton height={160} borderRadius={12} /></div>}>
+                      <AdminRoutes />
+                    </Suspense>
+                  }
+                />
             </Routes>
+            <OfflineBanner />
+            <SessionExpiredDialog />
           </BrowserRouter>
         </ToastProvider>
           </SubscriptionProvider>

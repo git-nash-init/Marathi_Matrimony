@@ -12,6 +12,7 @@ import { ComplaintsPage } from './pages/ComplaintsPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { UsersPage } from './pages/UsersPage';
 import { UserDetailPage } from './pages/UserDetailPage';
+import { VerificationPage } from './pages/VerificationPage';
 
 const Gated: React.FC<{ path: string; children: React.ReactNode }> = ({ path, children }) => {
   const { role } = useAdminSession();
@@ -33,7 +34,7 @@ const NotBuiltYet: React.FC<{ path: string }> = ({ path }) => {
   );
 };
 
-const PENDING_SECTIONS = ['plans', 'payments', 'verification', 'stories', 'notifications', 'reports'];
+const PENDING_SECTIONS = ['plans', 'payments', 'stories', 'notifications', 'reports'];
 
 const AdminRoutes: React.FC = () => (
   <AdminGuard>
@@ -43,6 +44,7 @@ const AdminRoutes: React.FC = () => (
         <Route path="users" element={<Gated path="users"><UsersPage /></Gated>} />
         <Route path="users/:userId" element={<Gated path="users"><UserDetailPage /></Gated>} />
         <Route path="approvals" element={<Gated path="approvals"><ProfileApprovalPage /></Gated>} />
+        <Route path="verification" element={<Gated path="verification"><VerificationPage /></Gated>} />
         <Route path="complaints" element={<Gated path="complaints"><ComplaintsPage /></Gated>} />
         <Route path="settings" element={<Gated path="settings"><SettingsPage /></Gated>} />
         {PENDING_SECTIONS.map((path) => (

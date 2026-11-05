@@ -1,11 +1,4 @@
-import { supabase, isSupabaseConfigured } from '../lib/supabase';
-
-export interface ReportPayload {
-  reportedProfileId: string;
-  reason: string;
-  description?: string;
-  reporterProfileId?: string;
-}
+import { supabase } from '../lib/supabase';
 
 export interface BlockedMember {
   id: string;
@@ -47,28 +40,5 @@ export const interactionService = {
     const { data, error } = await supabase.rpc('get_my_blocked_members');
     if (error) throw error;
     return (data ?? []) as unknown as BlockedMember[];
-  },
-
-  // Report a profile
-  async reportProfile(payload: ReportPayload): Promise<{ success: boolean; message?: string }> {
-    if (payload.reporterProfileId && isSupabaseConfigured()) {
-      try {
-        const { error } = await (supabase.from('reports') as any).insert({
-          reporter_user_id: payload.reporterProfileId,
-          reported_user_id: payload.reportedProfileId,
-          reason: payload.reason,
-          description: payload.description || '',
-          status: 'pending',
-        });
-
-        if (error) {
-          console.warn('Supabase report insert error:', error);
-        }
-      } catch (err) {
-        console.warn('Report submission exception:', err);
-      }
-    }
-
-    return { success: true, message: 'Report submitted successfully' };
   },
 };

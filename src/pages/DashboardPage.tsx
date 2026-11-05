@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   Ban,
@@ -26,6 +26,8 @@ import { useAuth } from '../context/AuthContext';
 import { useAdminAccess } from '../admin/adminAccess';
 import { Button } from '../components/common/Button';
 import { SubscriptionGate } from '../components/common/SubscriptionGate';
+import { IdVerificationCard } from '../components/premium/IdVerificationCard';
+import { moderationService, ProfileReview } from '../services/moderation.service';
 import { PLAN_DISPLAY_INFO } from '../services/subscription.service';
 import { PremiumFeature, useSubscription } from '../context/SubscriptionContext';
 import {
@@ -80,10 +82,35 @@ const TABS: Tab[] = [
 
 // ── Main Component ────────────────────────────────────────────────────────────
 
+const CORRECTION_LABELS: Record<string, { en: string; mr: string }> = {
+  photos: { en: 'Photos', mr: 'फोटो' },
+  name: { en: 'Name', mr: 'नाव' },
+  date_of_birth: { en: 'Date of birth', mr: 'जन्मतारीख' },
+  community: { en: 'Caste', mr: 'जात' },
+  education: { en: 'Education', mr: 'शिक्षण' },
+  occupation: { en: 'Occupation', mr: 'व्यवसाय' },
+  family: { en: 'Family details', mr: 'कुटुंब' },
+  location: { en: 'Location', mr: 'ठिकाण' },
+  about_me: { en: 'About', mr: 'माहिती' },
+  contact: { en: 'Contact details', mr: 'संपर्क' },
+};
+
 export const DashboardPage: React.FC = () => {
   const { isAdmin } = useAdminAccess();
   const { t, language } = useLanguage();
   const { user, profile, signOut } = useAuth();
+  const [review, setReview] = useState<ProfileReview | null>(null);
+  const profileStatus = profile?.profile_status;
+
+  useEffect(() => {
+    if (profileStatus !== 'draft' && profileStatus !== 'rejected') {
+      setReview(null);
+      return;
+    }
+    let active = true;
+    moderationService.getMyReview().then((next) => { if (active) setReview(next); }).catch(() => undefined);
+    return () => { active = false; };
+  }, [profileStatus]);
   const navigate = useNavigate();
 
   const [activeTab, setActiveTab] = useState<TabKey>('interests');
@@ -177,7 +204,30 @@ export const DashboardPage: React.FC = () => {
             <Button to="/profile/edit" variant="outline" size="sm">{t.dashboard.editProfileBtn}</Button>
           </div>
         )}
-        {(!profile || profile.profile_status === 'draft') && (
+        {review && (
+          <div className={`${dashStyles.banner} ${dashStyles.bannerAmber}`} role="status">
+            <AlertTriangle size={22} />
+            <div>
+              <strong>
+                {review.kind === 'correction'
+                  ? (language === 'mr' ? 'प्रोफाइलमध्ये बदल आवश्यक' : 'Changes needed on your profile')
+                  : (language === 'mr' ? 'प्रोफाइल मंजूर झाली नाही' : 'Your profile was not approved')}
+              </strong>
+              <p>{review.note}</p>
+              {review.fields.length > 0 && (
+                <p>
+                  {language === 'mr' ? 'बदलायचे भाग' : 'Please check'}:{' '}
+                  {review.fields.map((f) => CORRECTION_LABELS[f]?.[language === 'mr' ? 'mr' : 'en'] ?? f).join(', ')}
+                </p>
+              )}
+            </div>
+            <Button to="/profile/edit" variant="primary" size="sm">
+              {language === 'mr' ? 'प्रोफाइल संपादित करा' : 'Edit and resubmit'}
+            </Button>
+          </div>
+        )}
+
+        {!review && (!profile || profile.profile_status === 'draft') && (
           <div className={`${dashStyles.banner} ${dashStyles.bannerAmber}`}>
             <AlertTriangle size={22} />
             <div>
@@ -189,6 +239,8 @@ export const DashboardPage: React.FC = () => {
             </Button>
           </div>
         )}
+
+        {profile && <IdVerificationCard />}
 
         {/* ── Stats Row ────────────────────────────────────────── */}
         <div className={dashStyles.statsRow}>
@@ -222,7 +274,9 @@ export const DashboardPage: React.FC = () => {
                 ? (language === 'mr' ? 'पडताळणी झालेले' : 'Verified')
                 : profile?.verification_status === 'rejected'
                 ? (language === 'mr' ? 'अस्वीकृत' : 'Rejected')
-                : (language === 'mr' ? 'प्रतीक्षेत' : 'Pending')}
+                : profile?.verification_status === 'pending'
+                ? (language === 'mr' ? 'प्रतीक्षेत' : 'Being checked')
+                : (language === 'mr' ? 'अद्याप नाही' : 'Not yet')}
             </div>
           </div>
 

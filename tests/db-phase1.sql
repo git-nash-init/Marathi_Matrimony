@@ -36,8 +36,8 @@ BEGIN
   EXCEPTION WHEN insufficient_privilege THEN v_results := v_results || 'ok anon cannot call is_admin'::text; END;
 
   BEGIN
-    PERFORM public.admin_list_profiles();
-    v_failed := v_failed + 1; v_results := v_results || 'FAIL anon can call admin_list_profiles'::text;
+    PERFORM public.admin_approval_queue();
+    v_failed := v_failed + 1; v_results := v_results || 'FAIL anon can call admin_approval_queue'::text;
   EXCEPTION WHEN insufficient_privilege THEN v_results := v_results || 'ok anon cannot list profiles'::text; END;
 
   SELECT count(*) INTO v_n FROM public.subscription_plans WHERE is_active;
@@ -56,7 +56,7 @@ BEGIN
     ELSE v_failed := v_failed + 1; v_results := v_results || 'FAIL member context'::text; END IF;
 
   BEGIN
-    PERFORM public.admin_list_profiles();
+    PERFORM public.admin_approval_queue();
     v_failed := v_failed + 1; v_results := v_results || 'FAIL member can list profiles'::text;
   EXCEPTION WHEN insufficient_privilege THEN v_results := v_results || 'ok member cannot list profiles'::text; END;
 
@@ -145,7 +145,7 @@ BEGIN
     THEN v_results := v_results || 'ok admin context has role'::text;
     ELSE v_failed := v_failed + 1; v_results := v_results || 'FAIL admin context'::text; END IF;
 
-  v_text := public.admin_list_profiles()::text;
+  v_text := public.admin_approval_queue()::text;
   IF v_text NOT LIKE '%aadhaar_number%' AND v_text LIKE '%aadhaar_last4%'
     THEN v_results := v_results || 'ok admin list has last 4, no full ID'::text;
     ELSE v_failed := v_failed + 1; v_results := v_results || 'FAIL admin list columns'::text; END IF;
@@ -177,7 +177,7 @@ BEGIN
     THEN v_results := v_results || 'ok aal1 admin can still reach MFA setup'::text;
     ELSE v_failed := v_failed + 1; v_results := v_results || 'FAIL aal1 admin locked out of setup'::text; END IF;
   BEGIN
-    PERFORM public.admin_list_profiles();
+    PERFORM public.admin_approval_queue();
     v_failed := v_failed + 1; v_results := v_results || 'FAIL aal1 admin listed profiles'::text;
   EXCEPTION WHEN insufficient_privilege THEN v_results := v_results || 'ok aal1 admin refused data'::text; END;
   RESET ROLE;
@@ -199,7 +199,7 @@ BEGIN
     PERFORM public.admin_batch_approve_pending();
     v_failed := v_failed + 1; v_results := v_results || 'FAIL moderator batch approved'::text;
   EXCEPTION WHEN insufficient_privilege THEN v_results := v_results || 'ok moderator cannot batch approve'::text; END;
-  PERFORM public.admin_list_profiles();
+  PERFORM public.admin_approval_queue();
   v_results := v_results || 'ok moderator can list for approval'::text;
   UPDATE public.platform_settings SET value = 'true'::jsonb WHERE key = 'admin_mfa_required';
   GET DIAGNOSTICS v_n = ROW_COUNT;

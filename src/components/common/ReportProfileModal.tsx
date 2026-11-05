@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { Profile } from '../../types';
-import { interactionService } from '../../services/interaction.service';
+import { moderationService } from '../../services/moderation.service';
+import { describeError } from '../states/UiStates';
 import { Flag, CheckCircle2, X } from 'lucide-react';
 import { Button } from './Button';
 
@@ -23,6 +24,8 @@ export const ReportProfileModal: React.FC<ReportProfileModalProps> = ({
   const [description, setDescription] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [alreadyReported, setAlreadyReported] = useState(false);
+  const [failure, setFailure] = useState<string | null>(null);
 
   if (!isOpen || !profile) return null;
 
@@ -39,12 +42,10 @@ export const ReportProfileModal: React.FC<ReportProfileModalProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setFailure(null);
     try {
-      await interactionService.reportProfile({
-        reportedProfileId: profile.id,
-        reason,
-        description,
-      });
+      const result = await moderationService.reportMember(profile.id, reason, description);
+      setAlreadyReported(result.alreadyReported);
       setIsSuccess(true);
       if (onReportSubmitted) onReportSubmitted();
       setTimeout(() => {
@@ -52,7 +53,13 @@ export const ReportProfileModal: React.FC<ReportProfileModalProps> = ({
         onClose();
       }, 1800);
     } catch (err) {
-      console.error('Report error:', err);
+      const message = (err as { code?: string; message?: string });
+      if (!message.code && message.message) {
+        setFailure(message.message);
+      } else {
+        const generic = describeError(err, language);
+        setFailure(`${generic.what} ${generic.fix}`);
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -126,9 +133,11 @@ export const ReportProfileModal: React.FC<ReportProfileModalProps> = ({
               {language === 'mr' ? '✓ तुमचा रिपोर्ट प्राप्त झाला आहे' : '✓ Report Received'}
             </h3>
             <p style={{ color: '#64748B', fontSize: '0.88rem', margin: 0 }}>
-              {language === 'mr'
-                ? 'आमची पडताळणी टीम या प्रोफाइलची चौकशी करेल.'
-                : 'Our moderation team will review this profile.'}
+              {alreadyReported
+                ? (language === 'mr' ? 'आपण ही प्रोफाइल आधीच रिपोर्ट केली आहे. आमची टीम ती तपासत आहे.' : 'You already reported this profile, and our team is looking into it.')
+                : language === 'mr'
+                ? 'आमची पडताळणी टीम या प्रोफाइलची चौकशी करेल. तपासणीनंतर आपल्याला सूचना मिळेल.'
+                : 'Our moderation team will review this profile. You will get a notification once it has been looked at.'}
             </p>
           </div>
         ) : (
@@ -214,6 +223,8 @@ export const ReportProfileModal: React.FC<ReportProfileModalProps> = ({
                 }}
               />
             </div>
+
+            {failure && <p role="alert" style={{ color: 'var(--color-danger)', fontSize: '0.88rem', margin: 0 }}>{failure}</p>}
 
             <div style={{ display: 'flex', gap: '12px', marginTop: '6px' }}>
               <Button type="button" variant="outline" size="md" onClick={onClose} fullWidth disabled={isSubmitting}>

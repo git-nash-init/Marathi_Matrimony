@@ -4,7 +4,10 @@ import { useLanguage } from '../i18n/LanguageContext';
 import { SearchFiltersState, Profile } from '../types';
 import { useAuth } from '../context/AuthContext';
 import { discoveryService, MatchBand } from '../services/discovery.service';
-import { EmptyState, ErrorState, NoResults } from '../components/states/UiStates';
+import { EmptyState, ErrorState, NoResults, SlowNetworkNotice } from '../components/states/UiStates';
+import { useSlowNetwork } from '../hooks/useNetworkStatus';
+import { isLowData, setLowData } from '../lib/lowData';
+import { supabase } from '../lib/supabase';
 import { ProfileCard, ProfileCardSkeleton } from '../components/profile/ProfileCard';
 import { SearchFilters } from '../components/search/SearchFilters';
 import { Modal } from '../components/common/Modal';
@@ -248,6 +251,23 @@ export const SearchPage: React.FC = () => {
     return language === 'mr' ? '९६ कुळी मराठा जोडीदार शोधा' : 'Find Your 96 Kuli Maratha Match';
   };
 
+  const slowNetwork = useSlowNetwork(isLoading);
+  const [hints, setHints] = useState<{ did_you_mean: string | null; suggestions: string[] }>({ did_you_mean: null, suggestions: [] });
+
+  // Only asked when a search finds nothing, so it costs nothing on a normal search.
+  useEffect(() => {
+    const query = debouncedSearch.trim();
+    if (isLoading || profiles.length > 0 || query.length < 3) {
+      setHints({ did_you_mean: null, suggestions: [] });
+      return;
+    }
+    let active = true;
+    (supabase.rpc as any)('search_suggestions', { p_q: query }).then(({ data }: any) => {
+      if (active && data) setHints(data);
+    });
+    return () => { active = false; };
+  }, [isLoading, profiles.length, debouncedSearch]);
+
   if (!authLoading && !isAuthenticated) {
     return (
       <div className={styles.container}>
@@ -283,8 +303,8 @@ export const SearchPage: React.FC = () => {
           </h1>
           <p className={styles.pageSubtitle}>
             {language === 'mr'
-              ? '१००% पडताळणी झालेले कोकणस्थ व देशस्थ ९६ कुळी मराठा स्थळे. खानदानी कुळे, शिक्षण व मूल्यांनुसार शोधा.'
-              : '100% verified Kokanastha & Deshastha 96 Kuli Maratha profiles filtered by education, gotra, and values.'}
+              ? 'तपासलेली कोकणस्थ व देशस्थ ९६ कुळी मराठा स्थळे. खानदानी कुळे, शिक्षण व मूल्यांनुसार शोधा.'
+              : 'Reviewed Kokanastha & Deshastha 96 Kuli Maratha profiles, filtered by education, gotra and values.'}
           </p>
         </div>
 
@@ -424,6 +444,15 @@ export const SearchPage: React.FC = () => {
           )}
 
           {/* Results Grid / Loading / Empty / Error States */}
+          {slowNetwork && !isLowData() && <SlowNetworkNotice onLighter={() => { setLowData(true); window.location.reload(); }} />}
+          {isLowData() && (
+            <p style={{ fontSize: '0.86rem', color: 'var(--color-text-muted)', margin: '0 0 10px' }}>
+              {language === 'mr' ? 'कमी डेटा मोड चालू: फोटो दाखवले जात नाहीत. ' : 'Low-data mode is on, so photos are hidden. '}
+              <button type="button" style={{ background: 'none', border: 'none', padding: 0, color: 'var(--color-primary)', cursor: 'pointer', textDecoration: 'underline' }} onClick={() => { setLowData(false); window.location.reload(); }}>
+                {language === 'mr' ? 'फोटो दाखवा' : 'Show photos'}
+              </button>
+            </p>
+          )}
           {isLoading || authLoading ? (
             <div className={styles.profilesGrid}>
               {Array.from({ length: 6 }).map((_, idx) => (
@@ -434,7 +463,7 @@ export const SearchPage: React.FC = () => {
             <ErrorState error={error} onRetry={() => loadProfiles(1, false)} />
           ) : profiles.length === 0 ? (
             debouncedSearch.trim() ? (
-              <NoResults query={debouncedSearch.trim()} onClear={() => setSearchTerm('')} />
+              <NoResults query={debouncedSearch.trim()} didYouMean={hints.did_you_mean ?? undefined} suggestions={hints.suggestions.filter((h) => h !== hints.did_you_mean)} onSuggestion={setSearchTerm} onClear={() => setSearchTerm('')} />
             ) : (
               <EmptyState
                 icon={<MatrimonySearchIcon size={30} />}

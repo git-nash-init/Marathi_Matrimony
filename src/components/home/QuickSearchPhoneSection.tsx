@@ -55,8 +55,8 @@ export const QuickSearchPhoneSection: React.FC = () => {
 
             <p className={styles.subheading}>
               {language === 'mr'
-                ? 'वय, जात, शिक्षण आणि शहरानुसार हजारो पडताळणी झालेल्या ९६ कुळी मराठा वधू-वरांची माहिती आपल्या स्मार्टफोनवरून त्वरित मिळवा. थेट कुटुंबियांशी संपर्क साधा.'
-                : 'Find educated 96 Kuli Maratha brides and grooms across Mumbai, Pune, Western Maharashtra, and abroad. Filter precisely by age, clan, education, and location with 100% verified biodatas.'}
+                ? 'वय, जात, शिक्षण आणि शहरानुसार तपासलेल्या ९६ कुळी मराठा वधू-वरांची माहिती आपल्या स्मार्टफोनवरून त्वरित मिळवा. थेट कुटुंबियांशी संपर्क साधा.'
+                : 'Find educated 96 Kuli Maratha brides and grooms across Mumbai, Pune, Western Maharashtra, and abroad. Filter precisely by age, clan, education, and location among reviewed profiles.'}
             </p>
 
             {/* Feature Highlights */}
@@ -83,7 +83,7 @@ export const QuickSearchPhoneSection: React.FC = () => {
                 </div>
                 <div>
                   <h4 className={styles.featureTitle}>
-                    {language === 'mr' ? '१००% पडताळणी झालेले बायोडाटा' : '100% Verified Profiles & Family Contacts'}
+                    {language === 'mr' ? 'तपासलेले बायोडाटा' : 'Reviewed Profiles & Family Contacts'}
                   </h4>
                   <p className={styles.featureDesc}>
                     {language === 'mr'

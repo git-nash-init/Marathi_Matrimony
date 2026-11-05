@@ -1,8 +1,54 @@
-/* Sanaibandh service worker — Web Push only (no offline caching).
- * Payload from the send-push Edge Function: { title, body, url, tag }. */
+// Service worker: web push, plus an offline copy of the app itself.
+// Only the app shell and public files are cached. Requests to the database are never touched, so no
+// member's information is ever stored here, and nothing lingers on a shared computer after sign-out.
+const CACHE = 'sanaibandh-shell-v1';
 
 self.addEventListener('install', () => self.skipWaiting());
-self.addEventListener('activate', (event) => event.waitUntil(self.clients.claim()));
+self.addEventListener('activate', (event) => {
+  event.waitUntil((async () => {
+    const names = await caches.keys();
+    await Promise.all(names.filter((n) => n.startsWith('sanaibandh-shell-') && n !== CACHE).map((n) => caches.delete(n)));
+    await self.clients.claim();
+  })());
+});
+
+self.addEventListener('fetch', (event) => {
+  const { request } = event;
+  const url = new URL(request.url);
+  if (request.method !== 'GET' || url.origin !== self.location.origin) return;
+
+  // Pages: always try the network, so a new release shows at once. Offline, open the saved app.
+  if (request.mode === 'navigate') {
+    event.respondWith((async () => {
+      try {
+        const fresh = await fetch(request);
+        if (fresh.ok) {
+          const cache = await caches.open(CACHE);
+          await cache.put('/index.html', fresh.clone());
+        }
+        return fresh;
+      } catch {
+        const saved = await caches.match('/index.html');
+        return saved || Response.error();
+      }
+    })());
+    return;
+  }
+
+  // Built files have a content hash in their name, so a saved copy can never be out of date.
+  if (url.pathname.startsWith('/assets/') || url.pathname.startsWith('/images/') || url.pathname === '/favicon.svg') {
+    event.respondWith((async () => {
+      const saved = await caches.match(request);
+      if (saved) return saved;
+      const fresh = await fetch(request);
+      if (fresh.ok) {
+        const cache = await caches.open(CACHE);
+        await cache.put(request, fresh.clone());
+      }
+      return fresh;
+    })());
+  }
+});
 
 self.addEventListener('push', (event) => {
   let data = {};

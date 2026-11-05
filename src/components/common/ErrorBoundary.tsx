@@ -3,6 +3,8 @@ import { AlertTriangle } from 'lucide-react';
 
 interface Props {
   children: ReactNode;
+  /** Fills a page area rather than the whole window, so the menus stay usable. */
+  inline?: boolean;
 }
 
 interface State {
@@ -28,7 +30,7 @@ export class ErrorBoundary extends Component<Props, State> {
     if (this.state.hasError) {
       return (
         <div style={{
-          minHeight: '100vh',
+          minHeight: this.props.inline ? '50vh' : '100vh',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',

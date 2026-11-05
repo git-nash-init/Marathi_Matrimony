@@ -9,6 +9,8 @@ import {
   Download,
 } from 'lucide-react';
 import { useLanguage } from '../i18n/LanguageContext';
+import { useToast } from '../context/ToastContext';
+import { billingService } from '../services/billing.service';
 import {
   SubscriptionPlan,
   PLAN_DISPLAY_INFO,
@@ -20,6 +22,7 @@ export const PaymentSuccessPage: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { language } = useLanguage();
+  const toast = useToast();
   const plan: SubscriptionPlan | undefined = location.state?.plan;
   const method: string = location.state?.method || 'card';
   const [showContent, setShowContent] = useState(false);
@@ -40,7 +43,7 @@ export const PaymentSuccessPage: React.FC = () => {
   const info = PLAN_DISPLAY_INFO[plan.slug] || PLAN_DISPLAY_INFO['silver'];
   const months = Math.round(plan.duration_days / 30);
   // Dates and transaction id come from the subscription/payment rows created by the database.
-  const receipt = location.state?.receipt as { transaction_id: string; start_date: string; end_date: string } | undefined;
+  const receipt = location.state?.receipt as { amount?: number; transaction_id: string; start_date: string; end_date: string } | undefined;
   const startDate = receipt ? new Date(receipt.start_date) : new Date();
   const endDate = receipt ? new Date(receipt.end_date) : new Date(startDate.getTime() + plan.duration_days * 86400000);
   const planName = language === 'mr' ? (info.label_mr || plan.name) : plan.name;
@@ -182,13 +185,15 @@ export const PaymentSuccessPage: React.FC = () => {
         {/* Download Receipt */}
         <button
           className={styles.receiptBtn}
-          onClick={() =>
-            alert(
-              language === 'mr'
-                ? 'पावती पुढील २४ तासांत आपल्या नोंदणीकृत ईमेलवर पाठवली जाईल.'
-                : 'Receipt download will be available via email within 24 hours.'
-            )
-          }
+          onClick={() => {
+            billingService.downloadReceipt({
+              id: receipt?.transaction_id ?? 'receipt', user_id: null, gateway: 'dummy', gateway_order_id: null,
+              gateway_payment_id: receipt?.transaction_id ?? null, amount: receipt?.amount ?? plan?.discounted_price ?? plan?.price ?? 0,
+              currency: 'INR', status: 'captured', payment_method: method, paid_at: receipt?.start_date ?? new Date().toISOString(),
+              created_at: receipt?.start_date ?? new Date().toISOString(), plan_name: plan?.name ?? null, email: null,
+              first_name: null, last_name: null, profile_code: null, is_test: true,
+            }).catch(() => toast.error(language === 'mr' ? 'पावती तयार झाली नाही. पुन्हा प्रयत्न करा.' : 'The receipt could not be created. Please try again.'));
+          }}
         >
           <Download size={14} />
           <span>{language === 'mr' ? 'पावती डाउनलोड करा' : 'Download Receipt'}</span>

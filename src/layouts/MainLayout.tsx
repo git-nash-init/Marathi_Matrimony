@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
+import { ErrorBoundary } from '../components/common/ErrorBoundary';
 import { Header } from '../components/common/Header';
 import { Footer } from '../components/common/Footer';
 
@@ -23,7 +24,9 @@ export const MainLayout: React.FC = () => {
       <ScrollToTop />
       <Header />
       <main style={{ flexGrow: 1, paddingTop: isHomePage ? 0 : '96px' }}>
-        <Outlet />
+        <ErrorBoundary inline key={location.pathname}>
+          <Outlet />
+        </ErrorBoundary>
       </main>
       <Footer />
     </div>

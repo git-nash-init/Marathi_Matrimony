@@ -23,7 +23,7 @@ export const MembershipSection: React.FC = () => {
         <SectionHeading
           badge={language === 'mr' ? 'सदस्यत्व योजना' : 'Membership Plans'}
           title={language === 'mr' ? 'आपल्या सोयीनुसार योग्य योजना निवडा' : 'Transparent Membership Plans for Every Family'}
-          subtitle={language === 'mr' ? 'कोणतेही छुपे शुल्क नाही. १००% पडताळणी केलेले संपर्क क्रमांक मिळवा.' : 'Zero hidden charges. Direct verified family contact unlocks.'}
+          subtitle={language === 'mr' ? 'कोणतेही छुपे शुल्क नाही.' : 'Zero hidden charges.'}
         />
 
         <div className={styles.plansGrid}>

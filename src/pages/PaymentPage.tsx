@@ -17,6 +17,8 @@ import {
 import { useAuth } from '../context/AuthContext';
 import { useSubscription } from '../context/SubscriptionContext';
 import { useLanguage } from '../i18n/LanguageContext';
+import { useToast } from '../context/ToastContext';
+import { Skeleton } from '../components/common/Skeleton';
 import {
   subscriptionService,
   SubscriptionPlan,
@@ -37,6 +39,7 @@ export const PaymentPage: React.FC = () => {
   const { user } = useAuth();
   const { refresh: refreshEntitlements } = useSubscription();
   const { language } = useLanguage();
+  const toast = useToast();
 
   const [plan, setPlan] = useState<SubscriptionPlan | null>(location.state?.plan || null);
   const [method, setMethod] = useState<PaymentMethod>('card');
@@ -116,7 +119,9 @@ export const PaymentPage: React.FC = () => {
         },
       });
     } else {
-      alert(`Payment failed: ${result.error}`);
+      toast.error(language === 'mr'
+        ? 'पेमेंट पूर्ण झाले नाही. आपल्याकडून पैसे घेतलेले नाहीत. कृपया पुन्हा प्रयत्न करा.'
+        : 'The payment did not go through, and no money was taken. Please try again.');
     }
   };
 
@@ -127,7 +132,10 @@ export const PaymentPage: React.FC = () => {
   if (loadingPlan || !plan) {
     return (
       <div style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div className={styles.spinner} />
+        <div style={{ width: 'min(520px, 90%)', display: 'grid', gap: 12 }} aria-label={language === 'mr' ? 'लोड होत आहे' : 'Loading'}>
+          <Skeleton height={40} borderRadius={8} />
+          <Skeleton height={260} borderRadius={14} />
+        </div>
       </div>
     );
   }

@@ -20,8 +20,16 @@ export const ContactPage: React.FC = () => {
     category: 'contact',
   });
 
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const mr = language === 'mr';
+  const emailProblem = !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim()) ? (mr ? 'ईमेल योग्य नाही.' : 'This email does not look right.') : null;
+  const mobileProblem = !/^\+?[0-9 -]{10,15}$/.test(formData.mobile.trim()) ? (mr ? 'किमान १० अंकी मोबाईल नंबर टाका.' : 'Please enter a mobile number of at least 10 digits.') : null;
+  const inlineError = (text: string) => <p role="alert" style={{ color: 'var(--color-danger)', fontSize: '0.85rem', margin: '4px 0 0' }}>{text}</p>;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setTouched({ email: true, mobile: true });
+    if (emailProblem || mobileProblem) return;
     if (isSupabaseConfigured()) {
       // Status, priority and the member link are set by a database trigger; the client cannot choose them.
       const { error } = await (supabase.from('contact_inquiries') as any).insert({
@@ -162,8 +170,11 @@ export const ContactPage: React.FC = () => {
                         placeholder={t.contactPage.emailPlaceholder}
                         value={formData.email}
                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                        aria-invalid={Boolean(touched.email && emailProblem)}
+                        onBlur={() => setTouched((t) => ({ ...t, email: true }))}
                       />
                     </div>
+                    {touched.email && emailProblem && inlineError(emailProblem)}
                   </div>
                   <div className="form-group">
                     <label className="form-label" htmlFor="contact-mobile">
@@ -179,8 +190,11 @@ export const ContactPage: React.FC = () => {
                         placeholder={t.contactPage.mobilePlaceholder}
                         value={formData.mobile}
                         onChange={(e) => setFormData({ ...formData, mobile: e.target.value })}
+                        aria-invalid={Boolean(touched.mobile && mobileProblem)}
+                        onBlur={() => setTouched((t) => ({ ...t, mobile: true }))}
                       />
                     </div>
+                    {touched.mobile && mobileProblem && inlineError(mobileProblem)}
                   </div>
                 </div>
 

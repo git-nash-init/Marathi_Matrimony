@@ -30,8 +30,8 @@ export const TrustSection: React.FC = () => {
       icon: <VerifiedShieldIcon size={28} color="var(--color-primary)" />,
       metric: '१००%',
       metricEn: '100%',
-      title: language === 'mr' ? 'वैयक्तिक मार्गदर्शन व पडताळणी' : 'Personal Assistance',
-      desc: language === 'mr' ? 'प्रत्येक प्रोफाईलची सत्यता व कौटुंबिक खातरजमा' : 'Verified biodatas and dedicated consultation'
+      title: language === 'mr' ? 'प्रत्येक प्रोफाइलची तपासणी' : 'Every Profile Reviewed',
+      desc: language === 'mr' ? 'प्रोफाइल इतरांना दिसण्यापूर्वी आमचे पथक ती तपासते.' : 'Our team reviews each profile before anyone else can see it.',
     },
     {
       icon: <MarathaCrestIcon size={28} color="var(--color-antique-gold)" />,

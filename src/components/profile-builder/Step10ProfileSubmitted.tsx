@@ -117,7 +117,7 @@ export const Step10ProfileSubmitted: React.FC<Step10Props> = ({ profileId, first
               border: '1px solid var(--color-border, #E8DFC8)',
             }}
           >
-            {profileId || 'MM109284'}
+            {profileId || '—'}
           </span>
         </div>
 

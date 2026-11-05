@@ -97,11 +97,12 @@ const MiniCard: React.FC<{ p: CardRow; lang: string; note?: React.ReactNode }> =
   </Link>
 );
 
-const EmptyState: React.FC<{ icon: React.ReactNode; title: string; desc: string }> = ({ icon, title, desc }) => (
+const EmptyState: React.FC<{ icon: React.ReactNode; title: string; desc: string; noAction?: boolean }> = ({ icon, title, desc, noAction }) => (
   <div className={dashStyles.emptyState}>
     <div className={dashStyles.emptyIcon}>{icon}</div>
     <h3 className={dashStyles.emptyTitle}>{title}</h3>
     <p className={dashStyles.emptyDesc}>{desc}</p>
+    {!noAction && <Link to="/search" className="btn btn-primary btn-sm" style={{ marginTop: 10 }}>{localStorage.getItem('app_language') === 'en' ? 'Browse matches' : 'स्थळे शोधा'}</Link>}
   </div>
 );
 
@@ -209,7 +210,7 @@ export const BlockedMembersTab: React.FC<Lang> = ({ language: lang }) => {
       <Header icon={<Ban size={18} />} title={mr ? 'ब्लॉक केलेले सदस्य' : 'Blocked Members'}
         desc={mr ? 'तुम्ही आणि हे सदस्य एकमेकांना दिसत नाही' : 'You and these members cannot see each other'} />
       {loading ? <Loading language={lang} /> : error ? <ErrorState error={error} onRetry={() => void load()} /> : rows.length === 0 ? (
-        <EmptyState icon={<Ban size={32} />} title={mr ? 'कोणालाही ब्लॉक केलेले नाही' : 'You have not blocked anyone'}
+        <EmptyState noAction icon={<Ban size={32} />} title={mr ? 'कोणालाही ब्लॉक केलेले नाही' : 'You have not blocked anyone'}
           desc={mr ? 'एखाद्या प्रोफाइलवरील मेनूमधून ब्लॉक करू शकता.' : 'You can block a member from the menu on their profile.'} />
       ) : (
         <div className={dashStyles.miniCardList}>

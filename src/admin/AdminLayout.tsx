@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { ErrorBoundary } from '../components/common/ErrorBoundary';
 import { ArrowLeft, LogOut, Menu, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../i18n/LanguageContext';
@@ -67,7 +68,9 @@ export const AdminLayout: React.FC = () => {
       </nav>
 
       <main className={styles.content}>
-        <Outlet />
+        <ErrorBoundary inline key={location.pathname}>
+          <Outlet />
+        </ErrorBoundary>
       </main>
     </div>
   );

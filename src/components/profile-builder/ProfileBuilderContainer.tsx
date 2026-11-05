@@ -22,9 +22,9 @@ import { StepFooter } from '../common/StepFooter';
 import {
   CheckCircle2,
   AlertCircle,
-  Loader2,
 } from 'lucide-react';
 import { PROFILE_COLUMNS, fetchMyPrivateFields } from '../../lib/profileColumns';
+import { Skeleton } from '../common/Skeleton';
 import { calculateAgeFromDob } from '../../data/profileOptions';
 
 interface ProfileBuilderProps {
@@ -554,8 +554,9 @@ export const ProfileBuilderContainer: React.FC<ProfileBuilderProps> = ({ mode: _
 
   if (isLoading) {
     return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center">
-        <Loader2 className="w-10 h-10 text-marathi-red animate-spin mb-3" />
+      <div style={{ minHeight: '60vh', maxWidth: 760, margin: '0 auto', padding: 24, display: 'grid', gap: 14, alignContent: 'start' }}>
+        <Skeleton height={56} borderRadius={12} />
+        <Skeleton height={320} borderRadius={14} />
         <p className="text-sm font-semibold text-gray-700">
           {t('profileBuilder.loadingProfile')}...
         </p>

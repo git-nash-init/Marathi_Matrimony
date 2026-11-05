@@ -37,7 +37,7 @@ export const locationHubs: Record<string, LocationHub> = {
     },
     metaDescription: {
       mr: 'बोरिवली, कांदिवली, मालाड व दहिसर मधील ९६ कुळी मराठा वधु-वर सूचक केंद्र. १०+ वर्षे विश्वासू सेवा. आजच मोफत नोंदणी करा.',
-      en: 'Trusted 96 Kuli Maratha Marriage Bureau serving Borivali West & East, Kandivali, Malad, Goregaon, and Dahisar. 100% verified profiles.'
+      en: 'Trusted 96 Kuli Maratha Marriage Bureau serving Borivali West & East, Kandivali, Malad, Goregaon, and Dahisar. reviewed profiles.'
     },
     intro: {
       mr: 'मराठा लगीनसराई द्वारे संचालित "मराठा विवाह मंडळ बोरिवली" हे बोरिवली पश्चिम व पूर्व, कांदिवली, मालाड, गोरेगाव, जोगेश्वरी, दहिसर, चारकोप व मीरा रोड परिसरातील मराठा कुटुंबांचे अत्यंत विश्वासू वधु-वर सूचक केंद्र आहे.',

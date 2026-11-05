@@ -5,7 +5,7 @@ import { useToast } from '../../context/ToastContext';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { Button } from '../common/Button';
 import { FormInput } from '../common/FormInput';
-import { describeError } from '../states/UiStates';
+import { describeError, UploadProgress } from '../states/UiStates';
 import { idFileProblem, moderationService, MyVerification } from '../../services/moderation.service';
 
 /** Lets a member upload an ID privately and shows where the review stands. */
@@ -22,6 +22,7 @@ export const IdVerificationCard: React.FC = () => {
   const [last4Touched, setLast4Touched] = useState(false);
   const [busy, setBusy] = useState(false);
   const [failure, setFailure] = useState<string | null>(null);
+  const [progress, setProgress] = useState<number | null>(null);
 
   const load = useCallback(async () => {
     try {
@@ -76,7 +77,8 @@ export const IdVerificationCard: React.FC = () => {
     if (fileError || last4Error || !user) return;
     setBusy(true);
     try {
-      await moderationService.submitIdDocument(user.id, file, last4 || null);
+      setProgress(0);
+      await moderationService.submitIdDocument(user.id, file, last4 || null, setProgress);
       success(mr ? 'ओळखपत्र पाठवले. तपासणीनंतर सूचना मिळेल.' : 'ID sent. You will be notified once it has been checked.');
       setFile(null);
       setLast4('');
@@ -95,6 +97,7 @@ export const IdVerificationCard: React.FC = () => {
       }
     } finally {
       setBusy(false);
+      setProgress(null);
     }
   };
 
@@ -142,6 +145,7 @@ export const IdVerificationCard: React.FC = () => {
             />
           </div>
         )}
+        {progress !== null && <div style={{ marginTop: 10 }}><UploadProgress percent={progress} /></div>}
         {failure && <p role="alert" style={{ color: 'var(--color-danger)', fontSize: '0.88rem', margin: '10px 0 0' }}>{failure}</p>}
         <div style={{ marginTop: 12 }}>
           <Button type="submit" variant="primary" size="sm" icon={<Upload size={15} />} disabled={busy}>

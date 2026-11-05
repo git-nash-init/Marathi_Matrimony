@@ -233,8 +233,8 @@ export const Hero: React.FC = () => {
                 <VerifiedShieldIcon size={17} className={styles.pillIcon} color="#DFC17B" />
                 <span>
                   {language === 'mr' 
-                    ? '१००% खरी व पडताळणी झालेली स्थळे' 
-                    : '100% Genuine & Verified Profiles'}
+                    ? 'प्रत्येक प्रोफाइलची तपासणी'
+                    : 'Every Profile Reviewed'}
                 </span>
               </div>
               <div className={styles.trustPill}>

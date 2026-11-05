@@ -1,4 +1,4 @@
-import { supabase } from '../lib/supabase';
+import { supabase, SUPABASE_ANON_KEY, SUPABASE_URL } from '../lib/supabase';
 
 const rpc = (fn: string, args?: Record<string, unknown>) => (supabase.rpc as any)(fn, args);
 
@@ -162,11 +162,25 @@ export const moderationService = {
   },
 
   /** Uploads to the member's own private folder, then asks for review. */
-  async submitIdDocument(userId: string, file: File, last4: string | null): Promise<void> {
+  async submitIdDocument(userId: string, file: File, last4: string | null, onProgress?: (percent: number) => void): Promise<void> {
     const extension = file.type === 'application/pdf' ? 'pdf' : file.type === 'image/png' ? 'png' : file.type === 'image/webp' ? 'webp' : 'jpg';
     const path = `${userId}/id_${Date.now()}.${extension}`;
-    const { error } = await supabase.storage.from('verification-documents').upload(path, file, { contentType: file.type, upsert: false });
-    if (error) throw new Error('UPLOAD_FAILED');
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) throw new Error('UPLOAD_FAILED');
+    // XMLHttpRequest rather than fetch, because only it reports how much has been sent.
+    await new Promise<void>((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', `${SUPABASE_URL}/storage/v1/object/verification-documents/${path}`);
+      xhr.setRequestHeader('Authorization', `Bearer ${session.access_token}`);
+      xhr.setRequestHeader('apikey', SUPABASE_ANON_KEY);
+      xhr.setRequestHeader('Content-Type', file.type);
+      xhr.timeout = 180000;
+      xhr.upload.onprogress = (e) => { if (e.lengthComputable) onProgress?.((e.loaded / e.total) * 100); };
+      xhr.onload = () => (xhr.status >= 200 && xhr.status < 300 ? resolve() : reject(new Error('UPLOAD_FAILED')));
+      xhr.onerror = () => reject(new Error('UPLOAD_FAILED'));
+      xhr.ontimeout = () => reject(new Error('UPLOAD_FAILED'));
+      xhr.send(file);
+    });
     await memberCall('submit_id_verification', { p_paths: [path], p_last4: last4 || null });
   },
 };

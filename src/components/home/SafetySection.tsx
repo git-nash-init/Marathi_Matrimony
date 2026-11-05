@@ -14,8 +14,8 @@ export const SafetySection: React.FC = () => {
   const safetyPoints = [
     {
       icon: <VerifiedShieldIcon size={24} color="var(--color-primary)" />,
-      title: language === 'mr' ? '१००% शासकीय ओळखपत्र पडताळणी' : '100% Government ID Verification',
-      desc: language === 'mr' ? 'प्रत्येक सदस्याचे आधार / पॅन कार्ड व फोटो मॅचिंग द्वारे अधिकृत प्रमाणीकरण.' : 'Every profile is reviewed against official identity and address records.'
+      title: language === 'mr' ? 'शासकीय ओळखपत्र पडताळणीची सोय' : 'Government ID Verification Available',
+      desc: language === 'mr' ? 'सदस्य शासकीय ओळखपत्र अपलोड करू शकतात. आमच्या तपासणीनंतर प्रोफाइलवर Verified बॅज दिसतो.' : 'Members can upload a government ID for our team to check. Those who pass show a Verified badge on their profile.',
     },
     {
       icon: <PrivacyLockIcon size={24} color="var(--color-antique-gold)" />,

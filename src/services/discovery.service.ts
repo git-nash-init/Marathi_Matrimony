@@ -2,6 +2,7 @@ import { supabase } from '../lib/supabase';
 import { PROFILE_COLUMNS } from '../lib/profileColumns';
 import { LocalizedString, Profile, SearchFiltersState } from '../types';
 import { LookupOption, lookupsService } from './lookups.service';
+import { isLowData } from '../lib/lowData';
 import { MANGLIK_OPTIONS } from '../data/profileOptions';
 import { shortlistService } from './shortlist.service';
 
@@ -165,6 +166,7 @@ const MANGLIK = MANGLIK_OPTIONS.map((o) => ({ value: o.id, en: o.en, mr: o.mr })
 
 const applyLabels = (profile: Profile, labels: Labels): Profile => ({
   ...profile,
+  ...(isLowData() ? { photoUrl: '', gallery: [] } : {}),
   community: labelled(profile.community, labels.community) ?? profile.community,
   rashi: labelled(profile.rashi, labels.rashi),
   nakshatra: labelled(profile.nakshatra, labels.nakshatra),

@@ -17,8 +17,8 @@ export const WhyChooseUsSection: React.FC = () => {
   const features = [
     {
       icon: <VerifiedShieldIcon size={26} color="var(--color-primary)" />,
-      title: language === 'mr' ? 'केवळ पडताळणी केलेली खरी स्थळे' : '100% Genuine & Verified Profiles',
-      desc: language === 'mr' ? 'प्रत्येक वधू-वराच्या ओळखपत्राची व कौटुंबिक पार्श्वभूमीची काटेकोर खातरजमा.' : 'Rigorous identity, education, and family verification for complete peace of mind.'
+      title: language === 'mr' ? 'तपासलेली स्थळे' : 'Reviewed Profiles',
+      desc: language === 'mr' ? 'प्रत्येक प्रोफाइल प्रकाशित होण्यापूर्वी तपासली जाते. ओळखपत्र तपासलेल्या सदस्यांना Verified बॅज मिळतो.' : 'Every profile is reviewed before it goes live, and members whose ID we have checked show a Verified badge.',
     },
     {
       icon: <MarathaCrestIcon size={26} color="var(--color-antique-gold)" />,

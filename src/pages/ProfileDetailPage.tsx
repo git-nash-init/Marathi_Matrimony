@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useLanguage } from '../i18n/LanguageContext';
+import { Skeleton } from '../components/common/Skeleton';
 import { useToast } from '../context/ToastContext';
 import { Profile } from '../types';
 import { discoveryService } from '../services/discovery.service';
@@ -131,7 +132,10 @@ export const ProfileDetailPage: React.FC = () => {
   if (isLoading) {
     return (
       <div className={styles.loadingContainer}>
-        <div className={styles.spinner} />
+        <div style={{ width: 'min(860px, 92%)', margin: '0 auto', display: 'grid', gap: 14 }} aria-hidden="true">
+          <Skeleton height={280} borderRadius={16} />
+          <Skeleton height={160} borderRadius={14} />
+        </div>
         <p>{language === 'mr' ? 'प्रोफाइल लोड होत आहे...' : 'Loading profile details...'}</p>
       </div>
     );

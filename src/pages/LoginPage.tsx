@@ -20,7 +20,12 @@ export const LoginPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const from = (location.state as { from?: { pathname?: string } })?.from?.pathname || '/dashboard';
+  // Some pages send state.from, others state.redirect. Only paths on this site are followed.
+  const loginState = location.state as { from?: { pathname?: string }; redirect?: string } | null;
+  const requested = loginState?.from?.pathname || loginState?.redirect || '/dashboard';
+  const from = requested.startsWith('/') && !requested.startsWith('//') ? requested : '/dashboard';
+  const [emailTouched, setEmailTouched] = useState(false);
+  const emailError = emailTouched && email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()) ? t.auth.validation.invalidEmail : null;
 
   const validate = (): boolean => {
     setErrorMessage(null);
@@ -136,9 +141,12 @@ export const LoginPage: React.FC = () => {
                   className="form-input"
                   placeholder={t.auth.emailPlaceholder}
                   value={email}
+                  aria-invalid={Boolean(emailError)}
+                  onBlur={() => setEmailTouched(true)}
                   onChange={(e) => setEmail(e.target.value)}
                 />
               </div>
+              {emailError && <p role="alert" style={{ color: 'var(--color-danger)', fontSize: '0.85rem', margin: '4px 0 0' }}>{emailError}</p>}
             </div>
 
             {/* Password */}

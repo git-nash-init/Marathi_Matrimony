@@ -10,6 +10,8 @@ import { sectionFor } from './navigation';
 import { ProfileApprovalPage } from './pages/ProfileApprovalPage';
 import { ComplaintsPage } from './pages/ComplaintsPage';
 import { SettingsPage } from './pages/SettingsPage';
+import { UsersPage } from './pages/UsersPage';
+import { UserDetailPage } from './pages/UserDetailPage';
 
 const Gated: React.FC<{ path: string; children: React.ReactNode }> = ({ path, children }) => {
   const { role } = useAdminSession();
@@ -31,13 +33,15 @@ const NotBuiltYet: React.FC<{ path: string }> = ({ path }) => {
   );
 };
 
-const PENDING_SECTIONS = ['users', 'plans', 'payments', 'verification', 'stories', 'notifications', 'reports'];
+const PENDING_SECTIONS = ['plans', 'payments', 'verification', 'stories', 'notifications', 'reports'];
 
 const AdminRoutes: React.FC = () => (
   <AdminGuard>
     <Routes>
       <Route element={<AdminLayout />}>
         <Route index element={<NotBuiltYet path="" />} />
+        <Route path="users" element={<Gated path="users"><UsersPage /></Gated>} />
+        <Route path="users/:userId" element={<Gated path="users"><UserDetailPage /></Gated>} />
         <Route path="approvals" element={<Gated path="approvals"><ProfileApprovalPage /></Gated>} />
         <Route path="complaints" element={<Gated path="complaints"><ComplaintsPage /></Gated>} />
         <Route path="settings" element={<Gated path="settings"><SettingsPage /></Gated>} />

@@ -52,6 +52,8 @@ export const LoginPage: React.FC = () => {
           setErrorMessage(t.auth.validation.invalidCredentials);
         } else if (msg.includes('email not confirmed')) {
           setErrorMessage(t.auth.validation.unverifiedEmail);
+        } else if (msg.includes('banned')) {
+          setErrorMessage(language === 'mr' ? 'हे खाते ब्लॉक केले आहे. मदतीसाठी आमच्याशी संपर्क साधा.' : 'This account has been blocked. Please contact us for help.');
         } else if (msg.includes('abort') || msg.includes('timed out')) {
           setErrorMessage(language === 'mr' ? 'जोडणी वेळ संपली. कृपया इंटरनेट तपासा व पुन्हा प्रयत्न करा.' : 'Connection timed out. Please check your internet connection and try again.');
         } else {

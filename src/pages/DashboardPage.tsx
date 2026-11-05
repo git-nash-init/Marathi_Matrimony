@@ -203,6 +203,10 @@ export const DashboardPage: React.FC = () => {
                 ? (language === 'mr' ? 'सक्रिय' : 'Active')
                 : profile?.profile_status === 'pending_approval'
                 ? (language === 'mr' ? 'तपासणी सुरू' : 'Under Review')
+                : profile?.profile_status === 'rejected'
+                ? (language === 'mr' ? 'मंजूर नाही' : 'Not Approved')
+                : profile?.profile_status === 'suspended'
+                ? (language === 'mr' ? 'निलंबित' : 'Suspended')
                 : (language === 'mr' ? 'मसुदा' : 'Draft')}
             </div>
           </div>

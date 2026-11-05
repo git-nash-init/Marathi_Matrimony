@@ -5,12 +5,45 @@ import { FormTextarea } from '../common/FormTextarea';
 import { Skeleton } from '../common/Skeleton';
 import { describeError, EmptyState, ErrorState } from '../states/UiStates';
 import { useToast } from '../../context/ToastContext';
+import { supabase } from '../../lib/supabase';
 import { MyTicket, supportService } from '../../services/support.service';
 
 const STATUS: Record<string, { en: string; mr: string }> = {
   PENDING: { en: 'Received', mr: 'मिळाले' },
   IN_PROGRESS: { en: 'We are looking into it', mr: 'तपासणी सुरू' },
   RESOLVED: { en: 'Resolved', mr: 'निकाली' },
+};
+
+/** Lets a member opt out of promotions. Important messages about their account still reach them. */
+const PromotionsPreference: React.FC<{ mr: boolean }> = ({ mr }) => {
+  const { success, error: toastError } = useToast();
+  const [on, setOn] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    (supabase.rpc as any)('get_my_notification_preferences').then(({ data }: any) => setOn(data?.promotional !== false));
+  }, []);
+
+  if (on === null) return null;
+  return (
+    <label style={{ display: 'flex', gap: 8, alignItems: 'flex-start', fontSize: '0.9rem', marginBottom: 14 }}>
+      <input
+        type="checkbox"
+        checked={on}
+        onChange={async (e) => {
+          const next = e.target.checked;
+          setOn(next);
+          const { error } = await (supabase.rpc as any)('set_my_notification_preferences', { p_promotional: next });
+          if (error) {
+            setOn(!next);
+            toastError(mr ? 'बदल जतन झाला नाही. पुन्हा प्रयत्न करा.' : 'Your choice could not be saved. Please try again.');
+          } else {
+            success(next ? (mr ? 'ऑफर्सच्या सूचना चालू.' : 'You will get offers and news.') : (mr ? 'ऑफर्सच्या सूचना बंद.' : 'You will no longer get offers and news.'));
+          }
+        }}
+      />
+      {mr ? 'ऑफर्स व बातम्यांच्या सूचना हव्या आहेत. (खात्याशी संबंधित महत्त्वाच्या सूचना येतच राहतील.)' : 'Send me offers and news. (Important messages about your account will still reach you.)'}
+    </label>
+  );
 };
 
 /** The member's own requests and our replies. */
@@ -38,12 +71,15 @@ export const SupportTab: React.FC<{ language: string }> = ({ language }) => {
   if (!tickets) return <Skeleton height={140} borderRadius={12} />;
   if (tickets.length === 0) {
     return (
+      <>
+      <PromotionsPreference mr={mr} />
       <EmptyState
         icon={<LifeBuoy size={30} />}
         title={mr ? 'अद्याप कोणतीही विनंती नाही' : 'No requests yet'}
         description={mr ? 'काही अडचण असल्यास आम्हाला लिहा. उत्तर येथे दिसेल.' : 'If something is wrong, write to us. Our reply appears here.'}
         action={{ label: mr ? 'आमच्याशी संपर्क साधा' : 'Contact us', to: '/contact' }}
       />
+      </>
     );
   }
 
@@ -76,6 +112,7 @@ export const SupportTab: React.FC<{ language: string }> = ({ language }) => {
 
   return (
     <div style={{ display: 'grid', gap: 14 }}>
+      <PromotionsPreference mr={mr} />
       {tickets.map((t) => {
         const status = STATUS[t.status] ?? STATUS.IN_PROGRESS;
         return (

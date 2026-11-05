@@ -1,8 +1,6 @@
-import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import { supabase } from '../lib/supabase';
 import { PROFILE_COLUMNS } from '../lib/profileColumns';
-import { Profile, SearchFiltersState } from '../types';
-import { mockProfiles } from '../data/mockProfiles';
-import { interactionService } from './interaction.service';
+import { LocalizedString, Profile, SearchFiltersState } from '../types';
 import { shortlistService } from './shortlist.service';
 
 export interface DiscoveryQueryParams extends Partial<SearchFiltersState> {
@@ -10,12 +8,7 @@ export interface DiscoveryQueryParams extends Partial<SearchFiltersState> {
   sortBy?: 'relevance' | 'ageAsc' | 'ageDesc' | 'incomeDesc' | 'newest';
   page?: number;
   pageSize?: number;
-  userProfileId?: string;
-  /** Platinum early access: include profiles approved in the last 72 hours. */
-  earlyAccess?: boolean;
 }
-
-const EARLY_ACCESS_MS = 72 * 60 * 60 * 1000;
 
 export interface DiscoveryResponse {
   profiles: Profile[];
@@ -25,385 +18,206 @@ export interface DiscoveryResponse {
   hasMore: boolean;
 }
 
-// Convert a Supabase DB profile row into application Profile object
+/** The signed-in member's marriage age group, decided by the database. */
+export interface MatchBand {
+  applies: boolean;
+  reason?: 'no_profile' | 'not_applicable' | 'dob_missing';
+  viewer_age?: number;
+  gap?: number;
+  target_gender?: 'male' | 'female';
+  min_age?: number;
+  max_age?: number;
+}
+
+const UUID_FORMAT = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const NOT_GIVEN: LocalizedString = { mr: '—', en: '—' };
+
+const same = (value: unknown): LocalizedString =>
+  value ? { mr: String(value), en: String(value) } : NOT_GIVEN;
+
+const MARITAL_LABELS: Record<string, LocalizedString> = {
+  never_married: { mr: 'अविवाहित', en: 'Never Married' },
+  divorced: { mr: 'घटस्फोटित', en: 'Divorced' },
+  widowed: { mr: 'विधवा / विधुर', en: 'Widowed' },
+  awaiting_divorce: { mr: 'घटस्फोट प्रलंबित', en: 'Awaiting Divorce' },
+};
+
+const NO_PREFERENCES: Profile['partnerPreferences'] = {
+  ageRange: '—',
+  heightRange: '—',
+  maritalStatus: [],
+  communities: [],
+  education: [],
+  occupations: [],
+  preferredLocations: [],
+  expectedIncome: NOT_GIVEN,
+};
+
+function mapPreferences(row: any): Profile['partnerPreferences'] {
+  if (!row) return NO_PREFERENCES;
+  const list = (values: unknown): LocalizedString[] => (Array.isArray(values) ? values.map(same) : []);
+  return {
+    ageRange: row.min_age && row.max_age ? `${row.min_age} - ${row.max_age}` : '—',
+    heightRange: row.min_height && row.max_height ? `${row.min_height} - ${row.max_height} cm` : '—',
+    maritalStatus: Array.isArray(row.preferred_marital_status)
+      ? row.preferred_marital_status.map((m: string) => MARITAL_LABELS[m] ?? same(m))
+      : [],
+    communities: list(row.preferred_community),
+    education: list(row.preferred_education),
+    occupations: list(row.preferred_occupation),
+    preferredLocations: list(row.preferred_cities),
+    expectedIncome: same(row.min_income),
+  };
+}
+
+// Convert a profile row into the app's Profile. Anything the member hasn't filled in shows as a
+// dash: a real person's profile must never show invented details.
 function mapDbProfileToProfile(row: any): Profile {
-  const birthYear = row.date_of_birth ? new Date(row.date_of_birth).getFullYear() : null;
-  const currentYear = new Date().getFullYear();
-  const calculatedAge = row.age || (birthYear ? currentYear - birthYear : 26);
-  const heightCm = row.height || row.height_cm || 165;
+  const heightCm = Number(row.height) || 0;
   const heightInches = Math.round(heightCm / 2.54);
-  const feet = Math.floor(heightInches / 12);
-  const inches = heightInches % 12;
+  const displayName = `${row.first_name || ''}`.trim() || '—';
 
-  // Surname is a Silver+ unlock (served by unlock_profile_contact), so listings show the first name only.
-  const displayName = row.display_name || `${row.first_name || ''}`.trim() || 'Marathi Member';
-
-  // Photo resolution: primary avatar_url from profile or joined photos
-  let photoUrl = row.avatar_url || row.profile_photo_url || '';
-  let gallery: string[] = Array.isArray(row.photos) ? row.photos.filter(Boolean) : [];
-  if (Array.isArray(row.profile_photos) && row.profile_photos.length > 0) {
-    const primary = row.profile_photos.find((p: any) => p.is_primary) || row.profile_photos[0];
-    if (primary && primary.storage_path) {
-      photoUrl = primary.storage_path;
-    }
-    if (gallery.length === 0) {
-      gallery = row.profile_photos.map((p: any) => p.storage_path).filter(Boolean);
-    }
-  }
   // `photos` holds only the extra photos; the profile picture always leads the gallery.
+  const photoUrl: string = row.avatar_url || '';
+  let gallery: string[] = Array.isArray(row.photos) ? row.photos.filter(Boolean) : [];
   if (photoUrl) gallery = [photoUrl, ...gallery.filter((url) => url !== photoUrl)];
-  const photosHidden = Boolean(row.photos_hidden);
 
-  const rawIncome = row.income || row.annual_income;
-  const parsedIncomeNum = typeof rawIncome === 'number' ? rawIncome : parseFloat(String(rawIncome || '').replace(/[^0-9.]/g, '')) || 0;
+  const rawIncome = row.income;
+  const incomeValue = parseFloat(String(rawIncome || '').replace(/[^0-9.]/g, '')) || 0;
 
   return {
-    id: row.id || row.profile_id,
-    profileId: row.profile_id || `MM-${row.id?.substring(0, 5) || '100'}`,
-    name: {
-      mr: displayName,
-      en: displayName,
-    },
+    id: row.id,
+    profileId: row.profile_id || '—',
+    name: { mr: displayName, en: displayName },
     gender: row.gender === 'female' ? 'female' : 'male',
-    age: calculatedAge,
-    height: `${feet} ft ${inches} in / ${heightCm} cm`,
-    heightCm: heightCm,
-    maritalStatus: {
-      mr: row.marital_status === 'never_married' ? 'अविवाहित' : row.marital_status === 'divorced' ? 'घटस्फोटित' : 'विवाहित',
-      en: row.marital_status === 'never_married' ? 'Never Married' : row.marital_status === 'divorced' ? 'Divorced' : 'Married',
-    },
-    religion: {
-      mr: row.religion || 'हिंदू',
-      en: row.religion || 'Hindu',
-    },
-    community: {
-      mr: row.community || 'मराठा',
-      en: row.community || 'Maratha',
-    },
-    motherTongue: {
-      mr: row.mother_tongue || 'मराठी',
-      en: row.mother_tongue || 'Marathi',
-    },
-    city: {
-      mr: row.city || 'पुणे',
-      en: row.city || 'Pune',
-    },
-    district: {
-      mr: row.district || row.city || 'पुणे',
-      en: row.district || row.city || 'Pune',
-    },
-    state: {
-      mr: row.state || 'महाराष्ट्र',
-      en: row.state || 'Maharashtra',
-    },
-    country: {
-      mr: row.country || 'भारत',
-      en: row.country || 'India',
-    },
-    education: {
-      mr: row.education || 'पदवीधर (Graduate)',
-      en: row.education || 'Graduate',
-    },
-    educationDetail: {
-      mr: row.education_detail || row.college || row.education || '',
-      en: row.education_detail || row.college || row.education || '',
-    },
-    occupation: {
-      mr: row.occupation || 'व्यावसायिक (Professional)',
-      en: row.occupation || 'Professional',
-    },
+    age: Number(row.age) || 0,
+    ageInRange: typeof row.age_in_range === 'boolean' ? row.age_in_range : undefined,
+    height: heightCm ? `${Math.floor(heightInches / 12)} ft ${heightInches % 12} in / ${heightCm} cm` : '—',
+    heightCm,
+    maritalStatus: MARITAL_LABELS[row.marital_status] ?? NOT_GIVEN,
+    religion: same(row.religion),
+    community: same(row.community),
+    motherTongue: same(row.mother_tongue),
+    city: same(row.city),
+    district: same(row.district || row.city),
+    state: same(row.state),
+    country: same(row.country),
+    education: same(row.education),
+    educationDetail: same(row.education_detail || row.college || row.education),
+    occupation: same(row.occupation),
     occupationCategory: 'other',
-    employedIn: {
-      mr: row.employed_in || row.company || 'खाजगी क्षेत्र',
-      en: row.employed_in || row.company || 'Private Sector',
-    },
-    annualIncome: {
-      mr: rawIncome ? (typeof rawIncome === 'number' ? `₹ ${rawIncome} लाख` : rawIncome) : 'माहिती उपलब्ध नाही',
-      en: rawIncome ? (typeof rawIncome === 'number' ? `₹ ${rawIncome} LPA` : rawIncome) : 'Not Disclosed',
-    },
-    annualIncomeValue: parsedIncomeNum,
-    photoUrl: photoUrl,
-    gallery: gallery,
-    photosHidden: photosHidden,
+    employedIn: same(row.employed_in || row.company),
+    annualIncome: rawIncome ? same(rawIncome) : { mr: 'माहिती उपलब्ध नाही', en: 'Not Disclosed' },
+    annualIncomeValue: incomeValue,
+    photoUrl,
+    gallery,
+    photosHidden: Boolean(row.photos_hidden),
     listingPriority: Number(row.listing_priority) || 0,
     isHighlighted: Number(row.listing_priority) >= 3,
     isVerified: row.verification_status === 'verified',
     isPremium: false,
-    lastActive: {
-      mr: 'अलीकडेच सक्रिय',
-      en: 'Recently Active',
-    },
+    lastActive: NOT_GIVEN,
     aboutMe: {
       mr: row.about_me || 'या सदस्याने अजून माहिती जोडलेली नाही.',
       en: row.about_me || "This member hasn't added an introduction yet.",
     },
     lifestyle: {
-      diet: {
-        mr: row.diet === 'vegetarian' ? 'शाकाहारी' : 'इतर',
-        en: row.diet === 'vegetarian' ? 'Vegetarian' : 'Other',
-      },
-      smoke: {
-        mr: row.smoking === 'no' ? 'नाही' : 'कधीतरी',
-        en: row.smoking === 'no' ? 'No' : 'Occasionally',
-      },
-      drink: {
-        mr: row.drinking === 'no' ? 'नाही' : 'कधीतरी',
-        en: row.drinking === 'no' ? 'No' : 'Occasionally',
-      },
-      hobbies: [],
+      diet: same(row.diet),
+      smoke: same(row.smoking),
+      drink: same(row.drinking),
+      hobbies: Array.isArray(row.hobbies) ? row.hobbies.map(same) : [],
     },
     family: {
-      familyType: {
-        mr: row.family_type === 'joint' ? 'एकत्र कुटुंब' : 'विभक्त कुटुंब',
-        en: row.family_type === 'joint' ? 'Joint Family' : 'Nuclear Family',
-      },
-      familyStatus: {
-        mr: row.family_values || 'मध्यमवर्गीय',
-        en: row.family_values || 'Middle Class',
-      },
-      fatherOccupation: {
-        mr: row.father_occupation || '-',
-        en: row.father_occupation || '-',
-      },
-      motherOccupation: {
-        mr: row.mother_occupation || '-',
-        en: row.mother_occupation || '-',
-      },
-      brothers: row.brothers_count || 0,
-      sisters: row.sisters_count || 0,
-      nativePlace: {
-        mr: row.native_place || row.city || '-',
-        en: row.native_place || row.city || '-',
-      },
+      familyType: same(row.family_type),
+      familyStatus: same(row.family_status),
+      fatherOccupation: same(row.father_occupation),
+      motherOccupation: same(row.mother_occupation),
+      brothers: Number(row.brothers_count) || 0,
+      sisters: Number(row.sisters_count) || 0,
+      nativePlace: same(row.family_location || row.city),
     },
-    partnerPreferences: {
-      ageRange: '22 - 32 years',
-      heightRange: "5'0\" to 6'0\"",
-      maritalStatus: [{ mr: 'अविवाहित', en: 'Never Married' }],
-      communities: [{ mr: 'सर्व मराठा', en: 'Any' }],
-      education: [{ mr: 'पदवीधर / उच्च पदवीधर', en: 'Graduate / Post Graduate' }],
-      occupations: [{ mr: 'नोकरी / व्यवसाय', en: 'Any' }],
-      preferredLocations: [{ mr: 'महाराष्ट्र', en: 'Maharashtra' }],
-      expectedIncome: { mr: 'लागू नाही', en: 'Any' },
-    },
+    partnerPreferences: NO_PREFERENCES,
   };
 }
 
 export const discoveryService = {
-  // Fetch profiles matching discovery parameters with database query & fallback
+  /**
+   * Search members. The database applies gender, age group, blocks, early access and every filter,
+   * and returns one page. Failures throw, so the page can show a real error.
+   */
   async fetchProfiles(params: DiscoveryQueryParams): Promise<DiscoveryResponse> {
     const page = params.page || 1;
     const pageSize = params.pageSize || 12;
-    const blockedIds = await interactionService.getBlockedIds(params.userProfileId);
 
-    let dbProfiles: Profile[] = [];
+    const { data, error } = await supabase.rpc('search_profiles', {
+      p_filters: {
+        q: params.q?.trim() || null,
+        gender: params.gender ?? null,
+        show_all_ages: Boolean(params.showAllAges),
+        min_age: params.minAge ?? null,
+        max_age: params.maxAge ?? null,
+        min_height: params.minHeight ?? null,
+        max_height: params.maxHeight ?? null,
+        marital_status: params.maritalStatus ?? null,
+        religion: params.religion ?? null,
+        community: params.community ?? null,
+        education: params.education ?? null,
+        occupation: params.occupation ?? null,
+        city: params.city ?? null,
+        state: params.state ?? null,
+        min_income: params.minIncome ?? null,
+        verified_only: Boolean(params.verifiedOnly),
+        photo_only: Boolean(params.photoOnly),
+        sort: params.sortBy ?? 'relevance',
+      },
+      p_limit: pageSize,
+      p_offset: (page - 1) * pageSize,
+    });
+    if (error) throw error;
 
-    if (isSupabaseConfigured()) {
-      try {
-        // Build Supabase SQL Query for approved profiles
-        let query = supabase
-          .from('profiles')
-          .select(`${PROFILE_COLUMNS}, profile_photos(storage_path, is_primary, approval_status)`)
-          .eq('profile_status', 'approved');
-
-        // Newly approved profiles reach non-Platinum members after the early-access window.
-        if (!params.earlyAccess) {
-          const cutoff = new Date(Date.now() - EARLY_ACCESS_MS).toISOString();
-          query = query.or(`approved_at.is.null,approved_at.lte.${cutoff}`);
-        }
-
-        // Gender filter
-        if (params.gender && params.gender !== 'all') {
-          query = query.eq('gender', params.gender);
-        }
-
-        // Location filters
-        if (params.state && params.state !== 'all') {
-          query = query.ilike('state', `%${params.state}%`);
-        }
-        if (params.city && params.city !== 'all') {
-          query = query.ilike('city', `%${params.city}%`);
-        }
-
-        // Community filter
-        if (params.community && params.community !== 'all') {
-          query = query.ilike('community', `%${params.community}%`);
-        }
-
-        // Verified only
-        if (params.verifiedOnly) {
-          query = query.eq('verification_status', 'verified');
-        }
-
-        const queryPromise = query;
-        const timeoutPromise = new Promise<{ data: null; error: Error }>((_, reject) =>
-          setTimeout(() => reject(new Error('DB discovery query timeout')), 3500)
-        );
-        const { data, error } = (await Promise.race([queryPromise, timeoutPromise])) as any;
-        if (!error && data && data.length > 0) {
-          dbProfiles = data.map(mapDbProfileToProfile);
-        }
-      } catch (e) {
-        console.warn('Database discovery query fallback to mockProfiles:', e);
-      }
-    }
-
-    // Merge database profiles with approved mockProfiles ensuring full rich directory
-    const combinedPool: Profile[] = [...dbProfiles];
-    for (const mock of mockProfiles) {
-      if (!combinedPool.some((p) => p.id === mock.id || p.profileId === mock.profileId)) {
-        combinedPool.push(mock);
-      }
-    }
-
-    // Filter out any blocked profiles
-    let filtered = combinedPool.filter((p) => !blockedIds.includes(p.id) && !blockedIds.includes(p.profileId));
-
-    // Apply Client-Side & Precise Field Filtering on the combined set
-    if (params.q && params.q.trim()) {
-      const search = params.q.trim().toLowerCase();
-      filtered = filtered.filter((p) => {
-        return (
-          p.name.en.toLowerCase().includes(search) ||
-          p.name.mr.toLowerCase().includes(search) ||
-          p.profileId.toLowerCase().includes(search) ||
-          p.city.en.toLowerCase().includes(search) ||
-          p.city.mr.toLowerCase().includes(search) ||
-          p.occupation.en.toLowerCase().includes(search) ||
-          p.occupation.mr.toLowerCase().includes(search) ||
-          p.education.en.toLowerCase().includes(search) ||
-          p.community.en.toLowerCase().includes(search)
-        );
-      });
-    }
-
-    if (params.gender && params.gender !== 'all') {
-      filtered = filtered.filter((p) => p.gender === params.gender);
-    }
-
-    if (params.minAge) {
-      filtered = filtered.filter((p) => p.age >= (params.minAge || 18));
-    }
-
-    if (params.maxAge) {
-      filtered = filtered.filter((p) => p.age <= (params.maxAge || 60));
-    }
-
-    if (params.minHeight) {
-      filtered = filtered.filter((p) => p.heightCm >= (params.minHeight || 140));
-    }
-
-    if (params.maxHeight) {
-      filtered = filtered.filter((p) => p.heightCm <= (params.maxHeight || 210));
-    }
-
-    if (params.maritalStatus && params.maritalStatus !== 'all') {
-      const ms = params.maritalStatus.toLowerCase();
-      filtered = filtered.filter((p) => {
-        const enVal = p.maritalStatus.en.toLowerCase();
-        const mrVal = p.maritalStatus.mr.toLowerCase();
-        return enVal.includes(ms) || mrVal.includes(ms) || (ms === 'never_married' && enVal.includes('never'));
-      });
-    }
-
-    if (params.religion && params.religion !== 'all') {
-      const rel = params.religion.toLowerCase();
-      filtered = filtered.filter((p) => p.religion.en.toLowerCase().includes(rel) || p.religion.mr.toLowerCase().includes(rel));
-    }
-
-    if (params.community && params.community !== 'all') {
-      const comm = params.community.toLowerCase();
-      filtered = filtered.filter((p) => p.community.en.toLowerCase().includes(comm) || p.community.mr.toLowerCase().includes(comm));
-    }
-
-    if (params.education && params.education !== 'all') {
-      const edu = params.education.toLowerCase();
-      filtered = filtered.filter((p) => p.education.en.toLowerCase().includes(edu) || p.education.mr.toLowerCase().includes(edu));
-    }
-
-    if (params.occupation && params.occupation !== 'all') {
-      const occ = params.occupation.toLowerCase();
-      filtered = filtered.filter(
-        (p) => p.occupationCategory === params.occupation || p.occupation.en.toLowerCase().includes(occ) || p.occupation.mr.toLowerCase().includes(occ)
-      );
-    }
-
-    if (params.city && params.city !== 'all') {
-      const city = params.city.toLowerCase();
-      filtered = filtered.filter((p) => p.city.en.toLowerCase().includes(city) || p.city.mr.toLowerCase().includes(city));
-    }
-
-    if (params.state && params.state !== 'all') {
-      const st = params.state.toLowerCase();
-      filtered = filtered.filter((p) => p.state.en.toLowerCase().includes(st) || p.state.mr.toLowerCase().includes(st));
-    }
-
-    if (params.minIncome && params.minIncome > 0) {
-      filtered = filtered.filter((p) => p.annualIncomeValue >= (params.minIncome || 0));
-    }
-
-    if (params.verifiedOnly) {
-      filtered = filtered.filter((p) => p.isVerified === true);
-    }
-
-    if (params.photoOnly) {
-      filtered = filtered.filter((p) => !!p.photoUrl);
-    }
-
-    // Sorting
-    if (params.sortBy === 'ageAsc') {
-      filtered.sort((a, b) => a.age - b.age);
-    } else if (params.sortBy === 'ageDesc') {
-      filtered.sort((a, b) => b.age - a.age);
-    } else if (params.sortBy === 'incomeDesc') {
-      filtered.sort((a, b) => b.annualIncomeValue - a.annualIncomeValue);
-    } else {
-      // Relevance / newest: Platinum (3) and Diamond (2) listings first. Array.sort is stable,
-      // so the existing order is kept within each priority tier.
-      filtered.sort((a, b) => (b.listingPriority ?? 0) - (a.listingPriority ?? 0));
-    }
-
-    const totalCount = filtered.length;
-    const startIndex = (page - 1) * pageSize;
-    const paginatedProfiles = filtered.slice(0, startIndex + pageSize);
-
-    return {
-      profiles: paginatedProfiles,
-      totalCount,
-      page,
-      pageSize,
-      hasMore: paginatedProfiles.length < totalCount,
-    };
+    const result = data as unknown as { total: number; items: unknown[] };
+    const profiles = (result.items ?? []).map(mapDbProfileToProfile);
+    const totalCount = Number(result.total) || 0;
+    return { profiles, totalCount, page, pageSize, hasMore: page * pageSize < totalCount };
   },
 
-  // Fetch full details of a single profile by ID or profileId
+  /** The caller's age group, or null if it could not be read. */
+  async getMatchBand(): Promise<MatchBand | null> {
+    const { data, error } = await supabase.rpc('get_my_match_band');
+    if (error) return null;
+    return data as unknown as MatchBand;
+  },
+
+  /** One member's full profile, by id or public profile code. Null means not available to this member. */
   async fetchProfileById(id: string): Promise<Profile | null> {
-    // 1. Try fetching from Supabase if configured
-    if (isSupabaseConfigured()) {
-      try {
-        const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
-        const query = (supabase.from('profiles') as any).select(PROFILE_COLUMNS);
-        const { data, error } = isUuid
-          ? await query.eq('id', id).maybeSingle()
-          : await query.eq('profile_id', id).maybeSingle();
+    const column = UUID_FORMAT.test(id) ? 'id' : 'profile_id';
+    const { data, error } = await (supabase.from('profiles') as any)
+      .select(PROFILE_COLUMNS)
+      .eq(column, id)
+      .maybeSingle();
+    if (error) throw error;
+    if (!data) return null;
 
-        if (!error && data) {
-          return mapDbProfileToProfile(data);
-        }
-      } catch (err) {
-        console.warn('DB single profile fetch error:', err);
-      }
-    }
-
-    // 2. Fallback to mock profiles
-    const found = mockProfiles.find((p) => p.id === id || p.profileId.toLowerCase() === id.toLowerCase());
-    return found || null;
+    const profile = mapDbProfileToProfile(data);
+    const { data: preferences } = await (supabase.from('partner_preferences') as any)
+      .select('*')
+      .eq('profile_id', data.id)
+      .maybeSingle();
+    return { ...profile, partnerPreferences: mapPreferences(preferences) };
   },
 
-  // Get shortlisted profiles array
+  /** Specific members, for the shortlist. Anyone blocked or no longer approved is simply left out. */
+  async fetchProfilesByIds(ids: string[]): Promise<Profile[]> {
+    const uuids = ids.filter((id) => UUID_FORMAT.test(id));
+    if (uuids.length === 0) return [];
+    const { data, error } = await (supabase.from('profiles') as any)
+      .select(PROFILE_COLUMNS)
+      .in('id', uuids);
+    if (error) throw error;
+    return (data ?? []).map(mapDbProfileToProfile);
+  },
+
   async fetchShortlistedProfiles(userProfileId?: string): Promise<Profile[]> {
-    const shortIds = await shortlistService.getShortlistedIds(userProfileId);
-    const all = await this.fetchProfiles({ pageSize: 100, userProfileId });
-    return all.profiles.filter((p) => shortIds.includes(p.id) || shortIds.includes(p.profileId));
+    return this.fetchProfilesByIds(await shortlistService.getShortlistedIds(userProfileId));
   },
 };

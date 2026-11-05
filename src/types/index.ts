@@ -11,6 +11,8 @@ export interface Profile {
   name: LocalizedString;
   gender: 'male' | 'female';
   age: number;
+  /** False when this member is outside the viewer's marriage age group (search with all ages). */
+  ageInRange?: boolean;
   height: string; // e.g., "5 ft 8 in / 172 cm"
   heightCm: number;
   maritalStatus: LocalizedString;
@@ -93,6 +95,8 @@ export interface SearchFiltersState {
   city: string;
   verifiedOnly: boolean;
   photoOnly: boolean;
+  /** Search beyond the viewer's marriage age group. */
+  showAllAges: boolean;
 }
 
 export interface PricingPlan {

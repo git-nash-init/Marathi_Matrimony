@@ -38,6 +38,8 @@ interface Step1Props {
   formData?: ProfileFormData;
   onChange: (field: keyof ProfileFormData, value: unknown) => void;
   errors?: Record<string, string>;
+  /** Gender and date of birth can't change after approval. */
+  identityLocked?: boolean;
 }
 
 export const Step1BasicDetails: React.FC<Step1Props> = ({
@@ -45,6 +47,7 @@ export const Step1BasicDetails: React.FC<Step1Props> = ({
   formData: propFormData,
   onChange,
   errors = {},
+  identityLocked = false,
 }) => {
   const formData = data || propFormData || ({} as ProfileFormData);
   const { t, language } = useLanguage();
@@ -146,6 +149,7 @@ export const Step1BasicDetails: React.FC<Step1Props> = ({
           />
 
           {/* Gender Selection Cards */}
+          <fieldset disabled={identityLocked} style={{ border: 0, padding: 0, margin: 0, minWidth: 0 }}>
           <SegmentedControl
             label={t('profileBuilder.gender')}
             required
@@ -166,6 +170,14 @@ export const Step1BasicDetails: React.FC<Step1Props> = ({
               },
             ]}
           />
+          </fieldset>
+          {identityLocked && (
+            <p style={{ margin: '-6px 0 0', fontSize: '0.8rem', color: 'var(--color-text-muted, #6C625E)' }}>
+              {language === 'mr'
+                ? 'मंजुरीनंतर लिंग व जन्मतारीख बदलता येत नाही. बदल हवा असल्यास आमच्याशी संपर्क साधा.'
+                : 'Gender and date of birth cannot be changed after approval. Please contact us if a correction is needed.'}
+            </p>
+          )}
 
           {/* First Name & Last Name */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '18px' }}>
@@ -670,6 +682,8 @@ export const Step1BasicDetails: React.FC<Step1Props> = ({
               required
               value={formData.date_of_birth || ''}
               onChange={(e) => onChange('date_of_birth', e.target.value)}
+              disabled={identityLocked}
+              max={new Date().toISOString().slice(0, 10)}
               error={errors.date_of_birth}
               prefix={<Calendar size={16} />}
               badge={
@@ -678,8 +692,8 @@ export const Step1BasicDetails: React.FC<Step1Props> = ({
                     style={{
                       fontSize: '0.8rem',
                       fontWeight: 700,
-                      color: calculatedAge >= 18 ? '#15803D' : '#DC2626',
-                      background: calculatedAge >= 18 ? '#DCFCE7' : '#FEE2E2',
+                      color: calculatedAge >= (formData.gender === 'male' ? 21 : 18) ? '#15803D' : '#DC2626',
+                      background: calculatedAge >= (formData.gender === 'male' ? 21 : 18) ? '#DCFCE7' : '#FEE2E2',
                       padding: '2px 8px',
                       borderRadius: '8px',
                     }}

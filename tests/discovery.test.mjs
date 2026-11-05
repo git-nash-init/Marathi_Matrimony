@@ -3,18 +3,20 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 
-test('Authentic Maratha Profiles Data Integrity', () => {
-  const mockProfilesPath = path.resolve('src/data/mockProfiles.ts');
-  assert.ok(fs.existsSync(mockProfilesPath), 'mockProfiles.ts must exist');
+const read = (p) => fs.readFileSync(path.resolve(p), 'utf-8');
 
-  const content = fs.readFileSync(mockProfilesPath, 'utf-8');
+test('no invented member profiles reach the site', () => {
+  assert.strictEqual(fs.existsSync(path.resolve('src/data/mockProfiles.ts')), false);
+  for (const file of ['src/services/discovery.service.ts', 'src/components/home/FeaturedProfilesSection.tsx']) {
+    assert.doesNotMatch(read(file), /mockProfiles/, file);
+  }
+});
 
-  // Verify authentic 96 Kuli Maratha communities are referenced
-  assert.ok(content.includes('मराठा') || content.includes('Maratha'), 'Profiles must represent Maratha community');
-  assert.ok(content.includes('पुणे') || content.includes('Pune'), 'Must contain profiles from Pune');
-  assert.ok(content.includes('मुंबई') || content.includes('Mumbai'), 'Must contain profiles from Mumbai');
-
-  // Verify no forbidden placeholder or mock terms
-  assert.strictEqual(content.includes('John Doe'), false, 'Must not contain generic Western placeholder names');
-  assert.strictEqual(content.includes('Lorem ipsum'), false, 'Must not contain lorem ipsum text');
+test('search runs in the database, with no client-side filtering or local block list', () => {
+  const discovery = read('src/services/discovery.service.ts');
+  assert.match(discovery, /rpc\('search_profiles'/);
+  assert.doesNotMatch(discovery, /\.filter\(\(p\) => p\.gender/);
+  const interaction = read('src/services/interaction.service.ts');
+  assert.match(interaction, /'block_member'/);
+  assert.doesNotMatch(interaction, /setItem/);
 });

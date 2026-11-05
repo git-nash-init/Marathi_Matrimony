@@ -11,6 +11,7 @@ import { ContactSection, UnlockedContact } from '../components/premium/ContactSe
 import { ProfilePdfButton } from '../components/premium/ProfilePdfButton';
 import { ReportProfileModal } from '../components/common/ReportProfileModal';
 import { BlockProfileModal } from '../components/common/BlockProfileModal';
+import { EmptyState, ErrorState } from '../components/states/UiStates';
 import { SectionCard } from '../components/common/SectionCard';
 import { useAuth } from '../context/AuthContext';
 import { useSubscription } from '../context/SubscriptionContext';
@@ -38,13 +39,15 @@ export const ProfileDetailPage: React.FC = () => {
   const navigate = useNavigate();
   const { language, localize, t } = useLanguage();
   const { success, error } = useToast();
-  const { user, profile: authProfile } = useAuth();
+  const { user, profile: authProfile, loading: authLoading } = useAuth();
   const canUnlockContact = useSubscription().has('unlock_contact');
   const currentUserId = authProfile?.id || user?.id;
 
   const [profile, setProfile] = useState<Profile | null>(null);
   const [selectedPhoto, setSelectedPhoto] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [loadError, setLoadError] = useState<unknown>(null);
+  const [attempt, setAttempt] = useState(0);
   const [isShortlisted, setIsShortlisted] = useState<boolean>(false);
   const [isShortlistBusy, setIsShortlistBusy] = useState<boolean>(false);
   const [unlockedContact, setUnlockedContact] = useState<UnlockedContact | null>(null);
@@ -56,16 +59,21 @@ export const ProfileDetailPage: React.FC = () => {
   useEffect(() => {
     let isMounted = true;
     const fetchDetails = async () => {
-      if (!id) return;
+      if (!id || authLoading) return;
+      if (!user) {
+        setIsLoading(false);
+        return;
+      }
       setIsLoading(true);
       try {
         const data = await discoveryService.fetchProfileById(id);
         if (isMounted) {
           setProfile(data);
+          setLoadError(null);
           if (data?.photoUrl) setSelectedPhoto(data.photoUrl);
         }
       } catch (err) {
-        console.error('Failed to load profile:', err);
+        if (isMounted) setLoadError(err);
       } finally {
         if (isMounted) setIsLoading(false);
       }
@@ -93,7 +101,7 @@ export const ProfileDetailPage: React.FC = () => {
       isMounted = false;
       unsubscribe();
     };
-  }, [id, profile?.id, profile?.profileId, user?.id, currentUserId]);
+  }, [id, profile?.id, profile?.profileId, user?.id, currentUserId, authLoading, attempt]);
 
   const handleToggleShortlist = async () => {
     if (!profile || isShortlistBusy) return;
@@ -127,6 +135,24 @@ export const ProfileDetailPage: React.FC = () => {
         <p>{language === 'mr' ? 'प्रोफाइल लोड होत आहे...' : 'Loading profile details...'}</p>
       </div>
     );
+  }
+
+  if (!user) {
+    return (
+      <EmptyState
+        icon={<User size={30} />}
+        title={language === 'mr' ? 'हे प्रोफाइल पाहण्यासाठी लॉगिन करा' : 'Sign in to view this profile'}
+        description={language === 'mr'
+          ? 'सदस्यांच्या गोपनीयतेसाठी प्रोफाइल्स फक्त नोंदणीकृत सदस्यांना दिसतात.'
+          : "To protect members' privacy, profiles are shown only to registered members."}
+        action={{ label: language === 'mr' ? 'लॉगिन करा' : 'Sign in', to: '/login' }}
+        secondaryAction={{ label: language === 'mr' ? 'मोफत नोंदणी करा' : 'Register free', to: '/register' }}
+      />
+    );
+  }
+
+  if (loadError && !profile) {
+    return <ErrorState error={loadError} onRetry={() => setAttempt((n) => n + 1)} />;
   }
 
   if (!profile) {

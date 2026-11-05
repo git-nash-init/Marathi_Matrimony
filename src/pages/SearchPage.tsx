@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useCallback, useTransition } from 'react';
-import { useSearchParams, useParams } from 'react-router-dom';
+import React, { useState, useEffect, useCallback, useRef, useTransition } from 'react';
+import { Link, useSearchParams, useParams } from 'react-router-dom';
 import { useLanguage } from '../i18n/LanguageContext';
 import { SearchFiltersState, Profile } from '../types';
 import { useAuth } from '../context/AuthContext';
-import { useSubscription } from '../context/SubscriptionContext';
-import { discoveryService } from '../services/discovery.service';
+import { discoveryService, MatchBand } from '../services/discovery.service';
+import { EmptyState, ErrorState, NoResults } from '../components/states/UiStates';
 import { ProfileCard, ProfileCardSkeleton } from '../components/profile/ProfileCard';
 import { SearchFilters } from '../components/search/SearchFilters';
 import { Modal } from '../components/common/Modal';
@@ -16,15 +16,15 @@ import {
   SlidersHorizontal,
   ArrowUpDown,
   RotateCcw,
-  AlertTriangle,
   ChevronDown,
+  Users,
 } from 'lucide-react';
 import styles from './SearchPage.module.css';
 
 const DEFAULT_FILTERS: SearchFiltersState = {
   gender: 'all',
   minAge: 18,
-  maxAge: 45,
+  maxAge: 60,
   minHeight: 140,
   maxHeight: 200,
   maritalStatus: 'all',
@@ -37,12 +37,12 @@ const DEFAULT_FILTERS: SearchFiltersState = {
   city: 'all',
   verifiedOnly: false,
   photoOnly: false,
+  showAllAges: false,
 };
 
 export const SearchPage: React.FC = () => {
   const { language } = useLanguage();
-  const { user, profile } = useAuth();
-  const earlyAccess = useSubscription().has('early_access');
+  const { user, profile, isAuthenticated, loading: authLoading } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const routeParams = useParams<{ category?: string; location?: string }>();
   const [, startTransition] = useTransition();
@@ -86,6 +86,7 @@ export const SearchPage: React.FC = () => {
     city: searchParams.get('city') || inferredCity,
     verifiedOnly: searchParams.get('verified') === 'true',
     photoOnly: searchParams.get('photoOnly') === 'true',
+    showAllAges: searchParams.get('allAges') === 'true',
   }));
 
   const [sortBy, setSortBy] = useState<'relevance' | 'ageAsc' | 'ageDesc' | 'incomeDesc'>('relevance');
@@ -95,7 +96,9 @@ export const SearchPage: React.FC = () => {
   const [hasMore, setHasMore] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<unknown>(null);
+  const [band, setBand] = useState<MatchBand | null>(null);
+  const requestId = useRef(0);
   const [mobileFilterOpen, setMobileFilterOpen] = useState<boolean>(false);
 
   // Debounce search input by 300ms
@@ -113,7 +116,7 @@ export const SearchPage: React.FC = () => {
       if (query.trim()) params.set('q', query.trim());
       if (currentFilters.gender !== 'all') params.set('gender', currentFilters.gender);
       if (currentFilters.minAge !== 18) params.set('minAge', String(currentFilters.minAge));
-      if (currentFilters.maxAge !== 45) params.set('maxAge', String(currentFilters.maxAge));
+      if (currentFilters.maxAge !== 60) params.set('maxAge', String(currentFilters.maxAge));
       if (currentFilters.minHeight !== 140) params.set('minHeight', String(currentFilters.minHeight));
       if (currentFilters.maxHeight !== 200) params.set('maxHeight', String(currentFilters.maxHeight));
       if (currentFilters.maritalStatus !== 'all') params.set('maritalStatus', currentFilters.maritalStatus);
@@ -124,6 +127,7 @@ export const SearchPage: React.FC = () => {
       if (currentFilters.occupation !== 'all') params.set('occupation', currentFilters.occupation);
       if (currentFilters.verifiedOnly) params.set('verified', 'true');
       if (currentFilters.photoOnly) params.set('photoOnly', 'true');
+      if (currentFilters.showAllAges) params.set('allAges', 'true');
       if (sort !== 'relevance') params.set('sortBy', sort);
 
       startTransition(() => {
@@ -136,6 +140,7 @@ export const SearchPage: React.FC = () => {
   // Fetch profiles matching current parameters
   const loadProfiles = useCallback(
     async (currentPage = 1, append = false) => {
+      const thisRequest = ++requestId.current;
       if (currentPage === 1) {
         setIsLoading(true);
       } else {
@@ -144,41 +149,47 @@ export const SearchPage: React.FC = () => {
       setError(null);
 
       try {
-        const activeGender = targetOppositeGender || filters.gender;
+        // The database shows men and women the opposite gender whatever is sent here.
         const res = await discoveryService.fetchProfiles({
           q: debouncedSearch,
           ...filters,
-          gender: activeGender,
           sortBy,
           page: currentPage,
           pageSize: 12,
-          earlyAccess,
         });
+        if (thisRequest !== requestId.current) return; // A newer search has started.
 
         if (append) {
-          setProfiles((prev) => [...prev, ...res.profiles.slice(prev.length)]);
+          setProfiles((prev) => [...prev, ...res.profiles]);
         } else {
           setProfiles(res.profiles);
         }
         setTotalCount(res.totalCount);
         setHasMore(res.hasMore);
       } catch (err) {
-        console.error('Failed to load discovery profiles:', err);
-        setError(language === 'mr' ? 'काहीतरी चूक झाली. कृपया पुन्हा प्रयत्न करा.' : 'Something went wrong. Please try again.');
+        if (thisRequest === requestId.current) setError(err);
       } finally {
-        setIsLoading(false);
-        setIsLoadingMore(false);
+        if (thisRequest === requestId.current) {
+          setIsLoading(false);
+          setIsLoadingMore(false);
+        }
       }
     },
-    [debouncedSearch, filters, sortBy, language, earlyAccess]
+    [debouncedSearch, filters, sortBy]
   );
 
   // Trigger search on filter / query / sort change
   useEffect(() => {
+    if (authLoading || !isAuthenticated) return;
     setPage(1);
     loadProfiles(1, false);
     updateUrlParams(filters, debouncedSearch, sortBy);
-  }, [debouncedSearch, filters, sortBy, loadProfiles, updateUrlParams]);
+  }, [authLoading, isAuthenticated, debouncedSearch, filters, sortBy, loadProfiles, updateUrlParams]);
+
+  useEffect(() => {
+    if (authLoading || !isAuthenticated) return;
+    discoveryService.getMatchBand().then(setBand);
+  }, [authLoading, isAuthenticated, profile?.date_of_birth, profile?.gender]);
 
   const handleResetFilters = () => {
     setFilters({
@@ -201,7 +212,7 @@ export const SearchPage: React.FC = () => {
       return v !== 'all';
     }
     if (k === 'minAge') return v !== 18;
-    if (k === 'maxAge') return v !== 45;
+    if (k === 'maxAge') return v !== 60;
     if (k === 'minHeight') return v !== 140;
     if (k === 'maxHeight') return v !== 200;
     if (k === 'verifiedOnly' || k === 'photoOnly') return v === true;
@@ -224,6 +235,27 @@ export const SearchPage: React.FC = () => {
     }
     return language === 'mr' ? '९६ कुळी मराठा जोडीदार शोधा' : 'Find Your 96 Kuli Maratha Match';
   };
+
+  if (!authLoading && !isAuthenticated) {
+    return (
+      <div className={styles.container}>
+        <EmptyState
+          icon={<Users size={30} />}
+          title={language === 'mr' ? 'स्थळे पाहण्यासाठी लॉगिन करा' : 'Sign in to see profiles'}
+          description={language === 'mr'
+            ? 'सदस्यांच्या गोपनीयतेसाठी प्रोफाइल्स फक्त नोंदणीकृत सदस्यांना दिसतात. नोंदणी मोफत आहे.'
+            : 'To protect members\' privacy, profiles are shown only to registered members. Registering is free.'}
+          action={{ label: language === 'mr' ? 'मोफत नोंदणी करा' : 'Register free', to: '/register' }}
+          secondaryAction={{ label: language === 'mr' ? 'लॉगिन करा' : 'Sign in', to: '/login' }}
+        />
+      </div>
+    );
+  }
+
+  const bandActive = Boolean(band?.applies && !filters.showAllAges);
+  const seeking = band?.target_gender === 'female'
+    ? (language === 'mr' ? 'वधू' : 'women')
+    : (language === 'mr' ? 'वर' : 'men');
 
   return (
     <div className={styles.container}>
@@ -342,40 +374,72 @@ export const SearchPage: React.FC = () => {
             </div>
           </div>
 
+          {/* Marriage age group */}
+          {band?.applies && (
+            <div className={styles.ageBand}>
+              <span>
+                {filters.showAllAges
+                  ? (language === 'mr'
+                      ? 'सर्व वयोगट दाखवत आहे. आपल्या वयोगटाबाहेरील स्थळे चिन्हांकित आहेत.'
+                      : 'Showing all ages. Members outside your age group are marked.')
+                  : (language === 'mr'
+                      ? `${band.min_age}–${band.max_age} वयोगटातील ${seeking} दाखवत आहे (आपला विवाह वयोगट).`
+                      : `Showing ${seeking} aged ${band.min_age}–${band.max_age}, your marriage age group.`)}
+              </span>
+              <label className={styles.ageBandToggle}>
+                <input
+                  type="checkbox"
+                  checked={filters.showAllAges}
+                  onChange={(e) => setFilters({ ...filters, showAllAges: e.target.checked })}
+                />
+                {language === 'mr' ? 'सर्व वयोगट दाखवा' : 'Show all ages'}
+              </label>
+            </div>
+          )}
+          {band && !band.applies && band.reason !== 'not_applicable' && (
+            <div className={styles.ageBand}>
+              <span>
+                {band.reason === 'no_profile'
+                  ? (language === 'mr' ? 'आपल्या वयोगटातील स्थळे पाहण्यासाठी प्रोफाइल तयार करा.' : 'Create your profile to see members in your age group.')
+                  : (language === 'mr' ? 'आपल्या वयोगटातील स्थळे पाहण्यासाठी जन्मतारीख द्या.' : 'Add your date of birth to see members in your age group.')}
+              </span>
+              <Link to={band.reason === 'no_profile' ? '/profile/create' : '/profile/edit'} className={styles.ageBandLink}>
+                {band.reason === 'no_profile'
+                  ? (language === 'mr' ? 'प्रोफाइल तयार करा' : 'Create profile')
+                  : (language === 'mr' ? 'जन्मतारीख द्या' : 'Add date of birth')}
+              </Link>
+            </div>
+          )}
+
           {/* Results Grid / Loading / Empty / Error States */}
-          {isLoading ? (
+          {isLoading || authLoading ? (
             <div className={styles.profilesGrid}>
               {Array.from({ length: 6 }).map((_, idx) => (
                 <ProfileCardSkeleton key={idx} />
               ))}
             </div>
-          ) : error ? (
-            <div className={styles.errorStateCard}>
-              <AlertTriangle size={48} color="#DC2626" />
-              <h3>{language === 'mr' ? 'काहीतरी चूक झाली' : 'Something went wrong'}</h3>
-              <p>{error}</p>
-              <button type="button" onClick={() => loadProfiles(1, false)} className={styles.retryBtn}>
-                {language === 'mr' ? 'पुन्हा प्रयत्न करा' : 'Try Again'}
-              </button>
-            </div>
+          ) : error && profiles.length === 0 ? (
+            <ErrorState error={error} onRetry={() => loadProfiles(1, false)} />
           ) : profiles.length === 0 ? (
-            <div className={styles.emptyStateCard}>
-              <div className={styles.emptyIconCircle}>
-                <MatrimonySearchIcon size={44} color="var(--color-primary, #7B191E)" />
-              </div>
-              <h3 className={styles.emptyTitle}>
-                {language === 'mr' ? 'तुमच्या शोधाशी जुळणारे प्रोफाइल सापडले नाही' : 'No matching profiles found'}
-              </h3>
-              <p className={styles.emptySubtitle}>
-                {language === 'mr'
-                  ? 'कृपया तुमचे फिल्टर्स किंवा वय, जात, शहराचे निकष बदलून पुन्हा प्रयत्न करा.'
-                  : 'Try relaxing your search filters, age range, or location parameters.'}
-              </p>
-              <button type="button" onClick={handleResetFilters} className={styles.clearAllBtn}>
-                <RotateCcw size={15} />
-                <span>{language === 'mr' ? 'सर्व फिल्टर्स हटवा' : 'Clear All Filters'}</span>
-              </button>
-            </div>
+            debouncedSearch.trim() ? (
+              <NoResults query={debouncedSearch.trim()} onClear={() => setSearchTerm('')} />
+            ) : (
+              <EmptyState
+                icon={<MatrimonySearchIcon size={30} />}
+                title={language === 'mr' ? 'जुळणारे प्रोफाइल सापडले नाही' : 'No matching profiles yet'}
+                description={bandActive
+                  ? (language === 'mr'
+                      ? 'आपल्या वयोगटात सध्या कोणी नाही. सर्व वयोगट पाहू शकता किंवा फिल्टर बदलू शकता.'
+                      : 'Nobody in your age group matches right now. You can look at all ages or change your filters.')
+                  : (language === 'mr'
+                      ? 'फिल्टर्स बदलून पुन्हा प्रयत्न करा.'
+                      : 'Try changing your filters.')}
+                action={bandActive
+                  ? { label: language === 'mr' ? 'सर्व वयोगट दाखवा' : 'Show all ages', onClick: () => setFilters({ ...filters, showAllAges: true }) }
+                  : undefined}
+                secondaryAction={{ label: language === 'mr' ? 'सर्व फिल्टर्स हटवा' : 'Clear all filters', onClick: handleResetFilters }}
+              />
+            )
           ) : (
             <>
               <div className={styles.profilesGrid}>

@@ -108,6 +108,11 @@ export const LocationLandingPage: React.FC = () => {
   useEffect(() => {
     let isMounted = true;
     const loadProfiles = async () => {
+      if (!user) {
+        setProfiles([]);
+        setIsLoading(false);
+        return;
+      }
       setIsLoading(true);
       try {
         const queryParams: any = {
@@ -132,7 +137,7 @@ export const LocationLandingPage: React.FC = () => {
 
     loadProfiles();
     return () => { isMounted = false; };
-  }, [hub, genderFilter, targetOppositeGender]);
+  }, [hub, genderFilter, targetOppositeGender, user]);
 
   // Sibling regional hubs for cross-linking
   const siblingHubs = Object.values(locationHubs).filter(h => h.slug !== hub.slug);
@@ -329,13 +334,19 @@ export const LocationLandingPage: React.FC = () => {
             <div style={{ textAlign: 'center', padding: '48px 20px', background: 'var(--color-ivory)', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)' }}>
               <MarathaCrestIcon size={36} color="var(--color-antique-gold)" style={{ marginBottom: '12px' }} />
               <h3 style={{ fontSize: '1.2rem', color: 'var(--color-ink)', marginBottom: '8px' }}>
-                {language === 'mr' ? 'या विभागात सध्या नवीन स्थळे जोडली जात आहेत' : 'New profiles are currently being verified for this location'}
+                {user
+                  ? (language === 'mr' ? 'या विभागात सध्या जुळणारी स्थळे नाहीत' : 'No matching members in this area yet')
+                  : (language === 'mr' ? 'या विभागातील स्थळे पाहण्यासाठी नोंदणी करा' : 'Register to see members from this area')}
               </h3>
               <p style={{ color: 'var(--color-ink-muted)', marginBottom: '20px', fontSize: '0.92rem' }}>
-                {language === 'mr' ? 'आपले प्रोफाईल आजच मोफत नोंदवून अग्रस्थान मिळवा.' : 'Register your profile free today to be featured.'}
+                {user
+                  ? (language === 'mr' ? 'सर्व शहरांतील स्थळे पाहू शकता.' : 'You can search members from every city.')
+                  : (language === 'mr' ? 'सदस्यांच्या गोपनीयतेसाठी प्रोफाइल्स फक्त नोंदणीकृत सदस्यांना दिसतात.' : "To protect members' privacy, profiles are shown only to registered members.")}
               </p>
-              <Button to="/register" variant="primary">
-                {language === 'mr' ? 'मोफत नोंदणी करा' : 'Register Free'}
+              <Button to={user ? '/search' : '/register'} variant="primary">
+                {user
+                  ? (language === 'mr' ? 'सर्व स्थळे पहा' : 'Search all members')
+                  : (language === 'mr' ? 'मोफत नोंदणी करा' : 'Register Free')}
               </Button>
             </div>
           )}

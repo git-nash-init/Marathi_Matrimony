@@ -1426,6 +1426,11 @@ export type Database = {
     Functions: {
       admin_set_mfa_required: { Args: { p_required: boolean }; Returns: boolean }
       get_admin_context: { Args: never; Returns: Json }
+      search_profiles: { Args: { p_filters?: Json; p_limit?: number; p_offset?: number }; Returns: Json }
+      get_my_match_band: { Args: never; Returns: Json }
+      block_member: { Args: { p_target: string }; Returns: Json }
+      unblock_member: { Args: { p_target: string }; Returns: Json }
+      get_my_blocked_members: { Args: never; Returns: Json }
       activate_dummy_subscription: {
         Args: { p_payment_method?: string; p_plan_slug: string }
         Returns: Json

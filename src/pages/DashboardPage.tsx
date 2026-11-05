@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
+  Ban,
   User,
   ShieldCheck,
   Crown,
@@ -36,6 +37,7 @@ import {
   ContactViewersTab,
   ContactsByMeTab,
   NewProfilesTab,
+  BlockedMembersTab,
   ConciergeCard,
 } from '../components/premium/DashboardTabs';
 import dashStyles from './DashboardPage.module.css';
@@ -50,7 +52,8 @@ type TabKey =
   | 'who_viewed_me'
   | 'interests'
   | 'contact_viewers'
-  | 'contacts_by_me';
+  | 'contacts_by_me'
+  | 'blocked';
 
 interface Tab {
   key: TabKey;
@@ -72,6 +75,7 @@ const TABS: Tab[] = [
   { key: 'interests',      label_en: 'Interests',           label_mr: 'पसंती',              icon: <Heart size={16} /> },
   { key: 'contact_viewers',label_en: 'Contact Viewers',     label_mr: 'फोन पाहणारे',        icon: <PhoneCall size={16} />,  feature: 'view_contact_viewers', planLabel: 'Diamond' },
   { key: 'contacts_by_me', label_en: 'Contacts I Viewed',   label_mr: 'मी पाहिलेले फोन',   icon: <Phone size={16} />,      feature: 'view_my_unlocks',      planLabel: 'Silver' },
+  { key: 'blocked',        label_en: 'Blocked Members',     label_mr: 'ब्लॉक केलेले',       icon: <Ban size={16} /> },
 ];
 
 // ── Main Component ────────────────────────────────────────────────────────────
@@ -284,6 +288,7 @@ export const DashboardPage: React.FC = () => {
             {activeTab === 'interests'      && <InterestsTab language={language} />}
             {activeTab === 'contact_viewers'&& <ContactViewersTab language={language} />}
             {activeTab === 'contacts_by_me' && <ContactsByMeTab language={language} />}
+            {activeTab === 'blocked'        && <BlockedMembersTab language={language} />}
           </div>
         </div>
 

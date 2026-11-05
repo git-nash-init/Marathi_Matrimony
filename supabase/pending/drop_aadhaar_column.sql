@@ -1,6 +1,7 @@
--- 014: Run ONLY after the client from Phase 1 is live on Hostinger.
+-- Run ONLY after the Phase 1 client is live on Hostinger.
 -- The site currently deployed still sends aadhaar_number when saving a profile, and dropping the
--- column first would break profile saving. The trigger from 013 already erases anything sent.
+-- column first would break profile saving. The trigger from 013/014 already erases anything sent.
+-- Requires migration 014 (this is its guard function, minus the aadhaar_number lines).
 
 CREATE OR REPLACE FUNCTION public.guard_profile_system_columns()
 RETURNS trigger LANGUAGE plpgsql SET search_path = public AS $$
@@ -8,9 +9,9 @@ DECLARE
   v_ins boolean := TG_OP = 'INSERT';
   v_id_same boolean;
   v_prefix text;
+  v_min int;
 BEGIN
-  NEW.age := CASE WHEN NEW.date_of_birth IS NULL THEN NULL
-                  ELSE date_part('year', age((now() AT TIME ZONE 'Asia/Kolkata')::date, NEW.date_of_birth))::int END;
+  NEW.age := public.age_years(NEW.date_of_birth);
 
   IF current_user IN ('authenticated', 'anon') AND NOT public.is_admin() THEN
     IF v_ins THEN
@@ -22,6 +23,13 @@ BEGIN
       NEW.is_featured := OLD.is_featured; NEW.featured_until := OLD.featured_until;
       NEW.rejection_reason := OLD.rejection_reason;
       NEW.user_id := OLD.user_id; NEW.profile_id := OLD.profile_id; NEW.created_at := OLD.created_at;
+
+      IF OLD.profile_status IN ('approved', 'suspended')
+         AND (NEW.gender IS DISTINCT FROM OLD.gender
+              OR (OLD.date_of_birth IS NOT NULL AND NEW.date_of_birth IS DISTINCT FROM OLD.date_of_birth)) THEN
+        RAISE EXCEPTION 'Gender and date of birth cannot be changed after your profile is approved. Please contact support.'
+          USING ERRCODE = 'P0001', HINT = 'FIELD_LOCKED';
+      END IF;
     END IF;
 
     v_prefix := 'https://hgucqabzlaxelkfiavvm.supabase.co/storage/v1/object/public/profile-photos/' || auth.uid()::text || '/';
@@ -52,6 +60,18 @@ BEGIN
       NEW.verification_status := OLD.verification_status;
     ELSIF NEW.verification_status NOT IN ('unverified', 'pending') THEN
       NEW.verification_status := 'pending';
+    END IF;
+
+    IF NEW.profile_status = 'pending_approval' AND (v_ins OR OLD.profile_status IS DISTINCT FROM 'pending_approval') THEN
+      IF NEW.date_of_birth IS NULL THEN
+        RAISE EXCEPTION 'Please add your date of birth before submitting your profile.' USING ERRCODE = 'P0001', HINT = 'DOB_REQUIRED';
+      END IF;
+      v_min := CASE WHEN NEW.gender = 'male' THEN 21 ELSE 18 END;
+      IF NEW.age < v_min THEN
+        RAISE EXCEPTION '% must be at least % years old to register.',
+          CASE WHEN NEW.gender = 'male' THEN 'Men' ELSE 'Women' END, v_min
+          USING ERRCODE = 'P0001', HINT = 'MIN_AGE';
+      END IF;
     END IF;
   END IF;
 

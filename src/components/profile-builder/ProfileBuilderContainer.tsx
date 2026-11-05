@@ -25,6 +25,7 @@ import {
   Loader2,
 } from 'lucide-react';
 import { PROFILE_COLUMNS, fetchMyPrivateFields } from '../../lib/profileColumns';
+import { calculateAgeFromDob } from '../../data/profileOptions';
 
 interface ProfileBuilderProps {
   mode?: 'create' | 'edit';
@@ -44,6 +45,8 @@ export const ProfileBuilderContainer: React.FC<ProfileBuilderProps> = ({ mode: _
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saveSuccessMessage, setSaveSuccessMessage] = useState<string | null>(null);
   const [saveErrorMessage, setSaveErrorMessage] = useState<string | null>(null);
+  // Once approved, gender and date of birth can only be corrected by an admin.
+  const [identityLocked, setIdentityLocked] = useState<boolean>(false);
 
   const autosaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isInitialMount = useRef<boolean>(true);
@@ -74,6 +77,7 @@ export const ProfileBuilderContainer: React.FC<ProfileBuilderProps> = ({ mode: _
 
         if (profile && isMounted) {
           setProfileId(profile.id);
+          setIdentityLocked(profile.profile_status === 'approved' || profile.profile_status === 'suspended');
 
           // Load partner preferences if profile exists
           const { data: prefData } = await (supabase.from('partner_preferences') as any)
@@ -438,7 +442,17 @@ export const ProfileBuilderContainer: React.FC<ProfileBuilderProps> = ({ mode: _
 
     if (stepNumber === 1) {
       if (!formData.first_name.trim()) errs.first_name = t('profileBuilder.errFirstNameReq');
-      if (!formData.date_of_birth) errs.date_of_birth = t('profileBuilder.errDobReq');
+      if (!formData.date_of_birth) {
+        errs.date_of_birth = t('profileBuilder.errDobReq');
+      } else if (!identityLocked) {
+        const age = calculateAgeFromDob(formData.date_of_birth);
+        const minimum = formData.gender === 'male' ? 21 : 18;
+        if (age === null || age < minimum) {
+          errs.date_of_birth = formData.gender === 'male'
+            ? (language === 'mr' ? 'वराचे वय किमान २१ वर्षे असणे आवश्यक आहे.' : 'Grooms must be at least 21 years old.')
+            : (language === 'mr' ? 'वधूचे वय किमान १८ वर्षे असणे आवश्यक आहे.' : 'Brides must be at least 18 years old.');
+        }
+      }
       if (!formData.community) errs.community = t('profileBuilder.errCommunityReq');
     } else if (stepNumber === 2) {
       if (!formData.highest_education) errs.highest_education = t('profileBuilder.errEducationReq');
@@ -612,6 +626,7 @@ export const ProfileBuilderContainer: React.FC<ProfileBuilderProps> = ({ mode: _
             data={formData}
             onChange={handleChange}
             errors={errors}
+            identityLocked={identityLocked}
           />
         )}
         {currentStep === 2 && (

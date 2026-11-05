@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { Profile } from '../../types';
 import { interactionService } from '../../services/interaction.service';
+import { describeError } from '../states/UiStates';
 import { Ban, CheckCircle2, X } from 'lucide-react';
 import { Button } from './Button';
 
@@ -21,6 +22,7 @@ export const BlockProfileModal: React.FC<BlockProfileModalProps> = ({
   const { language, localize } = useLanguage();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [failure, setFailure] = useState<string | null>(null);
 
   if (!isOpen || !profile) return null;
 
@@ -28,8 +30,9 @@ export const BlockProfileModal: React.FC<BlockProfileModalProps> = ({
 
   const handleBlock = async () => {
     setIsSubmitting(true);
+    setFailure(null);
     try {
-      await interactionService.blockProfile(profile.id);
+      await interactionService.blockMember(profile.id);
       setIsSuccess(true);
       if (onProfileBlocked) onProfileBlocked(profile.id);
       setTimeout(() => {
@@ -37,7 +40,8 @@ export const BlockProfileModal: React.FC<BlockProfileModalProps> = ({
         onClose();
       }, 1500);
     } catch (err) {
-      console.error('Block profile error:', err);
+      const details = describeError(err, language);
+      setFailure(`${details.what} ${details.fix}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -114,8 +118,8 @@ export const BlockProfileModal: React.FC<BlockProfileModalProps> = ({
             </h3>
             <p style={{ color: '#64748B', fontSize: '0.88rem', margin: 0 }}>
               {language === 'mr'
-                ? 'हे प्रोफाइल आता तुमच्या शोध निकालांमध्ये दिसणार नाही.'
-                : 'This profile will no longer appear in your searches.'}
+                ? 'तुम्ही दोघे आता एकमेकांना दिसणार नाही. डॅशबोर्डवरून कधीही अनब्लॉक करू शकता.'
+                : 'You and this member can no longer see each other. You can unblock them from your dashboard at any time.'}
             </p>
           </div>
         ) : (
@@ -141,10 +145,14 @@ export const BlockProfileModal: React.FC<BlockProfileModalProps> = ({
               </h3>
               <p style={{ color: '#64748B', fontSize: '0.9rem', lineHeight: 1.5, margin: 0 }}>
                 {language === 'mr'
-                  ? `तुम्हाला ${profileName} यांना ब्लॉक करायचे आहे का? ब्लॉक केल्यानंतर हे प्रोफाइल तुम्हाला दिसणार नाही.`
-                  : `Are you sure you want to block ${profileName}? You will not see this profile in searches.`}
+                  ? `तुम्हाला ${profileName} यांना ब्लॉक करायचे आहे का? ब्लॉक केल्यानंतर तुम्ही दोघे एकमेकांना दिसणार नाही.`
+                  : `Are you sure you want to block ${profileName}? You and this member will no longer see each other.`}
               </p>
             </div>
+
+            {failure && (
+              <p role="alert" style={{ margin: 0, color: '#B91C1C', fontSize: '0.86rem' }}>{failure}</p>
+            )}
 
             <div style={{ display: 'flex', gap: '12px', width: '100%', marginTop: '4px' }}>
               <Button type="button" variant="outline" size="md" onClick={onClose} fullWidth disabled={isSubmitting}>

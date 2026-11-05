@@ -373,3 +373,31 @@
     grid-template-columns: 1fr;
   }
 }
+
+.ageBand {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+  margin-bottom: 16px;
+  padding: 10px 14px;
+  background: var(--color-gold-light);
+  border-radius: 10px;
+  font-size: 0.9rem;
+  color: var(--color-ink);
+}
+
+.ageBandToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.ageBandLink {
+  font-weight: 600;
+  color: var(--color-primary);
+}

@@ -137,7 +137,7 @@ export const SearchFilters: React.FC<SearchFiltersProps> = ({
           <div className={styles.rangeHeader}>
             <label className={styles.sectionLabel}>{language === 'mr' ? 'वय मर्यादा' : 'Age Range'}</label>
             <span className={styles.rangeValues}>
-              {filters.minAge} – {filters.maxAge} {language === 'mr' ? 'वर्षे' : 'yrs'}
+              {filters.minAge} – {filters.maxAge >= 60 ? '60+' : filters.maxAge} {language === 'mr' ? 'वर्षे' : 'yrs'}
             </span>
           </div>
           <div className={styles.rangeInputsRow}>

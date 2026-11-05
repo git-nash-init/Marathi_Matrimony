@@ -1,8 +1,11 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronRight, Clock, Eye, Heart, Phone, PhoneCall, Sparkles, Star, UserCheck, Undo2, Crown, Mail, MapPin } from 'lucide-react';
+import { Ban, ChevronRight, Clock, Eye, Heart, Phone, PhoneCall, Sparkles, Star, UserCheck, Undo2, Crown, Mail, MapPin } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { interestService, InterestRow } from '../../services/interest.service';
+import { discoveryService, MatchBand } from '../../services/discovery.service';
+import { BlockedMember, interactionService } from '../../services/interaction.service';
+import { describeError, EmptyState as SharedEmptyState, ErrorState } from '../states/UiStates';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { useToast } from '../../context/ToastContext';
@@ -42,18 +45,21 @@ const fmt = (iso: string | undefined, lang: string) =>
 function useRpcList<T>(fn: string, args?: Record<string, unknown>) {
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<unknown>(null);
+  const [attempt, setAttempt] = useState(0);
   const argKey = JSON.stringify(args ?? {});
   useEffect(() => {
     let mounted = true;
     setLoading(true);
-    supabase.rpc(fn as any, JSON.parse(argKey)).then(({ data: d, error }: any) => {
+    supabase.rpc(fn as any, JSON.parse(argKey)).then(({ data: d, error: rpcError }: any) => {
       if (!mounted) return;
-      setData(error ? null : (d as T));
+      setError(rpcError ?? null);
+      setData(rpcError ? null : (d as T));
       setLoading(false);
     });
     return () => { mounted = false; };
-  }, [fn, argKey]);
-  return { data, loading };
+  }, [fn, argKey, attempt]);
+  return { data, loading, error, reload: () => setAttempt((n) => n + 1) };
 }
 
 const MiniCard: React.FC<{ p: CardRow; lang: string; note?: React.ReactNode }> = ({ p, lang, note }) => (
@@ -110,60 +116,193 @@ const Loading: React.FC<Lang> = ({ language }) => (
   <p style={{ padding: 16, color: 'var(--color-text-muted)' }}>{language === 'mr' ? 'लोड होत आहे…' : 'Loading…'}</p>
 );
 
-const ProfileList: React.FC<{ rows: CardRow[] | null; loading: boolean; lang: string; empty: { icon: React.ReactNode; title: string; desc: string }; note?: (r: CardRow) => React.ReactNode }> =
-  ({ rows, loading, lang, empty, note }) => {
+const ProfileList: React.FC<{ rows: CardRow[] | null; loading: boolean; error?: unknown; onRetry?: () => void; lang: string; empty: { icon: React.ReactNode; title: string; desc: string }; note?: (r: CardRow) => React.ReactNode }> =
+  ({ rows, loading, error, onRetry, lang, empty, note }) => {
     if (loading) return <Loading language={lang} />;
+    if (error) return <ErrorState error={error} onRetry={onRetry} />;
     if (!rows || rows.length === 0) return <EmptyState {...empty} />;
     return <div className={dashStyles.miniCardList}>{rows.map((p) => <MiniCard key={p.id} p={p} lang={lang} note={note?.(p)} />)}</div>;
   };
 
+/** Matches depend on the member's date of birth. Says so, and shows which ages the list covers. */
+const AgeGroup: React.FC<{ lang: string; children: React.ReactNode }> = ({ lang, children }) => {
+  const { profile } = useAuth();
+  const mr = lang === 'mr';
+  const [band, setBand] = useState<MatchBand | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+    discoveryService.getMatchBand().then((b) => { if (mounted) setBand(b); });
+    return () => { mounted = false; };
+  }, [profile?.date_of_birth, profile?.gender]);
+
+  if (band && !band.applies && band.reason !== 'not_applicable') {
+    return (
+      <SharedEmptyState
+        title={mr ? 'आधी आपली जन्मतारीख द्या' : 'Add your date of birth first'}
+        description={mr
+          ? 'जुळणारी स्थळे आपल्या विवाह वयोगटानुसार निवडली जातात, त्यासाठी प्रोफाइलमध्ये जन्मतारीख हवी.'
+          : 'Matches are chosen from your marriage age group, so your profile needs your date of birth.'}
+        action={band.reason === 'no_profile'
+          ? { label: mr ? 'प्रोफाइल तयार करा' : 'Create your profile', to: '/profile/create' }
+          : { label: mr ? 'जन्मतारीख द्या' : 'Add date of birth', to: '/profile/edit' }}
+      />
+    );
+  }
+
+  return (
+    <>
+      {band?.applies && (
+        <p style={{ margin: '0 0 12px', fontSize: '0.86rem', color: 'var(--color-text-muted)' }}>
+          {mr
+            ? `${band.min_age}–${band.max_age} वयोगटातील ${band.target_gender === 'female' ? 'वधू' : 'वर'} (आपला विवाह वयोगट)`
+            : `${band.target_gender === 'female' ? 'Women' : 'Men'} aged ${band.min_age}–${band.max_age}, your marriage age group`}
+        </p>
+      )}
+      {children}
+    </>
+  );
+};
+
+/** Members this member blocked, with the way to unblock them. */
+export const BlockedMembersTab: React.FC<Lang> = ({ language: lang }) => {
+  const toast = useToast();
+  const mr = lang === 'mr';
+  const [rows, setRows] = useState<BlockedMember[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<unknown>(null);
+  const [target, setTarget] = useState<BlockedMember | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      setRows(await interactionService.getBlockedMembers());
+      setError(null);
+    } catch (err) {
+      setError(err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { void load(); }, [load]);
+
+  const confirmUnblock = async () => {
+    if (!target) return;
+    setBusy(true);
+    try {
+      await interactionService.unblockMember(target.id);
+      setRows((prev) => prev.filter((r) => r.id !== target.id));
+      toast.success(mr ? 'अनब्लॉक केले. तुम्ही दोघे पुन्हा एकमेकांना दिसाल.' : 'Unblocked. You can see each other again.');
+    } catch (err) {
+      const d = describeError(err, lang);
+      toast.error(`${d.what} ${d.fix}`);
+    } finally {
+      setBusy(false);
+      setTarget(null);
+    }
+  };
+
+  return (
+    <div>
+      <Header icon={<Ban size={18} />} title={mr ? 'ब्लॉक केलेले सदस्य' : 'Blocked Members'}
+        desc={mr ? 'तुम्ही आणि हे सदस्य एकमेकांना दिसत नाही' : 'You and these members cannot see each other'} />
+      {loading ? <Loading language={lang} /> : error ? <ErrorState error={error} onRetry={() => void load()} /> : rows.length === 0 ? (
+        <EmptyState icon={<Ban size={32} />} title={mr ? 'कोणालाही ब्लॉक केलेले नाही' : 'You have not blocked anyone'}
+          desc={mr ? 'एखाद्या प्रोफाइलवरील मेनूमधून ब्लॉक करू शकता.' : 'You can block a member from the menu on their profile.'} />
+      ) : (
+        <div className={dashStyles.miniCardList}>
+          {rows.map((r) => (
+            <div key={r.id} className={dashStyles.interestRow}>
+              <div className={dashStyles.miniCard}>
+                <div className={dashStyles.miniPhoto}>
+                  {r.avatar_url
+                    ? <img src={r.avatar_url} alt={r.first_name} />
+                    : <div className={dashStyles.miniPhotoPlaceholder}>{(r.first_name || 'M').charAt(0)}</div>}
+                </div>
+                <div className={dashStyles.miniInfo}>
+                  <div className={dashStyles.miniName}>{r.first_name}</div>
+                  <div className={dashStyles.miniMeta}>{r.profile_code} • {r.city || '—'}</div>
+                  <span className={dashStyles.viewedOnTag}><Clock size={11} /> {fmt(r.blocked_at, lang)}</span>
+                </div>
+              </div>
+              <div className={dashStyles.interestStatus}>
+                <button className={dashStyles.acceptBtn} onClick={() => setTarget(r)}>{mr ? 'अनब्लॉक करा' : 'Unblock'}</button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+      <ConfirmDialog
+        isOpen={Boolean(target)}
+        title={mr ? 'अनब्लॉक करायचे?' : 'Unblock this member?'}
+        message={mr
+          ? `${target?.first_name ?? ''} आणि तुम्ही पुन्हा एकमेकांना दिसू शकाल.`
+          : `${target?.first_name ?? 'This member'} and you will be able to see each other again.`}
+        confirmLabel={mr ? 'अनब्लॉक करा' : 'Unblock'}
+        cancelLabel={mr ? 'रद्द करा' : 'Cancel'}
+        busy={busy}
+        onConfirm={() => void confirmUnblock()}
+        onCancel={() => setTarget(null)}
+      />
+    </div>
+  );
+};
+
 export const MatchmakingTab: React.FC<Lang> = ({ language: lang }) => {
-  const { data, loading } = useRpcList<CardRow[]>('get_recommendations', { p_limit: 6, p_offset: 0 });
+  const { data, loading, error, reload } = useRpcList<CardRow[]>('get_recommendations', { p_limit: 6, p_offset: 0 });
   return (
     <div>
       <Header icon={<Sparkles size={18} />} title={lang === 'mr' ? 'जुळवाजुळव प्रोफाइल' : 'Matchmaking Profiles'}
         desc={lang === 'mr' ? 'तुमच्या प्राधान्यांवर आधारित जुळलेले प्रोफाइल' : 'Profiles matched based on your partner preferences'} />
-      <ProfileList rows={data} loading={loading} lang={lang}
-        empty={{ icon: <Sparkles size={32} />, title: lang === 'mr' ? 'सध्या जुळणारे प्रोफाइल नाहीत' : 'No matches yet', desc: lang === 'mr' ? 'तुमची प्राधान्ये अद्ययावत करा.' : 'Update your partner preferences to see matches.' }} />
+      <AgeGroup lang={lang}>
+        <ProfileList rows={data} loading={loading} error={error} onRetry={reload} lang={lang}
+          empty={{ icon: <Sparkles size={32} />, title: lang === 'mr' ? 'सध्या जुळणारे प्रोफाइल नाहीत' : 'No matches yet', desc: lang === 'mr' ? 'आपल्या वयोगटात नवीन सदस्य मंजूर झाल्यावर येथे दिसतील.' : 'Members in your age group appear here once they are approved.' }} />
+      </AgeGroup>
     </div>
   );
 };
 
 export const RecommendationsTab: React.FC<Lang> = ({ language: lang }) => {
-  const { data, loading } = useRpcList<CardRow[]>('get_recommendations', { p_limit: 20, p_offset: 0 });
+  const { data, loading, error, reload } = useRpcList<CardRow[]>('get_recommendations', { p_limit: 20, p_offset: 0 });
   return (
     <div>
       <Header icon={<Star size={18} />} title={lang === 'mr' ? 'शिफारस केलेल्या प्रोफाइल' : 'Recommended Profiles'}
         desc={lang === 'mr' ? 'तुमच्या प्राधान्यांशी सर्वाधिक जुळणारे प्रोफाइल' : 'Profiles that best fit your preferences, ranked by match %'} />
-      <ProfileList rows={data} loading={loading} lang={lang}
-        empty={{ icon: <Star size={32} />, title: lang === 'mr' ? 'शिफारसी उपलब्ध नाहीत' : 'No recommendations yet', desc: lang === 'mr' ? 'नवीन प्रोफाइल आल्यावर येथे दिसतील.' : 'New matching profiles will appear here.' }} />
+      <AgeGroup lang={lang}>
+        <ProfileList rows={data} loading={loading} error={error} onRetry={reload} lang={lang}
+          empty={{ icon: <Star size={32} />, title: lang === 'mr' ? 'शिफारसी उपलब्ध नाहीत' : 'No recommendations yet', desc: lang === 'mr' ? 'आपल्या वयोगटात नवीन प्रोफाइल आल्यावर येथे दिसतील.' : 'New profiles in your age group will appear here.' }} />
+      </AgeGroup>
     </div>
   );
 };
 
 export const NewProfilesTab: React.FC<Lang> = ({ language: lang }) => {
-  const { data, loading } = useRpcList<CardRow[]>('get_new_profiles');
+  const { data, loading, error, reload } = useRpcList<CardRow[]>('get_new_profiles');
   return (
     <div>
       <Header icon={<Sparkles size={18} />} title={lang === 'mr' ? 'नवीन प्रोफाइल' : 'New Profiles'}
         desc={lang === 'mr' ? 'गेल्या ७ दिवसांतील प्रोफाइल — प्लॅटिनम सदस्यांना ७२ तास आधी' : 'Approved in the last 7 days — Platinum members see them 72 hours early'} />
-      <ProfileList rows={data} loading={loading} lang={lang}
-        note={(p) => p.is_early_access ? (
-          <span style={{ fontSize: '0.7rem', color: '#92400E', fontWeight: 700 }}>{lang === 'mr' ? 'लवकर प्रवेश' : 'Early access'}</span>
-        ) : null}
-        empty={{ icon: <Sparkles size={32} />, title: lang === 'mr' ? 'नवीन प्रोफाइल नाहीत' : 'No new profiles', desc: lang === 'mr' ? 'लवकरच येथे दिसतील.' : 'Check back soon.' }} />
+      <AgeGroup lang={lang}>
+        <ProfileList rows={data} loading={loading} error={error} onRetry={reload} lang={lang}
+          note={(p) => p.is_early_access ? (
+            <span style={{ fontSize: '0.7rem', color: '#92400E', fontWeight: 700 }}>{lang === 'mr' ? 'लवकर प्रवेश' : 'Early access'}</span>
+          ) : null}
+          empty={{ icon: <Sparkles size={32} />, title: lang === 'mr' ? 'नवीन प्रोफाइल नाहीत' : 'No new profiles', desc: lang === 'mr' ? 'लवकरच येथे दिसतील.' : 'Check back soon.' }} />
+      </AgeGroup>
     </div>
   );
 };
 
 export const ViewedByMeTab: React.FC<Lang & { onUpgrade: () => void }> = ({ language: lang, onUpgrade }) => {
   const { t } = useLanguage();
-  const { data, loading } = useRpcList<{ items: CardRow[]; capped: boolean }>('get_my_viewed_profiles');
+  const { data, loading, error, reload } = useRpcList<{ items: CardRow[]; capped: boolean }>('get_my_viewed_profiles');
   return (
     <div>
       <Header icon={<Eye size={18} />} title={lang === 'mr' ? 'मी पाहिलेल्या प्रोफाइल' : 'Profiles Viewed by Me'}
         desc={lang === 'mr' ? 'तुम्ही नुकत्याच पाहिलेल्या प्रोफाइलचा इतिहास' : 'History of profiles you have recently browsed'} />
-      <ProfileList rows={data?.items ?? null} loading={loading} lang={lang}
+      <ProfileList rows={data?.items ?? null} loading={loading} error={error} onRetry={reload} lang={lang}
         note={(p) => p.viewed_at ? <span className={dashStyles.viewedOnTag}><Clock size={11} /> {fmt(p.viewed_at, lang)}</span> : null}
         empty={{ icon: <Eye size={32} />, title: lang === 'mr' ? 'अजून कोणताही इतिहास नाही' : 'No browsing history yet', desc: lang === 'mr' ? 'स्थळे शोधणे सुरू करा.' : 'Start browsing profiles to see your history here.' }} />
       {data?.capped && (
@@ -176,12 +315,12 @@ export const ViewedByMeTab: React.FC<Lang & { onUpgrade: () => void }> = ({ lang
 };
 
 export const WhoViewedMeTab: React.FC<Lang> = ({ language: lang }) => {
-  const { data, loading } = useRpcList<CardRow[]>('get_my_profile_visitors');
+  const { data, loading, error, reload } = useRpcList<CardRow[]>('get_my_profile_visitors');
   return (
     <div>
       <Header icon={<UserCheck size={18} />} title={lang === 'mr' ? 'माझी प्रोफाइल कोणी पाहिली' : 'Who Viewed My Profile'}
         desc={lang === 'mr' ? 'गेल्या ३० दिवसांत तुमची प्रोफाइल पाहणारे सदस्य' : 'Members who visited your profile in the last 30 days'} />
-      <ProfileList rows={data} loading={loading} lang={lang}
+      <ProfileList rows={data} loading={loading} error={error} onRetry={reload} lang={lang}
         note={(p) => <span className={dashStyles.viewedOnTag}><Clock size={11} /> {fmt(p.viewed_at, lang)}{(p.view_count ?? 0) > 1 ? ` • ${p.view_count}×` : ''}</span>}
         empty={{ icon: <UserCheck size={32} />, title: lang === 'mr' ? 'अजून कोणीही पाहिले नाही' : 'No visitors yet', desc: lang === 'mr' ? 'प्रोफाइल पूर्ण ठेवा.' : 'Keep your profile complete to attract visitors.' }} />
     </div>
@@ -189,12 +328,12 @@ export const WhoViewedMeTab: React.FC<Lang> = ({ language: lang }) => {
 };
 
 export const ContactViewersTab: React.FC<Lang> = ({ language: lang }) => {
-  const { data, loading } = useRpcList<CardRow[]>('get_my_contact_viewers');
+  const { data, loading, error, reload } = useRpcList<CardRow[]>('get_my_contact_viewers');
   return (
     <div>
       <Header icon={<PhoneCall size={18} />} title={lang === 'mr' ? 'माझा फोन नंबर कोणी पाहिला' : 'Who Viewed My Contact Number'}
         desc={lang === 'mr' ? 'तुमचे संपर्क तपशील अनलॉक केलेले सदस्य' : 'Members who have unlocked your contact details'} />
-      <ProfileList rows={data} loading={loading} lang={lang}
+      <ProfileList rows={data} loading={loading} error={error} onRetry={reload} lang={lang}
         note={(p) => <span className={dashStyles.viewedOnTag}><Clock size={11} /> {fmt(p.unlocked_at, lang)}</span>}
         empty={{ icon: <PhoneCall size={32} />, title: lang === 'mr' ? 'अजून कोणीही नाही' : 'No one yet', desc: lang === 'mr' ? 'कोणी संपर्क अनलॉक केल्यावर येथे दिसेल.' : 'You will see members here once they unlock your contact.' }} />
     </div>
@@ -202,12 +341,12 @@ export const ContactViewersTab: React.FC<Lang> = ({ language: lang }) => {
 };
 
 export const ContactsByMeTab: React.FC<Lang> = ({ language: lang }) => {
-  const { data, loading } = useRpcList<CardRow[]>('get_my_contact_unlocks');
+  const { data, loading, error, reload } = useRpcList<CardRow[]>('get_my_contact_unlocks');
   return (
     <div>
       <Header icon={<Phone size={18} />} title={lang === 'mr' ? 'मी पाहिलेले फोन नंबर' : 'Contact Numbers Viewed by Me'}
         desc={lang === 'mr' ? 'तुम्ही अनलॉक केलेले संपर्क तपशील' : 'Contact details you have unlocked'} />
-      <ProfileList rows={data} loading={loading} lang={lang}
+      <ProfileList rows={data} loading={loading} error={error} onRetry={reload} lang={lang}
         note={(p) => (
           <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', display: 'grid', gap: 2, marginTop: 4 }}>
             <span>{p.last_name ? `${p.first_name} ${p.last_name}` : p.first_name}</span>

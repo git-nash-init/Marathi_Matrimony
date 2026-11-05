@@ -219,6 +219,11 @@ export const ProfileCard: React.FC<ProfileCardProps> = ({ profile, onBlock, onSh
               <div className={styles.subMeta}>
                 {profile.height} • {maritalStatus}
               </div>
+              {profile.ageInRange === false && (
+                <span className={styles.outOfRange}>
+                  {language === 'mr' ? 'आपल्या वयोगटाबाहेर' : 'Outside your age group'}
+                </span>
+              )}
             </div>
             <span className={styles.profileIdBadge}>{profile.profileId}</span>
           </div>

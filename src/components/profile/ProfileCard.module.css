@@ -384,3 +384,13 @@
   }
 }
  
+.outOfRange {
+  display: inline-block;
+  margin-top: 4px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--color-gold-light);
+  color: var(--color-ink-muted);
+  font-size: 0.72rem;
+  font-weight: 600;
+}

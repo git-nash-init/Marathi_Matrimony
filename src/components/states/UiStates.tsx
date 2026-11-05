@@ -27,12 +27,18 @@ export const EmptyState: React.FC<{
   title: string;
   description: string;
   action?: Action;
-}> = ({ icon, title, description, action }) => (
+  secondaryAction?: Action;
+}> = ({ icon, title, description, action, secondaryAction }) => (
   <div className={styles.panel}>
     <div className={styles.icon}>{icon ?? <Inbox size={30} />}</div>
     <h3 className={styles.title}>{title}</h3>
     <p className={styles.text}>{description}</p>
-    {action && <div className={styles.actions}><ActionButton action={action} /></div>}
+    {(action || secondaryAction) && (
+      <div className={styles.actions}>
+        {action && <ActionButton action={action} />}
+        {secondaryAction && <ActionButton action={secondaryAction} variant="outline" />}
+      </div>
+    )}
   </div>
 );
 

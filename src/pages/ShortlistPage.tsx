@@ -6,6 +6,7 @@ import { Profile } from '../types';
 import { discoveryService } from '../services/discovery.service';
 import { shortlistService } from '../services/shortlist.service';
 import { ProfileCard, ProfileCardSkeleton } from '../components/profile/ProfileCard';
+import { EmptyState, ErrorState } from '../components/states/UiStates';
 import { Heart, Search, Sparkles, BookmarkCheck } from 'lucide-react';
 import styles from './ShortlistPage.module.css';
 
@@ -14,20 +15,28 @@ export const ShortlistPage: React.FC = () => {
   const { user, profile } = useAuth();
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [loadError, setLoadError] = useState<unknown>(null);
+  const [attempt, setAttempt] = useState(0);
 
   const userProfileId = profile?.id || user?.id;
 
   useEffect(() => {
     let isMounted = true;
     const loadShortlisted = async () => {
+      if (!user) {
+        setProfiles([]);
+        setIsLoading(false);
+        return;
+      }
       setIsLoading(true);
       try {
-        const shortIds = await shortlistService.getShortlistedIds(userProfileId);
-        const res = await discoveryService.fetchProfiles({ pageSize: 100, earlyAccess: true });
-        const filtered = res.profiles.filter((p: Profile) => shortIds.includes(p.id) || shortIds.includes(p.profileId));
-        if (isMounted) setProfiles(filtered);
+        const saved = await discoveryService.fetchProfilesByIds(await shortlistService.getShortlistedIds(userProfileId));
+        if (isMounted) {
+          setProfiles(saved);
+          setLoadError(null);
+        }
       } catch (err) {
-        console.error('Failed to load shortlists:', err);
+        if (isMounted) setLoadError(err);
       } finally {
         if (isMounted) setIsLoading(false);
       }
@@ -57,7 +66,7 @@ export const ShortlistPage: React.FC = () => {
       isMounted = false;
       unsubscribe();
     };
-  }, [userProfileId]);
+  }, [userProfileId, user, attempt]);
 
   const handleShortlistChange = (profileId: string, isShortlisted: boolean) => {
     if (!isShortlisted) {
@@ -107,6 +116,16 @@ export const ShortlistPage: React.FC = () => {
               <ProfileCardSkeleton key={idx} />
             ))}
           </div>
+        ) : !user ? (
+          <EmptyState
+            icon={<Heart size={30} />}
+            title={language === 'mr' ? 'शॉर्टलिस्ट पाहण्यासाठी लॉगिन करा' : 'Sign in to see your shortlist'}
+            description={language === 'mr' ? 'आवडलेली स्थळे आपल्या खात्यात जतन होतात.' : 'Profiles you like are saved to your account.'}
+            action={{ label: language === 'mr' ? 'लॉगिन करा' : 'Sign in', to: '/login' }}
+            secondaryAction={{ label: language === 'mr' ? 'मोफत नोंदणी करा' : 'Register free', to: '/register' }}
+          />
+        ) : loadError && profiles.length === 0 ? (
+          <ErrorState error={loadError} onRetry={() => setAttempt((n) => n + 1)} />
         ) : profiles.length === 0 ? (
           <div className={styles.emptyState}>
             <div className={styles.emptyIconCircle}>

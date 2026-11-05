@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   Ban,
+  LifeBuoy,
   User,
   ShieldCheck,
   Crown,
@@ -27,6 +28,7 @@ import { useAdminAccess } from '../admin/adminAccess';
 import { Button } from '../components/common/Button';
 import { SubscriptionGate } from '../components/common/SubscriptionGate';
 import { IdVerificationCard } from '../components/premium/IdVerificationCard';
+import { SupportTab } from '../components/premium/SupportTab';
 import { moderationService, ProfileReview } from '../services/moderation.service';
 import { PLAN_DISPLAY_INFO } from '../services/subscription.service';
 import { PremiumFeature, useSubscription } from '../context/SubscriptionContext';
@@ -55,7 +57,8 @@ type TabKey =
   | 'interests'
   | 'contact_viewers'
   | 'contacts_by_me'
-  | 'blocked';
+  | 'blocked'
+  | 'support';
 
 interface Tab {
   key: TabKey;
@@ -77,6 +80,7 @@ const TABS: Tab[] = [
   { key: 'interests',      label_en: 'Interests',           label_mr: 'पसंती',              icon: <Heart size={16} /> },
   { key: 'contact_viewers',label_en: 'Contact Viewers',     label_mr: 'फोन पाहणारे',        icon: <PhoneCall size={16} />,  feature: 'view_contact_viewers', planLabel: 'Diamond' },
   { key: 'contacts_by_me', label_en: 'Contacts I Viewed',   label_mr: 'मी पाहिलेले फोन',   icon: <Phone size={16} />,      feature: 'view_my_unlocks',      planLabel: 'Silver' },
+  { key: 'support',        label_en: 'Help & Support',      label_mr: 'मदत केंद्र',          icon: <LifeBuoy size={15} /> },
   { key: 'blocked',        label_en: 'Blocked Members',     label_mr: 'ब्लॉक केलेले',       icon: <Ban size={16} /> },
 ];
 
@@ -347,6 +351,7 @@ export const DashboardPage: React.FC = () => {
             {activeTab === 'contact_viewers'&& <ContactViewersTab language={language} />}
             {activeTab === 'contacts_by_me' && <ContactsByMeTab language={language} />}
             {activeTab === 'blocked'        && <BlockedMembersTab language={language} />}
+            {activeTab === 'support'        && <SupportTab language={language} />}
           </div>
         </div>
 

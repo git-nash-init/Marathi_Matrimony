@@ -16,20 +16,21 @@ export const ContactPage: React.FC = () => {
     email: '',
     mobile: '',
     subject: '',
-    message: ''
+    message: '',
+    category: 'contact',
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isSupabaseConfigured()) {
-      // `priority` is stamped by a database trigger for Platinum members; the client cannot set it.
-      const { error } = await supabase.from('contact_inquiries').insert({
+      // Status, priority and the member link are set by a database trigger; the client cannot choose them.
+      const { error } = await (supabase.from('contact_inquiries') as any).insert({
         name: formData.name.trim(),
         email: formData.email.trim(),
         phone: formData.mobile.trim(),
         subject: formData.subject.trim() || 'Website enquiry',
         message: formData.message.trim(),
-        status: 'pending',
+        category: formData.category,
       });
       if (error) {
         setSubmitError(describeError(error, language));
@@ -181,6 +182,17 @@ export const ContactPage: React.FC = () => {
                       />
                     </div>
                   </div>
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label" htmlFor="contact-category">
+                    {language === 'mr' ? 'कशाबद्दल?' : 'What is this about?'}
+                  </label>
+                  <select id="contact-category" className="form-input" value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })}>
+                    <option value="contact">{language === 'mr' ? 'प्रश्न' : 'A question'}</option>
+                    <option value="complaint">{language === 'mr' ? 'तक्रार' : 'A complaint'}</option>
+                    <option value="feedback">{language === 'mr' ? 'अभिप्राय' : 'Feedback'}</option>
+                  </select>
                 </div>
 
                 <div className="form-group">

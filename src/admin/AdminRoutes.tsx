@@ -7,6 +7,7 @@ import { AdminGuard, RoleGate } from './AdminGuard';
 import { AdminLayout } from './AdminLayout';
 import { useAdminSession } from './adminAccess';
 import { sectionFor } from './navigation';
+import { AdminDashboardPage } from './pages/DashboardPage';
 import { ProfileApprovalPage } from './pages/ProfileApprovalPage';
 import { ComplaintsPage } from './pages/ComplaintsPage';
 import { SettingsPage } from './pages/SettingsPage';
@@ -40,7 +41,7 @@ const AdminRoutes: React.FC = () => (
   <AdminGuard>
     <Routes>
       <Route element={<AdminLayout />}>
-        <Route index element={<NotBuiltYet path="" />} />
+        <Route index element={<Gated path=""><AdminDashboardPage /></Gated>} />
         <Route path="users" element={<Gated path="users"><UsersPage /></Gated>} />
         <Route path="users/:userId" element={<Gated path="users"><UserDetailPage /></Gated>} />
         <Route path="approvals" element={<Gated path="approvals"><ProfileApprovalPage /></Gated>} />

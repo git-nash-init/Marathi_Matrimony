@@ -112,6 +112,7 @@ export const UsersPage: React.FC = () => {
           <option value="pending_approval">{mr ? 'प्रलंबित' : 'Pending approval'}</option>
           <option value="draft">{mr ? 'मसुदा' : 'Draft'}</option>
           <option value="rejected">{mr ? 'नाकारलेले' : 'Rejected'}</option>
+          <option value="inactive">{mr ? 'निष्क्रिय' : 'Inactive'}</option>
           <option value="blocked">{mr ? 'ब्लॉक केलेले' : 'Blocked'}</option>
           <option value="no_profile">{mr ? 'प्रोफाइल नाही' : 'No profile'}</option>
         </select>

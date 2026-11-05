@@ -1,12 +1,23 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { SectionHeading } from '../common/SectionHeading';
 import { Button } from '../common/Button';
-import { mockStories } from '../../data/mockStories';
+import { Story, storiesService } from '../../services/content.service';
 import styles from './SuccessStoriesSection.module.css';
 
 export const SuccessStoriesSection: React.FC = () => {
-  const { localize, language } = useLanguage();
+  const { language } = useLanguage();
+  const mr = language === 'mr';
+  const [stories, setStories] = useState<Story[]>([]);
+
+  useEffect(() => {
+    let active = true;
+    storiesService.listPublished(3).then((rows) => { if (active) setStories(rows); }).catch(() => undefined);
+    return () => { active = false; };
+  }, []);
+
+  // No invented couples: the section only appears once a real story is published.
+  if (stories.length === 0) return null;
 
   return (
     <section className={`section ${styles.storiesSection}`}>
@@ -18,18 +29,10 @@ export const SuccessStoriesSection: React.FC = () => {
         />
 
         <div className={styles.storiesGrid}>
-          {mockStories.map((story) => (
+          {stories.map((story) => (
             <div key={story.id} className={styles.storyCard}>
               <div className={styles.imageWrap}>
-                <img
-                  src={story.imageUrl}
-                  alt={localize(story.coupleNames)}
-                  className={styles.image}
-                  loading="lazy"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = '/images/stories/story-1.jpg';
-                  }}
-                />
+                {story.photo_url && <img src={story.photo_url} alt={mr ? story.couple_names_mr : story.couple_names_en} className={styles.image} loading="lazy" />}
                 <div className={styles.quoteIconCircle}>
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                     <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
@@ -38,7 +41,7 @@ export const SuccessStoriesSection: React.FC = () => {
               </div>
 
               <div className={styles.storyContent}>
-                <h3 className={styles.coupleNames}>{localize(story.coupleNames)}</h3>
+                <h3 className={styles.coupleNames}>{mr ? story.couple_names_mr : story.couple_names_en}</h3>
                 
                 <div className={styles.metaRow}>
                   <span className={styles.metaItem}>
@@ -48,23 +51,19 @@ export const SuccessStoriesSection: React.FC = () => {
                       <line x1="8" y1="2" x2="8" y2="6"></line>
                       <line x1="3" y1="10" x2="21" y2="10"></line>
                     </svg>
-                    {localize(story.weddingDate)}
+                    {story.wedding_date && new Date(story.wedding_date).toLocaleDateString(mr ? 'mr-IN' : 'en-IN', { year: 'numeric', month: 'long' })}
                   </span>
                   <span className={styles.metaItem}>
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                       <path d="M12 2a8 8 0 0 0-8 8c0 5.25 8 12 8 12s8-6.75 8-12a8 8 0 0 0-8-8z"></path>
                       <circle cx="12" cy="10" r="3"></circle>
                     </svg>
-                    {localize(story.location)}
+                    {mr ? story.location_mr : story.location_en}
                   </span>
                 </div>
 
-                <p className={styles.quoteText}>
-                  "{localize(story.quote)}"
-                </p>
-
                 <p className={styles.storyText}>
-                  {localize(story.story)}
+                  {mr ? story.story_mr : story.story_en}
                 </p>
               </div>
             </div>

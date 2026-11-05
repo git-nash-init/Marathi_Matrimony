@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ShieldCheck } from 'lucide-react';
 import { useLanguage } from '../../i18n/LanguageContext';
@@ -9,6 +9,8 @@ import { describeError } from '../../components/states/UiStates';
 import { adminService } from '../../services/admin.service';
 import { useAdminSession } from '../adminAccess';
 import { MfaEnroll } from '../components/MfaPanels';
+import { FormInput } from '../../components/common/FormInput';
+import { settingsService } from '../../services/content.service';
 
 const card: React.CSSProperties = {
   background: 'var(--color-surface-pure)',
@@ -29,6 +31,40 @@ export const SettingsPage: React.FC = () => {
   const [busy, setBusy] = useState(false);
 
   const required = Boolean(info.mfa_required);
+  const canChange = role === 'super_admin';
+  const [gap, setGap] = useState('');
+  const [savedGap, setSavedGap] = useState('');
+  const [maintenance, setMaintenance] = useState(false);
+  const [confirmMaintenance, setConfirmMaintenance] = useState(false);
+  const [settingError, setSettingError] = useState<string | null>(null);
+  const [settingBusy, setSettingBusy] = useState(false);
+
+  useEffect(() => {
+    settingsService.get().then((s) => {
+      setGap(String(s.match_age_gap));
+      setSavedGap(String(s.match_age_gap));
+      setMaintenance(Boolean(s.maintenance_mode));
+    }).catch(() => setSettingError(mr ? 'सेटिंग्ज वाचता आल्या नाहीत. पान पुन्हा उघडा.' : 'Settings could not be read. Please reopen this page.'));
+    // Read once on opening.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const gapError = gap !== '' && (!/^\d+$/.test(gap) || Number(gap) > 20) ? (mr ? '० ते २० मधील पूर्ण संख्या टाका.' : 'Enter a whole number from 0 to 20.') : undefined;
+
+  const saveSetting = async (key: string, value: unknown, done: string, after: () => void) => {
+    setSettingBusy(true);
+    setSettingError(null);
+    try {
+      await settingsService.set(key, value);
+      after();
+      showToast(done, 'success');
+    } catch (err) {
+      const details = describeError(err, language);
+      setSettingError(`${details.what} ${details.fix}`);
+    } finally {
+      setSettingBusy(false);
+    }
+  };
 
   const toggleRequired = async () => {
     setBusy(true);
@@ -67,6 +103,54 @@ export const SettingsPage: React.FC = () => {
   return (
     <div>
       <h1 style={{ fontSize: '1.35rem', margin: '0 0 16px' }}>{mr ? 'सेटिंग्ज' : 'Settings'}</h1>
+      <section style={card}>
+        <h2 style={{ fontSize: '1.02rem', margin: '0 0 6px' }}>{mr ? 'विवाह वयोगट' : 'Marriage age group'}</h2>
+        <p style={{ margin: '0 0 10px', color: 'var(--color-ink-muted)', fontSize: '0.9rem' }}>
+          {mr
+            ? 'वराला त्याच्या वयाच्या व इतक्या वर्षांपर्यंत लहान वधू सुचवल्या जातात. बाकीच्या प्रोफाइल पाहता येतात, पण सुचवल्या जात नाहीत.'
+            : 'A man is recommended women his own age and up to this many years younger. Others can still be viewed, but are never recommended.'}
+        </p>
+        <div style={{ maxWidth: 200 }}>
+          <FormInput id="age-gap" label={mr ? 'वर्षांतील फरक' : 'Years of difference'} type="number" min={0} max={20} value={gap} disabled={!canChange} error={gapError} onChange={(e) => setGap(e.target.value)} />
+        </div>
+        {canChange ? (
+          <div style={{ marginTop: 10 }}>
+            <Button variant="primary" size="sm" disabled={settingBusy || Boolean(gapError) || gap === '' || gap === savedGap}
+              onClick={() => void saveSetting('match_age_gap', Number(gap), mr ? 'जतन केले. नवीन शिफारसींना लागू होईल.' : 'Saved. It applies to matches from now on.', () => setSavedGap(gap))}>
+              {mr ? 'जतन करा' : 'Save'}
+            </Button>
+          </div>
+        ) : (
+          <p style={{ margin: '8px 0 0', color: 'var(--color-ink-muted)', fontSize: '0.86rem' }}>{mr ? 'फक्त मुख्य प्रशासक बदलू शकतात.' : 'Only a super admin can change this.'}</p>
+        )}
+      </section>
+
+      <section style={card}>
+        <h2 style={{ fontSize: '1.02rem', margin: '0 0 6px' }}>{mr ? 'देखभाल मोड' : 'Maintenance mode'}</h2>
+        <p style={{ margin: '0 0 10px', color: 'var(--color-ink-muted)', fontSize: '0.9rem' }}>
+          {maintenance
+            ? (mr ? 'सध्या चालू आहे: सदस्यांना देखभालीचे पान दिसते. प्रशासक काम करू शकतात.' : 'On now: visitors see a holding page. Admins can still work.')
+            : (mr ? 'बंद आहे: वेबसाइट सर्वांसाठी खुली आहे.' : 'Off: the site is open to everyone.')}
+        </p>
+        {canChange && (
+          <Button variant="outline" size="sm" disabled={settingBusy} onClick={() => setConfirmMaintenance(true)}>
+            {maintenance ? (mr ? 'बंद करा' : 'Turn off') : (mr ? 'चालू करा' : 'Turn on')}
+          </Button>
+        )}
+        {settingError && <p role="alert" style={{ color: 'var(--color-danger)', fontSize: '0.88rem', margin: '10px 0 0' }}>{settingError}</p>}
+      </section>
+
+      <ConfirmDialog
+        isOpen={confirmMaintenance}
+        title={maintenance ? (mr ? 'वेबसाइट पुन्हा खुली करायची?' : 'Reopen the site?') : (mr ? 'वेबसाइट बंद करायची?' : 'Close the site to visitors?')}
+        message={maintenance ? (mr ? 'सर्वांना वेबसाइट पुन्हा दिसेल.' : 'Everyone can use the site again.') : (mr ? 'प्रशासक सोडून सर्वांना देखभालीचे पान दिसेल.' : 'Everyone except admins will see a holding page until you turn this off.')}
+        confirmLabel={maintenance ? (mr ? 'बंद करा' : 'Turn off') : (mr ? 'चालू करा' : 'Turn on')}
+        cancelLabel={mr ? 'रद्द करा' : 'Cancel'}
+        busy={settingBusy}
+        onConfirm={() => { setConfirmMaintenance(false); void saveSetting('maintenance_mode', !maintenance, mr ? 'बदल जतन केला.' : 'Saved.', () => setMaintenance(!maintenance)); }}
+        onCancel={() => setConfirmMaintenance(false)}
+      />
+
       <section style={card}>
         <h2 style={{ fontSize: '1.02rem', margin: '0 0 6px' }}>{mr ? 'याद्या व ठिकाणे' : 'Lists and locations'}</h2>
         <p style={{ margin: '0 0 8px', color: 'var(--color-ink-muted)', fontSize: '0.9rem' }}>

@@ -1,6 +1,7 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useMemo } from 'react';
 import { Language, LocalizedString } from '../types';
 import { translations, TranslationType } from './translations';
+import { applyBrandContent, applyContent, ContentMap, fetchPublishedContent, readCachedContent } from '../services/content.service';
 import { brandConfig } from '../config/brand.config';
 
 type CallableTranslation = TranslationType & ((keyPath: string, params?: Record<string, any>) => string);
@@ -55,7 +56,19 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
     document.documentElement.classList.add('notranslate');
   }, [language]);
 
-  const rawTranslations = translations[language];
+  // Published website text sits on top of the built-in copy. Until it loads, the last published
+  // version (or the built-in copy) shows, so there is never blank text.
+  const [content, setContent] = useState<ContentMap>(readCachedContent);
+  useEffect(() => {
+    let active = true;
+    fetchPublishedContent().then((map) => { if (active) setContent(map); }).catch(() => undefined);
+    return () => { active = false; };
+  }, []);
+
+  const rawTranslations = useMemo(() => {
+    applyBrandContent(language, content);
+    return applyContent(translations[language], language, content);
+  }, [language, content]);
   const brandName = brandConfig.name[language];
   const brandTagline = brandConfig.tagline[language];
 

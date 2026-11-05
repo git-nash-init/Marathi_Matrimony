@@ -12,6 +12,8 @@ import { ProfileApprovalPage } from './pages/ProfileApprovalPage';
 import { ComplaintsPage } from './pages/ComplaintsPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { ListsPage } from './pages/ListsPage';
+import { ContentPage } from './pages/ContentPage';
+import { StoriesPage } from './pages/StoriesPage';
 import { UsersPage } from './pages/UsersPage';
 import { UserDetailPage } from './pages/UserDetailPage';
 import { VerificationPage } from './pages/VerificationPage';
@@ -36,7 +38,7 @@ const NotBuiltYet: React.FC<{ path: string }> = ({ path }) => {
   );
 };
 
-const PENDING_SECTIONS = ['plans', 'payments', 'stories', 'notifications', 'reports'];
+const PENDING_SECTIONS = ['plans', 'payments', 'notifications', 'reports'];
 
 const AdminRoutes: React.FC = () => (
   <AdminGuard>
@@ -47,6 +49,8 @@ const AdminRoutes: React.FC = () => (
         <Route path="users/:userId" element={<Gated path="users"><UserDetailPage /></Gated>} />
         <Route path="approvals" element={<Gated path="approvals"><ProfileApprovalPage /></Gated>} />
         <Route path="verification" element={<Gated path="verification"><VerificationPage /></Gated>} />
+        <Route path="content" element={<Gated path="content"><ContentPage /></Gated>} />
+        <Route path="stories" element={<Gated path="stories"><StoriesPage /></Gated>} />
         <Route path="complaints" element={<Gated path="complaints"><ComplaintsPage /></Gated>} />
         <Route path="settings/lists" element={<Gated path="settings"><ListsPage /></Gated>} />
         <Route path="settings" element={<Gated path="settings"><SettingsPage /></Gated>} />

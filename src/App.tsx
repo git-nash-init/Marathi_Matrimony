@@ -36,6 +36,7 @@ import { NotFoundPage } from './pages/NotFoundPage';
 import { Skeleton } from './components/common/Skeleton';
 import { OfflineBanner, SessionExpiredDialog } from './components/states/UiStates';
 import { AccountBlockedGate } from './components/auth/AccountBlockedGate';
+import { MaintenanceGate } from './components/auth/MaintenanceGate';
 
 const AdminRoutes = lazy(() => import('./admin/AdminRoutes'));
 
@@ -48,6 +49,7 @@ export const App: React.FC = () => {
           <ToastProvider>
             <BrowserRouter>
               <AccountBlockedGate>
+              <MaintenanceGate>
               <Routes>
                 <Route path="/" element={<MainLayout />}>
                   {/* Public Discovery & Informational Routes */}
@@ -183,6 +185,7 @@ export const App: React.FC = () => {
                   }
                 />
             </Routes>
+              </MaintenanceGate>
               </AccountBlockedGate>
             <OfflineBanner />
             <SessionExpiredDialog />

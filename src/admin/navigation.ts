@@ -10,8 +10,7 @@ import {
   Settings,
   ShieldCheck,
   UserCheck,
-  Users,
-} from 'lucide-react';
+  Users, FileText } from 'lucide-react';
 import { AdminRole } from './adminAccess';
 
 export interface AdminSection {
@@ -30,6 +29,7 @@ export const ADMIN_SECTIONS: AdminSection[] = [
   { path: 'plans', en: 'Subscription Plans', mr: 'सदस्यता योजना', icon: Crown, roles: ['super_admin', 'admin'] },
   { path: 'payments', en: 'Payments', mr: 'पेमेंट्स', icon: CreditCard, roles: ['super_admin', 'admin'] },
   { path: 'verification', en: 'Verification', mr: 'पडताळणी', icon: ShieldCheck, roles: ['super_admin', 'admin', 'moderator'] },
+  { path: 'content', en: 'Website Content', mr: 'वेबसाइट मजकूर', icon: FileText, roles: ['super_admin', 'admin'] },
   { path: 'stories', en: 'Success Stories', mr: 'विवाहगाथा', icon: Heart, roles: ['super_admin', 'admin'] },
   { path: 'complaints', en: 'Complaints & Support', mr: 'तक्रारी व मदत', icon: MessageCircle, roles: ['super_admin', 'admin', 'support'] },
   { path: 'notifications', en: 'Notifications', mr: 'सूचना', icon: Bell, roles: ['super_admin', 'admin'] },

@@ -15,6 +15,7 @@ import {
 } from '../../data/profileOptions';
 import { FormInput } from '../common/FormInput';
 import { FormSelect } from '../common/FormSelect';
+import { useLookup } from '../../services/lookups.service';
 import { SegmentedControl } from '../common/SegmentedControl';
 import { SectionCard } from '../common/SectionCard';
 import { StepHeader } from '../common/StepHeader';
@@ -51,6 +52,12 @@ export const Step1BasicDetails: React.FC<Step1Props> = ({
 }) => {
   const formData = data || propFormData || ({} as ProfileFormData);
   const { t, language } = useLanguage();
+  const communityOptions = useLookup('community', COMMUNITY_OPTIONS.map((o: OptionItem) => ({ value: o.id, en: o.en, mr: o.mr })));
+  const rashiOptions = useLookup('rashi');
+  const nakshatraOptions = useLookup('nakshatra');
+  const gotraOptions = useLookup('gotra');
+  const kuldaivatOptions = useLookup('kuldaivat');
+  const mrLabel = language === 'mr';
   const { user } = useAuth();
   const calculatedAge = calculateAgeFromDob(formData.date_of_birth);
 
@@ -788,9 +795,9 @@ export const Step1BasicDetails: React.FC<Step1Props> = ({
               onChange={(e) => onChange('community', e.target.value)}
               error={errors.community}
               placeholder={`-- ${language === 'mr' ? 'जात निवडा' : 'Select Community'} --`}
-              options={COMMUNITY_OPTIONS.map((opt: OptionItem) => ({
-                value: opt.id,
-                label: language === 'mr' ? opt.mr : opt.en,
+              options={communityOptions.map((opt) => ({
+                value: opt.value,
+                label: mrLabel ? opt.mr : opt.en,
               }))}
             />
           </div>
@@ -813,6 +820,56 @@ export const Step1BasicDetails: React.FC<Step1Props> = ({
                 value: opt.id,
                 label: language === 'mr' ? opt.mr : opt.en,
               }))}
+            />
+          </div>
+
+          {/* Row 3: Gotra & Kuldaivat */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '18px' }}>
+            <div>
+              <FormInput
+                id="gothra"
+                label={mrLabel ? 'गोत्र' : 'Gotra'}
+                list="gotra-options"
+                maxLength={80}
+                value={formData.gothra || ''}
+                onChange={(e) => onChange('gothra', e.target.value)}
+              />
+              <datalist id="gotra-options">
+                {gotraOptions.map((o) => <option key={o.value} value={mrLabel ? o.mr : o.en} />)}
+              </datalist>
+            </div>
+            <div>
+              <FormInput
+                id="kuldaivat"
+                label={mrLabel ? 'कुलदैवत' : 'Kuldaivat'}
+                list="kuldaivat-options"
+                maxLength={100}
+                value={formData.kuldaivat || ''}
+                onChange={(e) => onChange('kuldaivat', e.target.value)}
+              />
+              <datalist id="kuldaivat-options">
+                {kuldaivatOptions.map((o) => <option key={o.value} value={mrLabel ? o.mr : o.en} />)}
+              </datalist>
+            </div>
+          </div>
+
+          {/* Row 4: Rashi & Nakshatra */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '18px' }}>
+            <FormSelect
+              id="rashi"
+              label={mrLabel ? 'रास' : 'Rashi'}
+              value={formData.rashi || ''}
+              placeholder={mrLabel ? '-- रास निवडा --' : '-- Select rashi --'}
+              onChange={(e) => onChange('rashi', e.target.value)}
+              options={rashiOptions.map((o) => ({ value: o.value, label: mrLabel ? o.mr : o.en }))}
+            />
+            <FormSelect
+              id="nakshatra"
+              label={mrLabel ? 'नक्षत्र' : 'Nakshatra'}
+              value={formData.nakshatra || ''}
+              placeholder={mrLabel ? '-- नक्षत्र निवडा --' : '-- Select nakshatra --'}
+              onChange={(e) => onChange('nakshatra', e.target.value)}
+              options={nakshatraOptions.map((o) => ({ value: o.value, label: mrLabel ? o.mr : o.en }))}
             />
           </div>
 

@@ -15,6 +15,7 @@ export interface UnlockedContact {
   phone_number?: string | null;
   whatsapp_number?: string | null;
   address_line?: string | null;
+  native_place?: string | null;
 }
 
 interface ProfileDocument {
@@ -125,6 +126,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ profileId, isOwn
         <LockedField label={mr ? 'आडनाव' : 'Surname'} value={contact?.last_name || undefined} featureLabel="Surname" {...lockProps} />
         <LockedField label={mr ? 'ईमेल' : 'Email ID'} value={contact?.email || undefined} featureLabel="Email ID" {...lockProps} />
         <LockedField label={mr ? 'फोन नंबर' : 'Phone Number'} value={contact?.phone_number || undefined} featureLabel="Contact Number" {...lockProps} />
+        <LockedField label={mr ? 'मूळ गाव' : 'Native village'} value={contact?.native_place || undefined} featureLabel="Native village" {...lockProps} />
         <LockedField label={mr ? 'पत्ता' : 'Address'} value={contact?.address_line || undefined} featureLabel="Address" {...lockProps} />
       </div>
 

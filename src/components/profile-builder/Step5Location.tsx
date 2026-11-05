@@ -5,6 +5,8 @@ import { MAHARASHTRA_CITIES } from '../../data/profileOptions';
 import { FormInput } from '../common/FormInput';
 import { SectionCard } from '../common/SectionCard';
 import { StepHeader } from '../common/StepHeader';
+import { usePlaces } from '../../services/lookups.service';
+import { DistrictTalukaFields, VillageField } from './PlaceFields';
 import { MapPin, Home, Globe } from 'lucide-react';
 
 interface Step5Props {
@@ -15,6 +17,7 @@ interface Step5Props {
 
 export const Step5Location: React.FC<Step5Props> = ({ data, onChange, errors = {} }) => {
   const { t, language } = useLanguage();
+  const districts = usePlaces();
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
@@ -54,12 +57,14 @@ export const Step5Location: React.FC<Step5Props> = ({ data, onChange, errors = {
               </datalist>
             </div>
 
-            <FormInput
-              label={t('profileBuilder.currentDistrict')}
-              value={data.current_district || ''}
-              onChange={(e) => onChange('current_district', e.target.value)}
-              placeholder={t('profileBuilder.currentDistrictPlaceholder')}
-              maxLength={80}
+            <DistrictTalukaFields
+              idPrefix="current"
+              districts={districts}
+              district={data.current_district}
+              taluka={data.current_taluka}
+              onDistrict={(v) => onChange('current_district', v)}
+              onTaluka={(v) => onChange('current_taluka', v)}
+              districtLabel={t('profileBuilder.currentDistrict')}
             />
           </div>
 
@@ -95,23 +100,27 @@ export const Step5Location: React.FC<Step5Props> = ({ data, onChange, errors = {
         icon={<Home size={20} />}
       >
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '18px' }}>
-          <FormInput
+          <DistrictTalukaFields
+            idPrefix="native"
+            districts={districts}
+            district={data.native_district}
+            taluka={data.native_taluka}
+            onDistrict={(v) => onChange('native_district', v)}
+            onTaluka={(v) => onChange('native_taluka', v)}
+            districtLabel={t('profileBuilder.nativeDistrict')}
+          />
+
+          <VillageField
+            districts={districts}
+            district={data.native_district}
+            taluka={data.native_taluka}
             label={t('profileBuilder.nativePlace')}
             required
             value={data.native_place || ''}
-            onChange={(e) => onChange('native_place', e.target.value)}
+            onChange={(v) => onChange('native_place', v)}
             error={errors.native_place}
             placeholder={t('profileBuilder.nativePlacePlaceholder')}
             prefix={<Home size={16} />}
-            maxLength={100}
-          />
-
-          <FormInput
-            label={t('profileBuilder.nativeDistrict')}
-            value={data.native_district || ''}
-            onChange={(e) => onChange('native_district', e.target.value)}
-            placeholder={t('profileBuilder.nativeDistrictPlaceholder')}
-            maxLength={80}
           />
         </div>
       </SectionCard>

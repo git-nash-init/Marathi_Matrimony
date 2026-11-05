@@ -11,6 +11,7 @@ import { AdminDashboardPage } from './pages/DashboardPage';
 import { ProfileApprovalPage } from './pages/ProfileApprovalPage';
 import { ComplaintsPage } from './pages/ComplaintsPage';
 import { SettingsPage } from './pages/SettingsPage';
+import { ListsPage } from './pages/ListsPage';
 import { UsersPage } from './pages/UsersPage';
 import { UserDetailPage } from './pages/UserDetailPage';
 import { VerificationPage } from './pages/VerificationPage';
@@ -47,6 +48,7 @@ const AdminRoutes: React.FC = () => (
         <Route path="approvals" element={<Gated path="approvals"><ProfileApprovalPage /></Gated>} />
         <Route path="verification" element={<Gated path="verification"><VerificationPage /></Gated>} />
         <Route path="complaints" element={<Gated path="complaints"><ComplaintsPage /></Gated>} />
+        <Route path="settings/lists" element={<Gated path="settings"><ListsPage /></Gated>} />
         <Route path="settings" element={<Gated path="settings"><SettingsPage /></Gated>} />
         {PENDING_SECTIONS.map((path) => (
           <Route key={path} path={path} element={<Gated path={path}><NotBuiltYet path={path} /></Gated>} />

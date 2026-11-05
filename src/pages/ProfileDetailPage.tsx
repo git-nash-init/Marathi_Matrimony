@@ -186,6 +186,7 @@ export const ProfileDetailPage: React.FC = () => {
   const motherTongue = localize(profile.motherTongue);
   const gothra = profile.gothra ? localize(profile.gothra) : '-';
   const manglik = profile.manglik ? localize(profile.manglik) : '-';
+  const kuldaivat = profile.kuldaivat ? localize(profile.kuldaivat) : '-';
   const aboutMe = localize(profile.aboutMe);
   const diet = localize(profile.lifestyle.diet);
   const smoke = localize(profile.lifestyle.smoke);
@@ -397,6 +398,10 @@ export const ProfileDetailPage: React.FC = () => {
             <div className={styles.infoField}>
               <span className={styles.infoLabel}>{language === 'mr' ? 'गोत्र' : 'Gothra'}</span>
               <span className={styles.infoValue}>{gothra}</span>
+            </div>
+            <div className={styles.infoField}>
+              <span className={styles.infoLabel}>{language === 'mr' ? 'कुलदैवत' : 'Kuldaivat'}</span>
+              <span className={styles.infoValue}>{kuldaivat}</span>
             </div>
             <div className={styles.infoField}>
               <span className={styles.infoLabel}>{language === 'mr' ? 'मांगलिक' : 'Manglik'}</span>

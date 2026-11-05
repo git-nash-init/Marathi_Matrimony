@@ -35,6 +35,10 @@ const DEFAULT_FILTERS: SearchFiltersState = {
   minIncome: 0,
   state: 'all',
   city: 'all',
+  rashi: 'all',
+  manglik: 'all',
+  district: 'all',
+  nativeDistrict: 'all',
   verifiedOnly: false,
   photoOnly: false,
   showAllAges: false,
@@ -84,6 +88,10 @@ export const SearchPage: React.FC = () => {
     minIncome: Number(searchParams.get('minIncome')) || DEFAULT_FILTERS.minIncome,
     state: searchParams.get('state') || DEFAULT_FILTERS.state,
     city: searchParams.get('city') || inferredCity,
+    rashi: searchParams.get('rashi') || DEFAULT_FILTERS.rashi,
+    manglik: searchParams.get('manglik') || DEFAULT_FILTERS.manglik,
+    district: searchParams.get('district') || DEFAULT_FILTERS.district,
+    nativeDistrict: searchParams.get('nativeDistrict') || DEFAULT_FILTERS.nativeDistrict,
     verifiedOnly: searchParams.get('verified') === 'true',
     photoOnly: searchParams.get('photoOnly') === 'true',
     showAllAges: searchParams.get('allAges') === 'true',
@@ -125,6 +133,10 @@ export const SearchPage: React.FC = () => {
       if (currentFilters.city !== 'all') params.set('city', currentFilters.city);
       if (currentFilters.education !== 'all') params.set('education', currentFilters.education);
       if (currentFilters.occupation !== 'all') params.set('occupation', currentFilters.occupation);
+      if (currentFilters.rashi !== 'all') params.set('rashi', currentFilters.rashi);
+      if (currentFilters.manglik !== 'all') params.set('manglik', currentFilters.manglik);
+      if (currentFilters.district !== 'all') params.set('district', currentFilters.district);
+      if (currentFilters.nativeDistrict !== 'all') params.set('nativeDistrict', currentFilters.nativeDistrict);
       if (currentFilters.verifiedOnly) params.set('verified', 'true');
       if (currentFilters.photoOnly) params.set('photoOnly', 'true');
       if (currentFilters.showAllAges) params.set('allAges', 'true');
@@ -208,7 +220,7 @@ export const SearchPage: React.FC = () => {
   };
 
   const activeFilterCount = Object.entries(filters).filter(([k, v]) => {
-    if (k === 'gender' || k === 'maritalStatus' || k === 'religion' || k === 'community' || k === 'education' || k === 'occupation' || k === 'state' || k === 'city') {
+    if (k === 'gender' || k === 'maritalStatus' || k === 'religion' || k === 'community' || k === 'rashi' || k === 'manglik' || k === 'district' || k === 'nativeDistrict' || k === 'education' || k === 'occupation' || k === 'state' || k === 'city') {
       return v !== 'all';
     }
     if (k === 'minAge') return v !== 18;

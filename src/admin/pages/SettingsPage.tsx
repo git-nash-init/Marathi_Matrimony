@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { ShieldCheck } from 'lucide-react';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { useToast } from '../../context/ToastContext';
@@ -66,6 +67,13 @@ export const SettingsPage: React.FC = () => {
   return (
     <div>
       <h1 style={{ fontSize: '1.35rem', margin: '0 0 16px' }}>{mr ? 'सेटिंग्ज' : 'Settings'}</h1>
+      <section style={card}>
+        <h2 style={{ fontSize: '1.02rem', margin: '0 0 6px' }}>{mr ? 'याद्या व ठिकाणे' : 'Lists and locations'}</h2>
+        <p style={{ margin: '0 0 8px', color: 'var(--color-ink-muted)', fontSize: '0.9rem' }}>
+          {mr ? 'जाती, गोत्र, कुलदैवत, रास, नक्षत्र, जिल्हे व गावे.' : 'Castes, gotra, kuldaivat, rashi, nakshatra, districts and villages.'}
+        </p>
+        <Link to="/admin/settings/lists">{mr ? 'याद्या उघडा' : 'Open lists'}</Link>
+      </section>
 
       <section style={card}>
         <h2 style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '1.05rem', margin: '0 0 8px' }}>

@@ -109,6 +109,9 @@ export const ProfileBuilderContainer: React.FC<ProfileBuilderProps> = ({ mode: _
             community: profile.community || '',
             sub_community: profile.sub_community || '',
             gothra: profile.gothra || '',
+            rashi: (profile as any).rashi || '',
+            nakshatra: (profile as any).nakshatra || '',
+            kuldaivat: (profile as any).kuldaivat || '',
             manglik: profile.manglik || 'no',
             horoscope_match_required: profile.horoscope_match_required ?? true,
 
@@ -141,12 +144,14 @@ export const ProfileBuilderContainer: React.FC<ProfileBuilderProps> = ({ mode: _
             hobbies: (profile as any).hobbies || [],
             personality: (profile as any).personality || '',
             current_city: profile.city || '',
-            current_district: profile.current_district || '',
+            current_district: (profile as any).district || '',
+            current_taluka: (profile as any).taluka || '',
             current_state: profile.state || 'Maharashtra',
             current_country: profile.country || 'India',
             citizenship: profile.citizenship || 'Indian',
             native_place: (profile as any).native_place || '',
             native_district: (profile as any).native_district || '',
+            native_taluka: (profile as any).native_taluka || '',
 
             // About Me
             about_me: profile.about_me || '',
@@ -277,6 +282,10 @@ export const ProfileBuilderContainer: React.FC<ProfileBuilderProps> = ({ mode: _
         community: formData.community || null,
         sub_community: formData.sub_community || null,
         gothra: formData.gothra || null,
+        rashi: formData.rashi || null,
+        nakshatra: formData.nakshatra || null,
+        kuldaivat: formData.kuldaivat || null,
+        manglik: formData.manglik || null,
 
         education: formData.highest_education || null,
         education_detail: formData.education_detail || null,
@@ -301,6 +310,11 @@ export const ProfileBuilderContainer: React.FC<ProfileBuilderProps> = ({ mode: _
         drinking: formData.drinking || 'No',
 
         city: formData.current_city || null,
+        district: formData.current_district || null,
+        taluka: formData.current_taluka || null,
+        native_district: formData.native_district || null,
+        native_taluka: formData.native_taluka || null,
+        native_place: formData.native_place || null,
         state: formData.current_state || 'Maharashtra',
         country: formData.current_country || 'India',
 

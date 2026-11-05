@@ -15,16 +15,18 @@ export const PROFILE_COLUMNS = [
   'mother_occupation', 'brothers_count', 'sisters_count', 'married_brothers_count', 'married_sisters_count',
   'family_location', 'family_description', 'hobbies', 'lifestyle_interests', 'rejection_reason',
   'completion_percentage', 'avatar_url', 'photos', 'photos_hidden', 'listing_priority', 'approved_at',
+  'rashi', 'nakshatra', 'manglik', 'kuldaivat', 'district', 'taluka', 'native_district', 'native_taluka',
 ].join(', ');
 
 export interface PrivateProfileFields {
   last_name: string | null;
   aadhaar_last4: string | null;
+  native_place: string | null;
 }
 
-/** The signed-in member's own surname and last 4 ID digits (owner-only RPC). */
+/** The signed-in member's own surname, last 4 ID digits and village (owner-only RPC). */
 export async function fetchMyPrivateFields(): Promise<PrivateProfileFields> {
   const { data } = await supabase.rpc('get_my_private_profile');
   const d = (data ?? {}) as Partial<PrivateProfileFields>;
-  return { last_name: d.last_name ?? null, aadhaar_last4: d.aadhaar_last4 ?? null };
+  return { last_name: d.last_name ?? null, aadhaar_last4: d.aadhaar_last4 ?? null, native_place: d.native_place ?? null };
 }

@@ -53,7 +53,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.warn('Could not fetch user profile:', error.message);
         return null;
       }
-      const data = row ? ({ ...(row as object), ...(await fetchMyPrivateFields()) } as ProfileRow) : null;
+      const data = row ? ({ ...(row as object), ...(await fetchMyPrivateFields()) } as unknown as ProfileRow) : null;
       setProfile(data);
       return data;
     } catch (err) {
@@ -77,13 +77,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     // Check for dev test user in development mode
-    const devMock = typeof window !== 'undefined' ? localStorage.getItem('dev_mock_user') : null;
-    if (devMock && import.meta.env.DEV) {
+    const devMock = import.meta.env.DEV ? localStorage.getItem('dev_mock_user') : null;
+    if (import.meta.env.DEV && devMock) {
       try {
         const parsedMock = JSON.parse(devMock);
         setUser(parsedMock);
         setSession({ user: parsedMock, access_token: 'dev-token', token_type: 'bearer', expires_in: 3600 } as any);
-        setLoading(false);
+        fetchProfileForUser(parsedMock.id).finally(() => setLoading(false));
         return;
       } catch (_e) {}
     }

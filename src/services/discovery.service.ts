@@ -1,6 +1,8 @@
 import { supabase } from '../lib/supabase';
 import { PROFILE_COLUMNS } from '../lib/profileColumns';
 import { LocalizedString, Profile, SearchFiltersState } from '../types';
+import { LookupOption, lookupsService } from './lookups.service';
+import { MANGLIK_OPTIONS } from '../data/profileOptions';
 import { shortlistService } from './shortlist.service';
 
 export interface DiscoveryQueryParams extends Partial<SearchFiltersState> {
@@ -100,6 +102,11 @@ function mapDbProfileToProfile(row: any): Profile {
     motherTongue: same(row.mother_tongue),
     city: same(row.city),
     district: same(row.district || row.city),
+    gothra: row.gothra ? same(row.gothra) : undefined,
+    rashi: row.rashi ? same(row.rashi) : undefined,
+    nakshatra: row.nakshatra ? same(row.nakshatra) : undefined,
+    manglik: row.manglik ? same(row.manglik) : undefined,
+    kuldaivat: row.kuldaivat ? same(row.kuldaivat) : undefined,
     state: same(row.state),
     country: same(row.country),
     education: same(row.education),
@@ -134,11 +141,35 @@ function mapDbProfileToProfile(row: any): Profile {
       motherOccupation: same(row.mother_occupation),
       brothers: Number(row.brothers_count) || 0,
       sisters: Number(row.sisters_count) || 0,
-      nativePlace: same(row.family_location || row.city),
+      nativePlace: same([row.native_taluka, row.native_district].filter(Boolean).join(', ') || row.family_location || row.city),
     },
     partnerPreferences: NO_PREFERENCES,
   };
 }
+
+type Labels = Record<'community' | 'rashi' | 'nakshatra', LookupOption[]>;
+
+const loadLabels = async (): Promise<Labels> => {
+  const list = (kind: 'community' | 'rashi' | 'nakshatra') => lookupsService.list(kind).catch(() => [] as LookupOption[]);
+  const [community, rashi, nakshatra] = await Promise.all([list('community'), list('rashi'), list('nakshatra')]);
+  return { community, rashi, nakshatra };
+};
+
+// Profiles store a list entry's value; people read its label. A value no longer on the list shows as stored.
+const labelled = (current: LocalizedString | undefined, options: { value: string; en: string; mr: string }[]) => {
+  const match = current && options.find((o) => o.value === current.en);
+  return match ? { en: match.en, mr: match.mr } : current;
+};
+
+const MANGLIK = MANGLIK_OPTIONS.map((o) => ({ value: o.id, en: o.en, mr: o.mr }));
+
+const applyLabels = (profile: Profile, labels: Labels): Profile => ({
+  ...profile,
+  community: labelled(profile.community, labels.community) ?? profile.community,
+  rashi: labelled(profile.rashi, labels.rashi),
+  nakshatra: labelled(profile.nakshatra, labels.nakshatra),
+  manglik: labelled(profile.manglik, MANGLIK),
+});
 
 export const discoveryService = {
   /**
@@ -164,6 +195,10 @@ export const discoveryService = {
         education: params.education ?? null,
         occupation: params.occupation ?? null,
         city: params.city ?? null,
+        rashi: params.rashi ?? null,
+        manglik: params.manglik ?? null,
+        district: params.district ?? null,
+        native_district: params.nativeDistrict ?? null,
         state: params.state ?? null,
         min_income: params.minIncome ?? null,
         verified_only: Boolean(params.verifiedOnly),
@@ -176,7 +211,8 @@ export const discoveryService = {
     if (error) throw error;
 
     const result = data as unknown as { total: number; items: unknown[] };
-    const profiles = (result.items ?? []).map(mapDbProfileToProfile);
+    const labels = await loadLabels();
+    const profiles = (result.items ?? []).map((row) => applyLabels(mapDbProfileToProfile(row), labels));
     const totalCount = Number(result.total) || 0;
     return { profiles, totalCount, page, pageSize, hasMore: page * pageSize < totalCount };
   },
@@ -198,7 +234,7 @@ export const discoveryService = {
     if (error) throw error;
     if (!data) return null;
 
-    const profile = mapDbProfileToProfile(data);
+    const profile = applyLabels(mapDbProfileToProfile(data), await loadLabels());
     const { data: preferences } = await (supabase.from('partner_preferences') as any)
       .select('*')
       .eq('profile_id', data.id)
@@ -214,7 +250,8 @@ export const discoveryService = {
       .select(PROFILE_COLUMNS)
       .in('id', uuids);
     if (error) throw error;
-    return (data ?? []).map(mapDbProfileToProfile);
+    const labels = await loadLabels();
+    return (data ?? []).map((row: any) => applyLabels(mapDbProfileToProfile(row), labels));
   },
 
   async fetchShortlistedProfiles(userProfileId?: string): Promise<Profile[]> {

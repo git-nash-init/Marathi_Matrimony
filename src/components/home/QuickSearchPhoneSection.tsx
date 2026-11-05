@@ -285,14 +285,14 @@ export const QuickSearchPhoneSection: React.FC = () => {
                           <option value="all">
                             {language === 'mr' ? 'सर्व ९६ कुळी मराठा' : 'All 96 Kuli Maratha'}
                           </option>
-                          <option value="96 Kuli Maratha">
+                          <option value="maratha_96k">
                             {language === 'mr' ? '९६ कुळी मराठा (खानदानी)' : '96 Kuli Maratha'}
                           </option>
-                          <option value="Kokanastha Maratha">
-                            {language === 'mr' ? 'कोकणस्थ मराठा' : 'Kokanastha Maratha'}
+                          <option value="maratha">
+                            {language === 'mr' ? 'मराठा' : 'Maratha'}
                           </option>
-                          <option value="Deshastha Maratha">
-                            {language === 'mr' ? 'देशस्थ मराठा' : 'Deshastha Maratha'}
+                          <option value="kunbi_maratha">
+                            {language === 'mr' ? 'कुणबी मराठा' : 'Kunbi Maratha'}
                           </option>
                         </select>
                       </div>

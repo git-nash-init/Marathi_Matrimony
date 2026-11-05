@@ -1,13 +1,13 @@
 import React from 'react';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { SearchFiltersState } from '../../types';
+import { useLookup, usePlaces } from '../../services/lookups.service';
 import {
   MARATHI_COMMUNITIES,
   EDUCATION_OPTIONS,
   OCCUPATION_OPTIONS,
   MAHARASHTRA_CITIES,
-  OptionItem,
-} from '../../data/profileOptions';
+  OptionItem, MANGLIK_OPTIONS } from '../../data/profileOptions';
 import {
   SlidersHorizontal,
   RotateCcw,
@@ -30,6 +30,19 @@ interface SearchFiltersProps {
   targetGender?: 'male' | 'female';
 }
 
+const PickFilter: React.FC<{ label: string; allLabel: string; value: string; onPick: (value: string) => void; options: { value: string; label: string }[] }> = ({ label, allLabel, value, onPick, options }) => (
+  <div className={styles.section}>
+    <label className={styles.sectionLabel}>{label}</label>
+    <div className={styles.selectWrapper}>
+      <select value={value} aria-label={label} onChange={(e) => onPick(e.target.value)} className={styles.selectInput}>
+        <option value="all">{allLabel}</option>
+        {options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+      </select>
+      <ChevronDown size={18} className={styles.chevronIcon} />
+    </div>
+  </div>
+);
+
 export const SearchFilters: React.FC<SearchFiltersProps> = ({
   filters,
   onChange,
@@ -40,6 +53,8 @@ export const SearchFilters: React.FC<SearchFiltersProps> = ({
   targetGender,
 }) => {
   const { language } = useLanguage();
+  const districts = usePlaces();
+  const rashis = useLookup('rashi');
 
   const handleFieldChange = (field: keyof SearchFiltersState, value: any) => {
     onChange({
@@ -266,6 +281,16 @@ export const SearchFilters: React.FC<SearchFiltersProps> = ({
             <ChevronDown size={18} className={styles.chevronIcon} />
           </div>
         </div>
+
+        {/* DISTRICT, NATIVE DISTRICT, RASHI, MANGLIK */}
+        <PickFilter label={language === 'mr' ? 'सध्याचा जिल्हा' : 'Current district'} allLabel={language === 'mr' ? 'सर्व जिल्हे' : 'All districts'} value={filters.district} onPick={(v) => handleFieldChange('district', v)}
+          options={districts.map((d) => ({ value: d.name_en, label: language === 'mr' && d.name_mr ? d.name_mr : d.name_en }))} />
+        <PickFilter label={language === 'mr' ? 'मूळ जिल्हा' : 'Native district'} allLabel={language === 'mr' ? 'सर्व जिल्हे' : 'All districts'} value={filters.nativeDistrict} onPick={(v) => handleFieldChange('nativeDistrict', v)}
+          options={districts.map((d) => ({ value: d.name_en, label: language === 'mr' && d.name_mr ? d.name_mr : d.name_en }))} />
+        <PickFilter label={language === 'mr' ? 'रास' : 'Rashi'} allLabel={language === 'mr' ? 'सर्व राशी' : 'All rashis'} value={filters.rashi} onPick={(v) => handleFieldChange('rashi', v)}
+          options={rashis.map((o) => ({ value: o.value, label: language === 'mr' ? o.mr : o.en }))} />
+        <PickFilter label={language === 'mr' ? 'मांगलिक' : 'Manglik'} allLabel={language === 'mr' ? 'काहीही' : 'Any'} value={filters.manglik} onPick={(v) => handleFieldChange('manglik', v)}
+          options={MANGLIK_OPTIONS.map((o: OptionItem) => ({ value: o.id, label: language === 'mr' ? o.mr : o.en }))} />
 
         {/* 8. EDUCATION */}
         <div className={styles.section}>

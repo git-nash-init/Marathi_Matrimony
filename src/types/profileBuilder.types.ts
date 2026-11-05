@@ -15,6 +15,11 @@ export interface ProfileFormData {
   community: string;
   sub_community: string;
   gothra?: string;
+  rashi?: string;
+  nakshatra?: string;
+  kuldaivat?: string;
+  current_taluka?: string;
+  native_taluka?: string;
   manglik: string;
   manglik_status?: string;
   horoscope_match_required: boolean;
@@ -99,6 +104,11 @@ export const INITIAL_PROFILE_FORM_DATA: ProfileFormData = {
   community: 'maratha_96k',
   sub_community: '',
   gothra: '',
+  rashi: '',
+  nakshatra: '',
+  kuldaivat: '',
+  current_taluka: '',
+  native_taluka: '',
   manglik: 'no',
   horoscope_match_required: true,
 

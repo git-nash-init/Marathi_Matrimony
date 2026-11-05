@@ -35,10 +35,14 @@ test('admin and private RPCs are not executable by anon', () => {
 });
 
 test('client column list matches the profiles SELECT grant and excludes surname/Aadhaar', () => {
-  const granted = sql.match(/GRANT SELECT \(([\s\S]*?)\) ON public\.profiles/)[1].split(',').map((s) => s.trim());
+  const base = sql.match(/GRANT SELECT \(([\s\S]*?)\) ON public\.profiles/)[1].split(',').map((s) => s.trim());
+  // Phase 6 grants its new columns separately, and leaves native_place out on purpose.
+  const phase6 = readFileSync(new URL('../supabase/migrations/018_phase6_community.sql', import.meta.url), 'utf8')
+    .match(/GRANT SELECT (([sS]*?))s+ON public.profiles/)[1].split(',').map((c) => c.trim());
+  const granted = [...base, ...phase6];
   const client = [...columnsTs.slice(columnsTs.indexOf('PROFILE_COLUMNS')).match(/\[([\s\S]*?)\]/)[1].matchAll(/'(\w+)'/g)].map((m) => m[1]);
   assert.deepEqual(client, granted);
-  assert.ok(!granted.includes('last_name') && !granted.includes('aadhaar_number'));
+  assert.ok(!granted.includes('last_name') && !granted.includes('aadhaar_number') && !granted.includes('native_place'));
 });
 
 test("no client code selects '*' from profiles (it fails under the column grant)", () => {

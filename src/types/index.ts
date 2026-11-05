@@ -23,6 +23,7 @@ export interface Profile {
   rashi?: LocalizedString;
   nakshatra?: LocalizedString;
   manglik?: LocalizedString;
+  kuldaivat?: LocalizedString;
   
   // Location
   city: LocalizedString;
@@ -93,6 +94,10 @@ export interface SearchFiltersState {
   minIncome: number;
   state: string;
   city: string;
+  rashi: string;
+  manglik: string;
+  district: string;
+  nativeDistrict: string;
   verifiedOnly: boolean;
   photoOnly: boolean;
   /** Search beyond the viewer's marriage age group. */

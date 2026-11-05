@@ -17,6 +17,7 @@ export interface SubscriptionPlan {
   id: string;
   name: string;
   slug: 'silver' | 'diamond' | 'platinum';
+  tier?: 'silver' | 'diamond' | 'platinum' | null;
   description: string;
   price: number;
   discounted_price?: number;

@@ -81,7 +81,7 @@ export const MembershipPage: React.FC = () => {
                 backgroundSize: '200% 100%', animation: 'shimmer 1.4s infinite' }} />
             ))
           ) : plans.map((plan) => {
-            const info = PLAN_DISPLAY_INFO[plan.slug] || PLAN_DISPLAY_INFO['silver'];
+            const info = PLAN_DISPLAY_INFO[plan.tier ?? plan.slug] || PLAN_DISPLAY_INFO['silver'];
             const isDiamond = plan.slug === 'diamond';
             const isCurrentPlan = activeSub?.plan?.slug === plan.slug;
             const planName = language === 'mr' ? (info.label_mr || plan.name) : plan.name;

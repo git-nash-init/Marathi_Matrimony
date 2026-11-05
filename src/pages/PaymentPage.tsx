@@ -120,7 +120,7 @@ export const PaymentPage: React.FC = () => {
     }
   };
 
-  const info = plan ? (PLAN_DISPLAY_INFO[plan.slug] || PLAN_DISPLAY_INFO['silver']) : null;
+  const info = plan ? (PLAN_DISPLAY_INFO[plan.tier ?? plan.slug] || PLAN_DISPLAY_INFO['silver']) : null;
   const months = plan ? Math.round(plan.duration_days / 30) : 0;
   const planName = plan ? (language === 'mr' ? (info?.label_mr || plan.name) : plan.name) : '';
 

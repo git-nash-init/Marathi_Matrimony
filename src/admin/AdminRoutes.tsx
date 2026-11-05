@@ -1,8 +1,5 @@
 import React from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
-import { Construction } from 'lucide-react';
-import { useLanguage } from '../i18n/LanguageContext';
-import { EmptyState } from '../components/states/UiStates';
 import { AdminGuard, RoleGate } from './AdminGuard';
 import { AdminLayout } from './AdminLayout';
 import { useAdminSession } from './adminAccess';
@@ -13,6 +10,7 @@ import { ComplaintsPage } from './pages/ComplaintsPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { ListsPage } from './pages/ListsPage';
 import { NotificationsPage } from './pages/NotificationsPage';
+import { ReportsPage } from './pages/ReportsPage';
 import { PlansPage } from './pages/PlansPage';
 import { PaymentsPage } from './pages/PaymentsPage';
 import { ContentPage } from './pages/ContentPage';
@@ -25,23 +23,6 @@ const Gated: React.FC<{ path: string; children: React.ReactNode }> = ({ path, ch
   const { role } = useAdminSession();
   return <RoleGate role={role} allowed={sectionFor(path).roles}>{children}</RoleGate>;
 };
-
-/** A section the rollout hasn't reached yet. Says so plainly rather than showing fake data. */
-const NotBuiltYet: React.FC<{ path: string }> = ({ path }) => {
-  const { language } = useLanguage();
-  const mr = language === 'mr';
-  const section = sectionFor(path);
-  return (
-    <EmptyState
-      icon={<Construction size={30} />}
-      title={mr ? section.mr : section.en}
-      description={mr ? 'हा विभाग सध्या तयार होत आहे. तोपर्यंत आपण प्रोफाइल मंजुरी वापरू शकता.' : 'This section is being built. Profile Approval is ready to use now.'}
-      action={{ label: mr ? 'प्रोफाइल मंजुरीकडे जा' : 'Go to Profile Approval', to: '/admin/approvals' }}
-    />
-  );
-};
-
-const PENDING_SECTIONS = [ 'reports'];
 
 const AdminRoutes: React.FC = () => (
   <AdminGuard>
@@ -57,12 +38,10 @@ const AdminRoutes: React.FC = () => (
         <Route path="plans" element={<Gated path="plans"><PlansPage /></Gated>} />
         <Route path="payments" element={<Gated path="payments"><PaymentsPage /></Gated>} />
         <Route path="notifications" element={<Gated path="notifications"><NotificationsPage /></Gated>} />
+        <Route path="reports" element={<Gated path="reports"><ReportsPage /></Gated>} />
         <Route path="complaints" element={<Gated path="complaints"><ComplaintsPage /></Gated>} />
         <Route path="settings/lists" element={<Gated path="settings"><ListsPage /></Gated>} />
         <Route path="settings" element={<Gated path="settings"><SettingsPage /></Gated>} />
-        {PENDING_SECTIONS.map((path) => (
-          <Route key={path} path={path} element={<Gated path={path}><NotBuiltYet path={path} /></Gated>} />
-        ))}
         <Route path="verifications" element={<Navigate to="/admin/approvals" replace />} />
         <Route path="*" element={<Navigate to="/admin" replace />} />
       </Route>
